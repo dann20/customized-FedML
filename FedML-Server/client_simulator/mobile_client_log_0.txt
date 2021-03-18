@@ -1,0 +1,19 @@
+INFO:root:client_ID = 1
+INFO:root:dataset = mnist
+INFO:root:model = lr
+INFO:root:client_num_per_round = 2
+INFO:root:client_ID = 1, size = 2
+INFO:root:saving into /home/dann/FedML-AI/FedML-Server/client_simulator/MNIST_mobile
+INFO:root:load_data. dataset_name = mnist. device_id = 0
+INFO:root:create_model. model_name = lr, output_dim = 10
+INFO:root:#######training########### round_id = 0
+INFO:root:(Trainer_ID 0. Local Training Epoch: 0 	Loss: 2.166916
+INFO:root:(Trainer_ID 0. Local Training Epoch: 1 	Loss: 2.040961
+INFO:root:(Trainer_ID 0. Local Training Epoch: 2 	Loss: 1.964784
+INFO:root:(Trainer_ID 0. Local Training Epoch: 3 	Loss: 1.911541
+INFO:root:(Trainer_ID 0. Local Training Epoch: 4 	Loss: 1.871589
+INFO:root:(Trainer_ID 0. Local Training Epoch: 5 	Loss: 1.840155
+INFO:root:(Trainer_ID 0. Local Training Epoch: 6 	Loss: 1.814579
+INFO:root:(Trainer_ID 0. Local Training Epoch: 7 	Loss: 1.793237
+INFO:root:(Trainer_ID 0. Local Training Epoch: 8 	Loss: 1.775073
+INFO:root:(Trainer_ID 0. Local Training Epoch: 9 	Loss: 1.759366
