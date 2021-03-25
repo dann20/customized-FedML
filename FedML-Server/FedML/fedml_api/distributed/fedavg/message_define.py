@@ -18,7 +18,8 @@ class MyMessage(object):
         message payload keywords definition
     """
     MSG_ARG_KEY_NUM_SAMPLES = "num_samples"
-    MSG_ARG_KEY_MODEL_PARAMS = "model_params"
+    MSG_ARG_KEY_VAE_MODEL_PARAMS = "vae_model_params"
+    MSG_ARG_KEY_LSTM_MODEL_PARAMS = "lstm_model_params"
     MSG_ARG_KEY_CLIENT_INDEX = "client_idx"
 
     MSG_ARG_KEY_TRAIN_CORRECT = "train_correct"
