@@ -18,7 +18,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 from FedML.fedml_api.distributed.fedavg.FedAvgServerManager_VAE_LSTM import FedAVGServerManager
 from FedML.fedml_api.distributed.fedavg.FedAVGAggregator_VAE_LSTM import FedAVGAggregator
 from FedML.fedml_api.distributed.fedavg.VAE_LSTM_Models import VAEmodel, lstmKerasModel
-from FedML.fedml_api.distributed.fedavg.VAE_LSTM_Trainer import vaeTrainer
+from FedML.fedml_api.distributed.fedavg.VAE_Trainer import vaeTrainer
 from FedML.fedml_api.data_preprocessing.VAE_LSTM import DataGenerator
 from FedML.fedml_api.distributed.fedavg.utils_VAE_LSTM import process_config, create_dirs, get_args, save_config
 
@@ -70,35 +70,9 @@ def register_device():
         client_id = registered_client_num + 1
         device_id_to_client_id_dict[device_id] = client_id
 
-    training_task_args= {"exp_name": config[ 'exp_name' ],
-                          "dataset": config[ 'dataset' ],
-                          "y_scale": config[ 'y_scale '],
-                          "one_image": config[ 'one_image' ],
-                          "l_seq": config[ 'l_seq' ],
-                          "l_win": config[ 'l_win' ],
-                          "n_channel": config[ 'n_channel' ],
-                          "TRAIN_VAE": config[ 'TRAIN_VAE' ],
-                          "TRAIN_LSTM": config[ 'TRAIN_LSTM' ],
-                          "TRAIN_sigma": config[ 'TRAIN_sigma' ],
-                          "batch_size": config[ 'batch_size' ],
-                          "batch_size_lstm": config[ 'batch_size_lstm' ],
-                          "load_model": config[ 'load_model' ],
-                          "load_dir": config[ 'load_dir' ],
-                          "num_comm_rounds": config[ 'num_comm_rounds' ],
-                          "vae_epochs_per_comm_round": config[ 'vae_epochs_per_comm_round'],
-                          "lstm_epochs_per_comm_round": config[ 'lstm_epochs_per_comm_round' ],
-                          "learning_rate_vae": config[ 'learning_rate_vae' ],
-                          "learning_rate_lstm": config[ 'learning_rate_lstm' ],
-                          "code_size": config[ 'code_size' ],
-                          "sigma": config[ 'sigma' ],
-                          "sigma2_offset": config[ 'sigma2_offset '],
-                          "num_hidden_units": config[ 'num_hidden_units' ],
-                          "num_hidden_units_lstm": config[ 'num_hidden_units_lstm' ],
-                          'dataset_url': '{}/get-preprocessed-data/{}'.format(
-                              request.url_root,
-                              client_id-1
-                              )
-                          }
+    training_task_args = config
+    training_task_args['num_client'] = args.num_client
+    training_task_args['dataset_url'] = '{}/get-preprocessed-data/{}'.format(request.url_root, client_id - 1)
 
     return jsonify({"errno": 0,
                     "executorId": "executorId",
@@ -130,12 +104,6 @@ if __name__ == '__main__':
         config=args # needs attention
     )
 
-    # create tensorflow session
-    # sessions = []
-    # data = []
-    # model_vaes = []
-    # vae_trainers = []
-    # lstm_models = []
     model_vae_global = VAEmodel(config, "Global")
     sess_global = tf.compat.v1.Session(config=tf.compat.v1.ConfigProto())
     model_vae_global.load(sess_global)
@@ -152,5 +120,6 @@ if __name__ == '__main__':
                                          size=size,
                                          backend="MQTT")
     server_manager.run()
+
     # if run in debug mode, process will be single threaded by default
     app.run(host='192.168.4.3', port=5000)

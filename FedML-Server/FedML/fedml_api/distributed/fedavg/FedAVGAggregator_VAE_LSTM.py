@@ -54,26 +54,26 @@ class FedAVGAggregator(object):
         global_train_var = list()
         for i in range(len(self.train_vars_VAE_of_clients[0])):
             global_train_var.append(self.global_vae_trainer.model.train_vars_VAE[i].eval(self.global_vae_trainer.sess))
-        return global_train_var
+        return global_train_var # ( guess ) returns list of arrays
 
-    def set_global_vae_model_params(self, global_train_var):
+    def set_global_vae_model_params(self, global_train_var): # arg is list of arrays
         for i in range(len(self.train_vars_VAE_of_clients[0])):
             self.global_vae_trainer.model.train_vars_VAE[i].load(global_train_var[i], self.global_vae_trainer.sess)
 
     def get_global_lstm_model_params(self):
-        return self.global_lstm_model.lstm_nn_model.get_weights()
+        return self.global_lstm_model.lstm_nn_model.get_weights() # returns list of arrays
 
-    def set_global_lstm_model_params(self, weights):
+    def set_global_lstm_model_params(self, weights): # args is list of arrays
         self.global_lstm_model.lstm_nn_model.set_weights(weights)
 
     def add_vae_local_trained_result(self, index, model_params):
-        logging.info("add_model. index = %d" % index)
+        logging.info("add_VAE_model. index = %d" % index)
         self.vae_model_dict[index] = model_params
         # self.sample_num_dict[index] = sample_num
         self.flag_client_vae_model_uploaded_dict[index] = True
 
     def add_lstm_local_trained_result(self, index, model_params):
-        logging.info("add_model. index = %d" % index)
+        logging.info("add_LSTM_model. index = %d" % index)
         self.lstm_model_dict[index] = model_params
         # self.sample_num_dict[index] = sample_num
         self.flag_client_lstm_model_uploaded_dict[index] = True
@@ -119,7 +119,7 @@ class FedAVGAggregator(object):
         end_time = time.time()
         logging.info("VAE aggregate time cost: %d" %(end_time - start_time))
         self.global_vae_trainer.model.save(self.global_vae_trainer.sess) # save global model
-        return global_train_var
+        return global_train_var # returns list of arrays
 
     def aggregate_lstm(self): # aggregate, set and save global LSTM model
         start_time = time.time()
@@ -134,4 +134,4 @@ class FedAVGAggregator(object):
         logging.info("LSTM aggregate time cost: %d" %(end_time - start_time))
         glb_checkpoint_path = self.config['checkpoint_dir_lstm'] + "cp_{}.ckpt".format(self.global_lstm_model.name)
         self.global_lstm_model.lstm_nn_model.save_weights(glb_checkpoint_path)
-        return global_weights
+        return global_weights # return list of arrays

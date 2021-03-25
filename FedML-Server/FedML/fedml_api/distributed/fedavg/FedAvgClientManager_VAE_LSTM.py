@@ -1,9 +1,8 @@
 import logging
 import os
 import sys
-import numpy as np
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../..")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../../FedML")))
 
 try:
@@ -17,10 +16,11 @@ from FedML.fedml_api.distributed.fedavg.utils_LCHA import to_list_arrays, to_nes
 
 
 class FedAVGClientManager(ClientManager):
-    def __init__(self, args, trainer, comm=None, rank=0, size=0, backend="MPI"):
-        super().__init__(args, comm, rank, size, backend)
-        self.trainer = trainer
-        self.num_rounds = args.comm_round
+    def __init__(self, args, vae_trainer, lstm_model, comm=None, rank=0, size=0, backend="MPI"):
+        super().__init__(args, comm, rank, size, backend) # now args is config_dict
+        self.vae_trainer = vae_trainer
+        self.lstm_model = lstm_model
+        self.num_rounds = args['num_comm_rounds']
         self.round_idx = 0
 
     def run(self):

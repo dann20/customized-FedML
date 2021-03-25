@@ -192,4 +192,3 @@ class vaeTrainer(BaseTrain):
             savefig(self.config['result_dir'] + 'generated_samples_{}_{}.pdf'.format(self.cur_epoch, j))
             fig.clf()
             plt.close()
-

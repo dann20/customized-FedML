@@ -6,7 +6,7 @@ import numpy as np
 import time
 import matplotlib.pylab as plt
 from matplotlib.pyplot import plot, savefig, figure
-from utils import count_trainable_variables
+from FedML.fedml_api.distributed.fedavg.utils_VAE_LSTM import count_trainable_variables
 tfd = tfp.distributions
 
 

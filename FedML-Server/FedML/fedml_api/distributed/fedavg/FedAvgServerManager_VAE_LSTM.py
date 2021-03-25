@@ -33,6 +33,7 @@ class FedAVGServerManager(ServerManager):
 
     def send_init_lstm_msg(self):
         global_model_params = self.aggregator.get_global_lstm_model_params()
+        global_model_params = to_nested_list(global_model_params)
         for process_id in range(1, self.size):
             self.send_message_init_lstm_config(process_id, global_model_params, process_id - 1)
 

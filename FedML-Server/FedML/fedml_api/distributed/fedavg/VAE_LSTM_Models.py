@@ -343,7 +343,10 @@ class VAEmodel(BaseModel):
 
         print("sigma2 for {}: \n{}\n".format(self.name, self.sigma2))
 
+    def update_model(self, model_params):
+        pass
 
+# This LSTM Keras Model also acts as a LSTM Trainer
 class lstmKerasModel:
     def __init__(self, name, config):
         self.name = name
@@ -469,3 +472,6 @@ class lstmKerasModel:
         savefig(config['result_dir'] + "_{}".format(self.name) + "lstm_seq_embedding_{}.pdf".format(idx_test))
         fig.clf()
         plt.close()
+
+    def update_model(self, model_params):
+        pass
