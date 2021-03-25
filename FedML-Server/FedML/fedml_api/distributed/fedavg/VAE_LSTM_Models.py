@@ -343,9 +343,6 @@ class VAEmodel(BaseModel):
 
         print("sigma2 for {}: \n{}\n".format(self.name, self.sigma2))
 
-    def update_model(self, model_params):
-        pass
-
 # This LSTM Keras Model also acts as a LSTM Trainer
 class lstmKerasModel:
     def __init__(self, name, config):
@@ -407,7 +404,6 @@ class lstmKerasModel:
                        batch_size=config['batch_size_lstm'],
                        epochs=config['lstm_epochs_per_comm_round'],
                        callbacks=[cp_callback])
-
 
     def plot_reconstructed_lt_seq(self, idx_test, model_vae, sess, data, lstm_embedding_test):
         config = self.config
@@ -473,5 +469,8 @@ class lstmKerasModel:
         fig.clf()
         plt.close()
 
-    def update_model(self, model_params):
-        pass
+    def get_lstm_model_params(self):
+        return self.lstm_nn_model.get_weights() # returns list of arrays
+
+    def set_lstm_model_params(self, weights): # args is list of arrays
+        self.lstm_nn_model.set_weights(weights)

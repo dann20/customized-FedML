@@ -23,6 +23,7 @@ from FedML.fedml_api.data_preprocessing.VAE_LSTM import DataGenerator
 from FedML.fedml_api.distributed.fedavg.utils_VAE_LSTM import process_config, create_dirs, get_args, save_config
 
 from FedML.fedml_core.distributed.communication.observer import Observer
+
 def add_args(parser):
     parser.add_argument('--server_ip', type=str, default="http://127.0.0.1:5000",
                         help='IP address of the FedML server')

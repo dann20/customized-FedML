@@ -192,3 +192,13 @@ class vaeTrainer(BaseTrain):
             savefig(self.config['result_dir'] + 'generated_samples_{}_{}.pdf'.format(self.cur_epoch, j))
             fig.clf()
             plt.close()
+
+    def get_vae_model_params(self):
+        local_train_vars = list()
+        for i in range(len(self.model.train_vars_VAE)):
+            local_train_vars.append(self.model.train_vars_VAE[i].eval(self.sess))
+        return local_train_vars # ( guess ) returns list of arrays
+
+    def set_vae_model_params(self, train_vars): # arg is list of arrays
+        for i in range(len(self.model.train_vars_VAE)):
+            self.model.train_vars_VAE[i].load(train_vars[i], self.sess)

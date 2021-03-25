@@ -3,12 +3,14 @@ class MyMessage(object):
         message type definition
     """
     # server to client
-    MSG_TYPE_S2C_INIT_CONFIG = 1
-    MSG_TYPE_S2C_SYNC_MODEL_TO_CLIENT = 2
+    MSG_TYPE_S2C_VAE_INIT_CONFIG = 1
+    MSG_TYPE_S2C_LSTM_INIT_CONFIG = 2
+    MSG_TYPE_S2C_SYNC_VAE_MODEL_TO_CLIENT = 3
+    MSG_TYPE_S2C_SYNC_LSTM_MODEL_TO_CLIENT = 4
 
     # client to server
-    MSG_TYPE_C2S_SEND_MODEL_TO_SERVER = 3
-    MSG_TYPE_C2S_SEND_STATS_TO_SERVER = 4
+    MSG_TYPE_C2S_SEND_VAE_MODEL_TO_SERVER = 5
+    MSG_TYPE_C2S_SEND_LSTM_MODEL_TO_SERVER = 6
 
     MSG_ARG_KEY_TYPE = "msg_type"
     MSG_ARG_KEY_SENDER = "sender"
