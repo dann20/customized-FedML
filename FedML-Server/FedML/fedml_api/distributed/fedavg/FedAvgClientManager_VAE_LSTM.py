@@ -16,7 +16,6 @@ except ImportError:
 from .message_define import MyMessage
 from FedML.fedml_api.distributed.fedavg.utils_LCHA import to_list_arrays, to_nested_list
 
-
 class FedAVGClientManager(ClientManager):
     def __init__(self, args, vae_trainer, lstm_model, comm=None, rank=0, size=0, backend="MPI"):
         super().__init__(args, comm, rank, size, backend) # now args is config_dict
@@ -41,7 +40,6 @@ class FedAVGClientManager(ClientManager):
     def handle_message_vae_init(self, msg_params):
         global_model_params = msg_params.get(MyMessage.MSG_ARG_KEY_VAE_MODEL_PARAMS)
         client_index = msg_params.get(MyMessage.MSG_ARG_KEY_CLIENT_INDEX)
-
         global_model_params = to_list_arrays(global_model_params)
 
         self.vae_trainer.set_vae_model_params(global_model_params)
@@ -61,8 +59,8 @@ class FedAVGClientManager(ClientManager):
         self.vae_trainer.set_vae_model_params(global_model_params)
         self.round_idx += 1
         self.__vae_train()
-        # if self.round_idx == self.num_rounds - 1:
-        #     self.finish()
+        if self.round_idx == self.num_rounds:
+            send_phase_confirmation_to_server(0)
 
     def send_vae_model_to_server(self, receive_id, vae_model_params):
         vae_model_params = to_nested_list(vae_model_params)
@@ -75,6 +73,10 @@ class FedAVGClientManager(ClientManager):
         vae_trainer.train()
         local_train_vars = vae_trainer.get_vae_model_params()
         self.send_vae_model_to_server(0, local_train_vars)
+
+    def send_phase_confirmation_to_server(self, receive_id):
+        message = Message(MyMessage.MSG_TYPE_C2S_ACTIVATE_LSTM_PHASE, self.get_sender_id(), receive_id)
+        self.send_message(message)
 
     def handle_message_lstm_init(self, msg_params):
         global_model_params = msg_params.get(MyMessage.MSG_ARG_KEY_LSTM_MODEL_PARAMS)

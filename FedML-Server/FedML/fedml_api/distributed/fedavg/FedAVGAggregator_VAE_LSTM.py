@@ -38,8 +38,8 @@ class FedAVGAggregator(object):
         self.worker_num = worker_num
 
         # self.vae_model_dict = dict()
-        self.train_vars_VAE_of_clients = list() # VAE model
-        self.lstm_weights = list()
+        self.train_vars_VAE_of_clients = dict() # VAE model
+        self.lstm_weights = dict()
         # self.sample_num_dict = dict()
 
         self.flag_client_vae_model_uploaded_dict = dict()
@@ -93,12 +93,6 @@ class FedAVGAggregator(object):
         for idx in range(self.worker_num):
             self.flag_client_lstm_model_uploaded_dict[idx] = False
         return True
-
-    def run(self):
-        if self.config['TRAIN_VAE'] and self.config['vae_epochs_per_comm_round'] > 0:
-            self.aggregate_vae()
-        if self.config['TRAIN_LSTM'] and self.config['lstm_epochs_per_comm_round'] > 0:
-            self.aggregate_lstm()
 
     def aggregate_vae(self): # aggregate, set and save global VAE model
         start_time = time.time()

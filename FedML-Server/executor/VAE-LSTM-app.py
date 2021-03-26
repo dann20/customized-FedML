@@ -120,6 +120,7 @@ if __name__ == '__main__':
                                          size=size,
                                          backend="MQTT")
     server_manager.run()
+    server_manager.send_init_vae_msg()
 
     # if run in debug mode, process will be single threaded by default
     app.run(host='192.168.4.3', port=5000)

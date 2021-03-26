@@ -12,6 +12,8 @@ class MyMessage(object):
     MSG_TYPE_C2S_SEND_VAE_MODEL_TO_SERVER = 5
     MSG_TYPE_C2S_SEND_LSTM_MODEL_TO_SERVER = 6
 
+    MSG_TYPE_C2S_ACTIVATE_LSTM_PHASE = 7
+
     MSG_ARG_KEY_TYPE = "msg_type"
     MSG_ARG_KEY_SENDER = "sender"
     MSG_ARG_KEY_RECEIVER = "receiver"
