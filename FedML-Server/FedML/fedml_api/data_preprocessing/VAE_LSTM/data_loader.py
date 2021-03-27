@@ -13,7 +13,7 @@ class DataGenerator(BaseDataGenerator):
 
     def load_NAB_dataset(self, dataset, y_scale=6):
         if dataset == 'ecg':
-            data_dir = '../../VAE-LSTM-related/datasets/NAB-known-anomaly/'
+            data_dir = '../VAE-LSTM-related/datasets/NAB-known-anomaly/'
             data = np.load(data_dir + dataset + '_{}.npz'.format(self.num_client))
 
             # normalise the dataset by training set mean and std
@@ -73,7 +73,7 @@ class DataGenerator(BaseDataGenerator):
 
         else:
 
-            data_dir = '../../VAE-LSTM-related/datasets/NAB-known-anomaly/'
+            data_dir = '../VAE-LSTM-related/datasets/NAB-known-anomaly/'
             data = np.load(data_dir + dataset + '.npz')
 
             # normalise the dataset by training set mean and std
