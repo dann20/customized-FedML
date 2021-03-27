@@ -97,7 +97,8 @@ def get_args():
         help='The Configuration file')
     argparser.add_argument(
         '-n', '--num-client',
-        default=1,
+        type=int,
+        default=2,
         help='The number of clients participating in Federated Learning')
     args = argparser.parse_args()
     return args

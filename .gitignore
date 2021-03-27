@@ -1,2 +1,4 @@
 .vim
 FedML-Server/FedML/data
+FedML-Server/VAE-LSTM-related/experiments/
+FedML-Server/executor/log-server*
