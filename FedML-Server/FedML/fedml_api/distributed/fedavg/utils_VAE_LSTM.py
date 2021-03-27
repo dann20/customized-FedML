@@ -32,7 +32,7 @@ def process_config(json_file):
 
     # create directories to save experiment results and trained models
     if config['load_dir'] == "default":
-        save_dir = "../experiments-VAE-LSTM/local-results/{}/{}/batch-{}".format(
+        save_dir = "../../VAE-LSTM-related/experiments/local-results/{}/{}/batch-{}".format(
             config['exp_name'], config['dataset'], config['batch_size'])
     else:
         save_dir = config['load_dir']

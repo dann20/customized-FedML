@@ -19,7 +19,7 @@ from FedML.fedml_api.distributed.fedavg.FedAvgServerManager_VAE_LSTM import FedA
 from FedML.fedml_api.distributed.fedavg.FedAVGAggregator_VAE_LSTM import FedAVGAggregator
 from FedML.fedml_api.distributed.fedavg.VAE_LSTM_Models import VAEmodel, lstmKerasModel
 from FedML.fedml_api.distributed.fedavg.VAE_Trainer import vaeTrainer
-from FedML.fedml_api.data_preprocessing.VAE_LSTM import DataGenerator
+from FedML.fedml_api.data_preprocessing.VAE_LSTM.data_loader import DataGenerator
 from FedML.fedml_api.distributed.fedavg.utils_VAE_LSTM import process_config, create_dirs, get_args, save_config
 
 from FedML.fedml_core.distributed.communication.observer import Observer
@@ -123,4 +123,4 @@ if __name__ == '__main__':
     server_manager.send_init_vae_msg()
 
     # if run in debug mode, process will be single threaded by default
-    app.run(host='192.168.4.3', port=5000)
+    app.run(host='192.168.10.105', port=5000)
