@@ -14,6 +14,12 @@ class MyMessage(object):
 
     MSG_TYPE_C2S_ACTIVATE_LSTM_PHASE = 7
 
+    # original
+    MSG_TYPE_S2C_INIT_CONFIG = 8
+    MSG_TYPE_S2C_SYNC_MODEL_TO_CLIENT = 9
+    MSG_TYPE_C2S_SEND_MODEL_TO_SERVER = 10
+    MSG_TYPE_C2S_SEND_STATS_TO_SERVER = 11
+
     MSG_ARG_KEY_TYPE = "msg_type"
     MSG_ARG_KEY_SENDER = "sender"
     MSG_ARG_KEY_RECEIVER = "receiver"
