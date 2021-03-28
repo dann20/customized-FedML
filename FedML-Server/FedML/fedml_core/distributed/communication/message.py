@@ -14,7 +14,9 @@ class Message(object):
     MSG_OPERATION_BROADCAST = "broadcast"
     MSG_OPERATION_REDUCE = "reduce"
 
-    MSG_ARG_KEY_MODEL_PARAMS = "model_params"
+    # MSG_ARG_KEY_MODEL_PARAMS = "model_params"
+    MSG_ARG_KEY_VAE_MODEL_PARAMS = "vae_model_params"
+    MSG_ARG_KEY_LSTM_MODEL_PARAMS = "lstm_model_params"
 
     def __init__(self, type=0, sender_id=0, receiver_id=0):
         self.type = type
