@@ -66,8 +66,8 @@ class FedAVGAggregator(object):
             self.global_vae_trainer.model.train_vars_VAE[i].load(global_train_var[i], self.global_vae_trainer.sess)
 
     def get_global_lstm_model_params(self):
-        print('type: ' + str(self.global_lstm_model.lstm_nn_model.get_weights()))
-        print('type of index 0: ' + str(self.global_lstm_model.lstm_nn_model.get_weights()[0]))
+        print('type lstm: ' + str(type(self.global_lstm_model.lstm_nn_model.get_weights())))
+        print('type of lstm index 0: ' + str(type(self.global_lstm_model.lstm_nn_model.get_weights()[0])))
         return self.global_lstm_model.lstm_nn_model.get_weights() # returns list of arrays
 
     def set_global_lstm_model_params(self, weights): # args is list of arrays
