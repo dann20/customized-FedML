@@ -61,6 +61,7 @@ if __name__ == '__main__':
     uuid = main_args.client_uuid
 
     client_ID, config = register(main_args, uuid)
+    print(config)
     logging.info("client_ID = " + str(client_ID))
     logging.info("dataset = " + str(config['dataset']))
 
