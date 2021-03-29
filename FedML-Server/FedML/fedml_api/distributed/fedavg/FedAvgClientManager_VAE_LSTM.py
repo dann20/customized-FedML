@@ -41,6 +41,7 @@ class FedAVGClientManager(ClientManager):
         global_model_params = msg_params.get(MyMessage.MSG_ARG_KEY_VAE_MODEL_PARAMS)
         client_index = msg_params.get(MyMessage.MSG_ARG_KEY_CLIENT_INDEX)
         global_model_params = to_list_arrays(global_model_params)
+        logging.info('received vae init')
 
         self.vae_trainer.set_vae_model_params(global_model_params)
         self.round_idx = 0
@@ -67,6 +68,7 @@ class FedAVGClientManager(ClientManager):
         message = Message(MyMessage.MSG_TYPE_C2S_SEND_VAE_MODEL_TO_SERVER, self.get_sender_id(), receive_id)
         message.add_params(MyMessage.MSG_ARG_KEY_VAE_MODEL_PARAMS, vae_model_params)
         self.send_message(message)
+        logging.info('sent vae model')
 
     def __vae_train(self):
         logging.info("#######VAE training########### round_id = %d" % self.round_idx)
@@ -77,12 +79,14 @@ class FedAVGClientManager(ClientManager):
     def send_phase_confirmation_to_server(self, receive_id):
         message = Message(MyMessage.MSG_TYPE_C2S_ACTIVATE_LSTM_PHASE, self.get_sender_id(), receive_id)
         self.send_message(message)
+        logging.info('sent phase confirmation')
 
     def handle_message_lstm_init(self, msg_params):
         global_model_params = msg_params.get(MyMessage.MSG_ARG_KEY_LSTM_MODEL_PARAMS)
         client_index = msg_params.get(MyMessage.MSG_ARG_KEY_CLIENT_INDEX)
 
         global_model_params = to_list_arrays(global_model_params)
+        logging.info('received lstm init')
 
         self.lstm_model.set_lstm_model_params(global_model_params)
         self.round_idx = 0
@@ -102,9 +106,10 @@ class FedAVGClientManager(ClientManager):
 
     def send_lstm_model_to_server(self, receive_id, lstm_model_params):
         lstm_model_params = to_nested_list(lstm_model_params)
-        message = Message(MyMessage.MSG_TYPE_C2S_SEND_VAE_MODEL_TO_SERVER, self.get_sender_id(), receive_id)
+        message = Message(MyMessage.MSG_TYPE_C2S_SEND_LSTM_MODEL_TO_SERVER, self.get_sender_id(), receive_id)
         message.add_params(MyMessage.MSG_ARG_KEY_LSTM_MODEL_PARAMS, lstm_model_params)
         self.send_message(message)
+        logging.info('sent lstm model')
 
     def __lstm_train(self, global_model_params):
         logging.info("#######LSTM training########### round_id = %d" % self.round_idx)

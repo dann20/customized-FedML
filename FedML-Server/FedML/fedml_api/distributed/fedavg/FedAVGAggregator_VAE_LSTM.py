@@ -55,6 +55,9 @@ class FedAVGAggregator(object):
         # for i in range(len(self.train_vars_VAE_of_clients[0])):
         for i in range(len(self.global_vae_trainer.model.train_vars_VAE)):
             global_train_var.append(self.global_vae_trainer.model.train_vars_VAE[i].eval(self.global_vae_trainer.sess))
+        print('global train var: ')
+        print(global_train_var)
+        print('type of global train var [0]: '+str(type(global_train_var[0])))
         return global_train_var # ( guess ) returns list of arrays
 
     def set_global_vae_model_params(self, global_train_var): # arg is list of arrays
@@ -63,6 +66,8 @@ class FedAVGAggregator(object):
             self.global_vae_trainer.model.train_vars_VAE[i].load(global_train_var[i], self.global_vae_trainer.sess)
 
     def get_global_lstm_model_params(self):
+        print('type: ' + str(self.global_lstm_model.lstm_nn_model.get_weights()))
+        print('type of index 0: ' + str(self.global_lstm_model.lstm_nn_model.get_weights()[0]))
         return self.global_lstm_model.lstm_nn_model.get_weights() # returns list of arrays
 
     def set_global_lstm_model_params(self, weights): # args is list of arrays
