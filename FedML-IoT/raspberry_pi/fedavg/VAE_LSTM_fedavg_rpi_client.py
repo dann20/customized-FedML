@@ -55,7 +55,7 @@ python mobile_client_simulator.py --client_uuid '0'
 python mobile_client_simulator.py --client_uuid '1'
 """
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     # parse python script input parameters
     parser = argparse.ArgumentParser()
     main_args = add_args(parser)
