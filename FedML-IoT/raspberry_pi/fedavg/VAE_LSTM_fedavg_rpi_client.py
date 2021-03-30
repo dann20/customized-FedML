@@ -62,9 +62,14 @@ if __name__ == '__main__':
     uuid = main_args.client_uuid
 
     client_ID, config = register(main_args, uuid)
-    print(config)
     logging.info("client_ID = " + str(client_ID))
     logging.info("dataset = " + str(config['dataset']))
+    logging.info(config)
+
+    # create the experiments dirs
+    create_dirs([config['result_dir'], config['checkpoint_dir'], config['checkpoint_dir_lstm']])
+    # save the config in a txt file
+    save_config(config)
 
     sess = tf.compat.v1.Session(config=tf.compat.v1.ConfigProto())
     dataset = DataGenerator(config, client_ID)
