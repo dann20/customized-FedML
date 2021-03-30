@@ -72,8 +72,8 @@ class FedAVGClientManager(ClientManager):
 
     def __vae_train(self):
         logging.info("#######VAE training########### round_id = %d" % self.round_idx)
-        vae_trainer.train()
-        local_train_vars = vae_trainer.get_vae_model_params()
+        self.vae_trainer.train()
+        local_train_vars = self.vae_trainer.get_vae_model_params()
         self.send_vae_model_to_server(0, local_train_vars)
 
     def send_phase_confirmation_to_server(self, receive_id):
@@ -113,16 +113,16 @@ class FedAVGClientManager(ClientManager):
 
     def __lstm_train(self, global_model_params):
         logging.info("#######LSTM training########### round_id = %d" % self.round_idx)
-        lstm_model.produce_embeddings(self.vae_trainer.model, self.vae_trainer.data, self.vae_trainer.sess)
-        lstm_model.set_lstm_model_params(global_model_params)
-        lstm_model.lstm_nn_model.summary()
+        self.lstm_model.produce_embeddings(self.vae_trainer.model, self.vae_trainer.data, self.vae_trainer.sess)
+        self.lstm_model.set_lstm_model_params(global_model_params)
+        self.lstm_model.lstm_nn_model.summary()
         checkpoint_path = self.args['checkpoint_dir_lstm']\
-                                          + "cp_{}.ckpt".format(lstm_model.name)
+                                          + "cp_{}.ckpt".format(self.lstm_model.name)
         cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
                                                           save_weights_only=True,
                                                           verbose=1)
         if self.args['lstm_epochs_per_comm_round'] > 0:
-            lstm_model.train(lstm_model.lstm_nn_model, cp_callback)
+            self.lstm_model.train(self.lstm_model.lstm_nn_model, cp_callback)
 
-        local_train_vars = lstm_model.get_lstm_model_params()
+        local_train_vars = self.lstm_model.get_lstm_model_params()
         self.send_lstm_model_to_server(0, local_train_vars)
