@@ -31,13 +31,13 @@ class FedAVGServerManager(ServerManager):
         global_model_params = self.aggregator.get_global_vae_model_params()
         for process_id in range(1, self.size):
             self.send_message_init_vae_config(process_id, global_model_params, process_id - 1)
-        print('all init vae msgs sent')
+        logging.info('all init vae msgs sent')
 
     def send_init_lstm_msg(self):
         global_model_params = self.aggregator.get_global_lstm_model_params()
         for process_id in range(1, self.size):
             self.send_message_init_lstm_config(process_id, global_model_params, process_id - 1)
-        print('all init lstm msgs sent')
+        logging.info('all init lstm msgs sent')
 
     def register_message_receive_handlers(self):
         self.register_message_receive_handler(MyMessage.MSG_TYPE_C2S_SEND_VAE_MODEL_TO_SERVER,
@@ -53,7 +53,7 @@ class FedAVGServerManager(ServerManager):
         logging.info('received phase confirm from client ' + str(sender_id))
         if len(self.phase_confirm) == self.num_client:
             send_init_lstm_msg()
-            print('received all phase confirmations and sent init lstm model')
+            logging.info('received all phase confirmations and sent init lstm model')
 
     def handle_message_receive_vae_model_from_client(self, msg_params):
         sender_id = msg_params.get(MyMessage.MSG_ARG_KEY_SENDER)

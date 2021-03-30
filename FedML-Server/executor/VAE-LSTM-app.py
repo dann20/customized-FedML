@@ -81,6 +81,7 @@ def register_device():
                     "training_task_args": training_task_args})
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG)
     # MQTT client connection
     class Obs(Observer):
         def receive_message(self, msg_type, msg_params) -> None:
