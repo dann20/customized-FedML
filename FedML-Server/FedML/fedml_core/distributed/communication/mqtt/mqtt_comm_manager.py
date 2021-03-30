@@ -130,8 +130,9 @@ if __name__ == '__main__':
     class Obs(Observer):
         def receive_message(self, msg_type, msg_params) -> None:
             print("receive_message(%s, %s)" % (msg_type, msg_params.to_string()))
-    
-    client = MqttCommManager("81.71.1.31", 1883)
+
+    # client = MqttCommManager("81.71.1.31", 1883)
+    client = MqttCommManager("192.168.4.5", 1883)
     client.add_observer(Obs())
     time.sleep(3)
     print('client ID:%s' % client.client_id)
