@@ -470,7 +470,10 @@ class lstmKerasModel:
         plt.close()
 
     def get_lstm_model_params(self):
-        return self.lstm_nn_model.get_weights() # returns list of arrays
+        global_model_params = self.lstm_nn_model.get_weights()
+        for i in range(len(global_model_params)):
+            global_model_params[i] = global_model_params[i].astype(np.float16, copy=False)
+        return global_model_params # returns list of arrays
 
     def set_lstm_model_params(self, weights): # args is list of arrays
         self.lstm_nn_model.set_weights(weights)

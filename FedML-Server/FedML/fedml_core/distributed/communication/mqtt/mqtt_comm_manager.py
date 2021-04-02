@@ -118,6 +118,7 @@ class MqttCommManager(BaseCommunicationManager):
         else:
             # client
             self._client.publish(self._topic + str(self.client_id), payload=msg.to_json())
+            logging.info("topic = %s" % str(self._topic + str(self.client_id)))
 
     def handle_receive_message(self):
         pass
@@ -132,7 +133,7 @@ if __name__ == '__main__':
             print("receive_message(%s, %s)" % (msg_type, msg_params.to_string()))
 
     # client = MqttCommManager("81.71.1.31", 1883)
-    client = MqttCommManager("192.168.4.5", 1883)
+    client = MqttCommManager("192.168.11.109", 1883)
     client.add_observer(Obs())
     time.sleep(3)
     print('client ID:%s' % client.client_id)

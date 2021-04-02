@@ -52,9 +52,9 @@ class FedAVGAggregator(object):
 
     def get_global_vae_model_params(self):
         global_train_var = list()
-        # for i in range(len(self.train_vars_VAE_of_clients[0])):
         for i in range(len(self.global_vae_trainer.model.train_vars_VAE)):
             global_train_var.append(self.global_vae_trainer.model.train_vars_VAE[i].eval(self.global_vae_trainer.sess))
+            global_train_var[i] = global_train_var[i].astype(np.float16, copy=False)
         print('global train var: ')
         print(global_train_var)
         print('type of global train var [0]: '+str(type(global_train_var[0])))
@@ -66,9 +66,12 @@ class FedAVGAggregator(object):
             self.global_vae_trainer.model.train_vars_VAE[i].load(global_train_var[i], self.global_vae_trainer.sess)
 
     def get_global_lstm_model_params(self):
-        print('type lstm: ' + str(type(self.global_lstm_model.lstm_nn_model.get_weights())))
-        print('type of lstm index 0: ' + str(type(self.global_lstm_model.lstm_nn_model.get_weights()[0])))
-        return self.global_lstm_model.lstm_nn_model.get_weights() # returns list of arrays
+        global_model_params = self.global_lstm_model.lstm_nn_model.get_weights()
+        for i in range(len(global_model_params)):
+            global_model_params[i] = global_model_params[i].astype(np.float16, copy=False)
+        print('global lstm model: ')
+        print(global_model_params)
+        return global_model_params # returns list of arrays
 
     def set_global_lstm_model_params(self, weights): # args is list of arrays
         self.global_lstm_model.lstm_nn_model.set_weights(weights)
@@ -108,9 +111,9 @@ class FedAVGAggregator(object):
         # [[self.global_vae_trainer.model.train_vars_VAE[i].eval(self.global_vae_trainer.sess) for i in range(len(vae_trainer.model.train_vars_VAE))] for _ in range(len(num_clients))]
         # [ vae_trainer.model.train_vars_VAE for _ in range(num_clients)] # maybe no need
         for i in range(len(self.train_vars_VAE_of_clients[0])):
-            global_train_var_eval = np.zeros_like(train_vars_VAE_of_clients[0][i])
+            global_train_var_eval = np.zeros_like(train_vars_VAE_of_clients[0][i], dtype=np.float16)
             for client in range(len(self.train_vars_VAE_of_clients)):
-                global_train_var_eval += np.multiply(self.weights[client], self.train_vars_VAE_of_clients[client][i])
+                global_train_var_eval += np.multiply(self.weights[client], self.train_vars_VAE_of_clients[client][i], dtype=np.float16)
             print(global_train_var_eval)
             print('type of global_train_var_eval: ' + str( type(global_train_var_eval) ))
             self.global_vae_trainer.model.train_vars_VAE[i].load(global_train_var_eval, self.global_vae_trainer.sess) # set global vae model
@@ -125,9 +128,9 @@ class FedAVGAggregator(object):
         start_time = time.time()
         for i in range(len(self.lstm_weights)):
             if i == 0:
-                global_weights = np.multiply(self.lstm_weights[i], self.weights[i])
+                global_weights = np.multiply(self.lstm_weights[i], self.weights[i], dtype=np.float16)
             else:
-                global_weights += np.multiply(self.lstm_weights[i], self.weights[i])
+                global_weights += np.multiply(self.lstm_weights[i], self.weights[i], dtype=np.float16)
         self.global_lstm_model.lstm_nn_model.set_weights(global_weights) # set global lstm model
         end_time = time.time()
         logging.info("LSTM aggregate time cost: %d" %(end_time - start_time))
