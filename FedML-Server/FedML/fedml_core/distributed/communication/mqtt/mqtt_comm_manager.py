@@ -2,6 +2,7 @@
 import logging
 import time
 import uuid
+import pickle
 from typing import List
 
 import paho.mqtt.client as mqtt
@@ -70,9 +71,9 @@ class MqttCommManager(BaseCommunicationManager):
             print(result)
 
     def _on_message(self, client, userdata, msg):
-        msg.payload = str(msg.payload, encoding='utf-8')
+        # msg.payload = str(msg.payload, encoding='utf-8')
         # print("_on_message: " + str(msg.payload))
-        self._notify(str(msg.payload))
+        self._notify(msg.payload)
 
     @staticmethod
     def _on_disconnect(client, userdata, rc):
@@ -91,7 +92,7 @@ class MqttCommManager(BaseCommunicationManager):
     def _notify(self, msg):
         # print("_notify: " + msg)
         msg_params = Message()
-        msg_params.init_from_json_string(str(msg))
+        msg_params.init_from_byte_array(msg)
         msg_type = msg_params.get_type()
         for observer in self._observers:
             observer.receive_message(msg_type, msg_params)
@@ -112,12 +113,12 @@ class MqttCommManager(BaseCommunicationManager):
             receiver_id = msg.get_receiver_id()
             topic = self._topic + str(0) + "_" + str(receiver_id)
             logging.info("topic = %s" % str(topic))
-            payload = msg.to_json()
+            payload = msg.to_byte_array()
             self._client.publish(topic, payload=payload)
             logging.info("sent")
         else:
             # client
-            self._client.publish(self._topic + str(self.client_id), payload=msg.to_json())
+            self._client.publish(self._topic + str(self.client_id), payload=msg.to_byte_array())
             logging.info("topic = %s" % str(self._topic + str(self.client_id)))
 
     def handle_receive_message(self):

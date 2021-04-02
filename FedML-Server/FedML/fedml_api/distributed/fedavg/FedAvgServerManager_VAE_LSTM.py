@@ -12,7 +12,6 @@ try:
 except ImportError:
     from FedML.fedml_core.distributed.communication.message import Message
     from FedML.fedml_core.distributed.server.server_manager import ServerManager
-from FedML.fedml_api.distributed.fedavg.utils_LCHA import to_nested_list, to_list_arrays
 
 class FedAVGServerManager(ServerManager):
     def __init__(self, args, aggregator, comm=None, rank=0, size=0, backend="MPI"):
@@ -58,7 +57,6 @@ class FedAVGServerManager(ServerManager):
     def handle_message_receive_vae_model_from_client(self, msg_params):
         sender_id = msg_params.get(MyMessage.MSG_ARG_KEY_SENDER)
         vae_model_params = msg_params.get(MyMessage.MSG_ARG_KEY_VAE_MODEL_PARAMS)
-        vae_model_params = to_list_arrays(vae_model_params)
         self.aggregator.add_vae_local_trained_result(sender_id - 1, vae_model_params)
         logging.info('received vae model from client ' + str(sender_id))
         b_all_received = self.aggregator.check_whether_all_receive_vae()
@@ -76,7 +74,6 @@ class FedAVGServerManager(ServerManager):
     def handle_message_receive_lstm_model_from_client(self, msg_params):
         sender_id = msg_params.get(MyMessage.MSG_ARG_KEY_SENDER)
         lstm_global_params = msg_params.get(MyMessage.MSG_ARG_KEY_LSTM_MODEL_PARAMS)
-        lstm_global_params = to_list_arrays(lstm_global_params)
         self.aggregator.add_lstm_local_trained_result(sender_id - 1, lstm_global_params)
         logging.info('received lstm model from client ' + str(sender_id))
         b_all_received = self.aggregator.check_whether_all_receive_lstm()
@@ -94,7 +91,6 @@ class FedAVGServerManager(ServerManager):
             self.finish()
 
     def send_message_init_vae_config(self, receive_id, global_model_params, client_index):
-        global_model_params = to_nested_list(global_model_params)
         message = Message(MyMessage.MSG_TYPE_S2C_VAE_INIT_CONFIG, self.get_sender_id(), receive_id)
         message.add_params(MyMessage.MSG_ARG_KEY_VAE_MODEL_PARAMS, global_model_params)
         message.add_params(MyMessage.MSG_ARG_KEY_CLIENT_INDEX, str(client_index))
@@ -103,7 +99,6 @@ class FedAVGServerManager(ServerManager):
 
 
     def send_message_init_lstm_config(self, receive_id, global_model_params, client_index):
-        global_model_params = to_nested_list(global_model_params)
         message = Message(MyMessage.MSG_TYPE_S2C_LSTM_INIT_CONFIG, self.get_sender_id(), receive_id)
         message.add_params(MyMessage.MSG_ARG_KEY_LSTM_MODEL_PARAMS, global_model_params)
         message.add_params(MyMessage.MSG_ARG_KEY_CLIENT_INDEX, str(client_index))
@@ -112,14 +107,12 @@ class FedAVGServerManager(ServerManager):
 
     def send_message_sync_vae_model_to_client(self, receive_id, global_vae_model_params, client_index):
         logging.info("send_message_sync_vae_model_to_client. receive_id = %d" % receive_id)
-        global_vae_model_params = to_nested_list(global_vae_model_params)
         message = Message(MyMessage.MSG_TYPE_S2C_SYNC_VAE_MODEL_TO_CLIENT, self.get_sender_id(), receive_id)
         message.add_params(MyMessage.MSG_ARG_KEY_VAE_MODEL_PARAMS, global_vae_model_params)
         message.add_params(MyMessage.MSG_ARG_KEY_CLIENT_INDEX, str(client_index))
         self.send_message(message)
 
     def send_message_sync_lstm_model_to_client(self, receive_id, global_lstm_model_params, client_index):
-        global_lstm_model_params = to_nested_list(global_lstm_model_params)
         logging.info("send_message_sync_lstm_model_to_client. receive_id = %d" % receive_id)
         message = Message(MyMessage.MSG_TYPE_S2C_SYNC_LSTM_MODEL_TO_CLIENT, self.get_sender_id(), receive_id)
         message.add_params(MyMessage.MSG_ARG_KEY_LSTM_MODEL_PARAMS, global_lstm_model_params)

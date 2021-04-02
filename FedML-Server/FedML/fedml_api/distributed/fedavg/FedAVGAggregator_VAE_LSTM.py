@@ -7,6 +7,7 @@ import time
 import numpy as np
 import tensorflow as tf
 import wandb
+import pickle
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../..")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../../FedML")))
@@ -55,10 +56,7 @@ class FedAVGAggregator(object):
         for i in range(len(self.global_vae_trainer.model.train_vars_VAE)):
             global_train_var.append(self.global_vae_trainer.model.train_vars_VAE[i].eval(self.global_vae_trainer.sess))
             global_train_var[i] = global_train_var[i].astype(np.float16, copy=False)
-        print('global train var: ')
-        print(global_train_var)
-        print('type of global train var [0]: '+str(type(global_train_var[0])))
-        return global_train_var # ( guess ) returns list of arrays
+        return global_train_var
 
     def set_global_vae_model_params(self, global_train_var): # arg is list of arrays
         # for i in range(len(self.train_vars_VAE_of_clients[0])):
@@ -69,9 +67,7 @@ class FedAVGAggregator(object):
         global_model_params = self.global_lstm_model.lstm_nn_model.get_weights()
         for i in range(len(global_model_params)):
             global_model_params[i] = global_model_params[i].astype(np.float16, copy=False)
-        print('global lstm model: ')
-        print(global_model_params)
-        return global_model_params # returns list of arrays
+        return global_model_params
 
     def set_global_lstm_model_params(self, weights): # args is list of arrays
         self.global_lstm_model.lstm_nn_model.set_weights(weights)

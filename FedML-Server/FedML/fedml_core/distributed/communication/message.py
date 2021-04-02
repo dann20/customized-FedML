@@ -1,6 +1,6 @@
 import json
 import sys
-
+import pickle
 
 class Message(object):
 
@@ -37,6 +37,12 @@ class Message(object):
         self.receiver_id = self.msg_params[Message.MSG_ARG_KEY_RECEIVER]
         # print("msg_params = " + str(self.msg_params))
 
+    def init_from_byte_array(self, payload):
+        self.msg_params = pickle.loads(payload)
+        self.type = self.msg_params[Message.MSG_ARG_KEY_TYPE]
+        self.sender_id = self.msg_params[Message.MSG_ARG_KEY_SENDER]
+        self.receiver_id = self.msg_params[Message.MSG_ARG_KEY_RECEIVER]
+
     def get_sender_id(self):
         return self.sender_id
 
@@ -65,6 +71,11 @@ class Message(object):
         json_string = json.dumps(self.msg_params)
         print("json string size = " + str(sys.getsizeof(json_string)))
         return json_string
+
+    def to_byte_array(self):
+        byteArr = pickle.dumps(self.msg_params)
+        print("byte array size = " + str(sys.getsizeof(byteArr)))
+        return byteArr
 
     def get_content(self):
         print_dict = self.msg_params.copy()

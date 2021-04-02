@@ -2,3 +2,6 @@
 FedML-Server/FedML/data
 FedML-Server/VAE-LSTM-related/experiments/
 FedML-Server/executor/log-server*
+FedML-Server/executor/logs/
+FedML-Server/executor/conf/__pycache__/
+FedML-Server/executor/console_*
