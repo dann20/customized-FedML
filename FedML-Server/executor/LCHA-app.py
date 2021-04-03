@@ -7,6 +7,8 @@ import numpy as np
 import torch
 import wandb
 import pandas as pd
+from sklearn.decomposition import PCA
+import pickle
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../")))
@@ -16,15 +18,12 @@ from FedML.fedml_api.distributed.fedavg.FedAvgServerManager_LCHA import FedAVGSe
 from FedML.fedml_api.distributed.fedavg.MyModelTrainer_LCHA import MyModelTrainerLCHA
 
 from FedML.fedml_api.data_preprocessing.LCHA_xlsx.data_loader import load_data_LCHA
-
 from FedML.fedml_api.model.LCHA.LCHA import LCHA
 
+from FedML.fedml_iot import cfg
 from FedML.fedml_core.distributed.communication.observer import Observer
 
 from flask import Flask, request, jsonify, send_from_directory, abort
-
-from sklearn.decomposition import PCA
-import pickle
 
 def add_args(parser):
     """
@@ -216,4 +215,4 @@ if __name__ == '__main__':
                                          is_preprocessed=args.is_preprocessed)
     server_manager.run()
     # if run in debug mode, process will be single threaded by default
-    app.run(host='192.168.1.10', port=5000)
+    app.run(host=cfg.HOST, port=5000)

@@ -10,7 +10,7 @@ import paho.mqtt.client as mqtt
 from ..base_com_manager import BaseCommunicationManager
 from ..message import Message
 from ..observer import Observer
-
+from .....fedml_iot import cfg
 
 class MqttCommManager(BaseCommunicationManager):
     def __init__(self, host, port, topic='fedml', client_id=0, client_num=0):
@@ -134,7 +134,7 @@ if __name__ == '__main__':
             print("receive_message(%s, %s)" % (msg_type, msg_params.to_string()))
 
     # client = MqttCommManager("81.71.1.31", 1883)
-    client = MqttCommManager("192.168.11.109", 1883)
+    client = MqttCommManager(cfg.HOST, 1883)
     client.add_observer(Obs())
     time.sleep(3)
     print('client ID:%s' % client.client_id)

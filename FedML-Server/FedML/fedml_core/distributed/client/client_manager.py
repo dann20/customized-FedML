@@ -7,7 +7,7 @@ from ..communication.message import Message
 from ..communication.mpi.com_manager import MpiCommunicationManager
 from ..communication.mqtt.mqtt_comm_manager import MqttCommManager
 from ..communication.observer import Observer
-
+from ....fedml_iot import cfg
 
 class ClientManager(Observer):
 
@@ -20,7 +20,7 @@ class ClientManager(Observer):
             self.com_manager = MpiCommunicationManager(comm, rank, size, node_type="client")
         elif backend == "MQTT":
             # HOST = "81.71.1.31"
-            HOST = "192.168.1.10"
+            HOST = cfg.HOST
             # HOST = "broker.emqx.io"
             PORT = 1883
             self.com_manager = MqttCommManager(HOST, PORT, client_id=rank, client_num=size - 1)

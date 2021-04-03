@@ -21,6 +21,7 @@ from FedML.fedml_api.distributed.fedavg.VAE_LSTM_Models import VAEmodel, lstmKer
 from FedML.fedml_api.distributed.fedavg.VAE_Trainer import vaeTrainer
 from FedML.fedml_api.data_preprocessing.VAE_LSTM.data_loader import DataGenerator
 from FedML.fedml_api.distributed.fedavg.utils_VAE_LSTM import process_config, create_dirs, get_args, save_config
+from FedML.fedml_iot import cfg
 
 from FedML.fedml_core.distributed.communication.observer import Observer
 from flask import Flask, request, jsonify, send_from_directory, abort
@@ -124,4 +125,4 @@ if __name__ == '__main__':
     # server_manager.send_init_vae_msg()
 
     # if run in debug mode, process will be single threaded by default
-    app.run(host='192.168.1.10', port=5000)
+    app.run(host= cfg.HOST, port=5000)
