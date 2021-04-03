@@ -101,13 +101,14 @@ class FedAVGAggregator(object):
         return True
 
     def aggregate_vae(self): # aggregate, set and save global VAE model
+        logging.info("start aggregating VAE model...")
         start_time = time.time()
         global_train_var = list()
         # 2 parameters transmitted
         # [[self.global_vae_trainer.model.train_vars_VAE[i].eval(self.global_vae_trainer.sess) for i in range(len(vae_trainer.model.train_vars_VAE))] for _ in range(len(num_clients))]
         # [ vae_trainer.model.train_vars_VAE for _ in range(num_clients)] # maybe no need
         for i in range(len(self.train_vars_VAE_of_clients[0])):
-            global_train_var_eval = np.zeros_like(train_vars_VAE_of_clients[0][i], dtype=np.float16)
+            global_train_var_eval = np.zeros_like(self.train_vars_VAE_of_clients[0][i], dtype=np.float16)
             for client in range(len(self.train_vars_VAE_of_clients)):
                 global_train_var_eval += np.multiply(self.weights[client], self.train_vars_VAE_of_clients[client][i], dtype=np.float16)
             print(global_train_var_eval)
@@ -121,6 +122,7 @@ class FedAVGAggregator(object):
         return global_train_var # returns list of arrays
 
     def aggregate_lstm(self): # aggregate, set and save global LSTM model
+        logging.info("start aggregating LSTM model...")
         start_time = time.time()
         for i in range(len(self.lstm_weights)):
             if i == 0:
