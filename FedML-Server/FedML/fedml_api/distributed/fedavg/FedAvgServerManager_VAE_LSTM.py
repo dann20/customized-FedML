@@ -51,7 +51,7 @@ class FedAVGServerManager(ServerManager):
         sender_id = msg_params.get(MyMessage.MSG_ARG_KEY_SENDER)
         self.phase_confirm[sender_id - 1] = True
         logging.info('received phase confirm from client ' + str(sender_id))
-        if len(self.phase_confirm) == self.num_client:
+        if (len(self.phase_confirm) == self.num_client):
             self.send_init_lstm_msg()
             logging.info('received all phase confirmations and sent init lstm model')
 
@@ -59,7 +59,7 @@ class FedAVGServerManager(ServerManager):
         sender_id = msg_params.get(MyMessage.MSG_ARG_KEY_SENDER)
         vae_model_params = msg_params.get(MyMessage.MSG_ARG_KEY_VAE_MODEL_PARAMS)
         self.aggregator.add_vae_local_trained_result(sender_id - 1, vae_model_params)
-        logging.info(self.aggregator.train_vars_VAE_of_clients[sender_id-1])
+        # logging.info(self.aggregator.train_vars_VAE_of_clients[sender_id-1])
         logging.info('received vae model from client ' + str(sender_id))
         b_all_received = self.aggregator.check_whether_all_receive_vae()
         logging.info("b_vae_all_received = " + str(b_all_received))
