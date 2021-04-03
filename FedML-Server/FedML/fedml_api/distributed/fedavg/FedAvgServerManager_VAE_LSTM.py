@@ -21,6 +21,8 @@ class FedAVGServerManager(ServerManager):
         self.round_idx = 0
         self.num_client = size - 1
         self.phase_confirm = dict()
+        for idx in range(self.num_client):
+            self.phase_confirm[idx] = False
 
     def run(self):
         super().run()
@@ -47,11 +49,21 @@ class FedAVGServerManager(ServerManager):
         self.register_message_receive_handler(MyMessage.MSG_TYPE_C2S_ACTIVATE_LSTM_PHASE,
                                               self.handle_message_phase_confirm_from_client)
 
+    def check_whether_all_phase_confirm(self):
+        for idx in range(self.num_client):
+            if not self.phase_confirm[idx]:
+                return False
+        for idx in range(self.num_client):
+            self.phase_confirm[idx] = False
+        return True
+
     def handle_message_phase_confirm_from_client(self, msg_params):
         sender_id = msg_params.get(MyMessage.MSG_ARG_KEY_SENDER)
         self.phase_confirm[sender_id - 1] = True
         logging.info('received phase confirm from client ' + str(sender_id))
-        if (len(self.phase_confirm) == self.num_client):
+        b_all_received = self.check_whether_all_phase_confirm()
+        logging.info('b_phase_confirm_all_received = ' + str(b_all_received))
+        if b_all_received:
             self.send_init_lstm_msg()
             logging.info('received all phase confirmations and sent init lstm model')
 

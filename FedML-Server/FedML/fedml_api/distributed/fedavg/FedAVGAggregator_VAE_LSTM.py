@@ -105,8 +105,8 @@ class FedAVGAggregator(object):
             global_train_var_eval = np.zeros_like(self.train_vars_VAE_of_clients[0][i], dtype=np.float16)
             for client in range(len(self.train_vars_VAE_of_clients)):
                 global_train_var_eval += np.multiply(self.weights[client], self.train_vars_VAE_of_clients[client][i], dtype=np.float16)
-            print(global_train_var_eval)
-            print('type of global_train_var_eval: ' + str( type(global_train_var_eval) ))
+            # print(global_train_var_eval)
+            # print('type of global_train_var_eval: ' + str( type(global_train_var_eval) ))
             self.global_vae_trainer.model.train_vars_VAE[i].assign(global_train_var_eval, self.global_vae_trainer.sess) # set global vae model
             global_train_var.append(global_train_var_eval)
 
