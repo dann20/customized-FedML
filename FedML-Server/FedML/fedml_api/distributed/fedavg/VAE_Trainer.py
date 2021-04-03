@@ -202,4 +202,4 @@ class vaeTrainer(BaseTrain):
 
     def set_vae_model_params(self, train_vars): # arg is list of arrays
         for i in range(len(self.model.train_vars_VAE)):
-            self.model.train_vars_VAE[i].load(train_vars[i], self.sess)
+            self.model.train_vars_VAE[i].assign(train_vars[i], self.sess)

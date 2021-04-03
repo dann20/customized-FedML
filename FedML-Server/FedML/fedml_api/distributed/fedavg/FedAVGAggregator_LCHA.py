@@ -5,9 +5,7 @@ import time
 import numpy as np
 import wandb
 
-from FedML.fedml_api.distributed.fedavg.utils_LCHA import to_list_arrays, to_array_arrays, aa_to_list_arrays
-
-class FedAVGAggregator2(object):
+class FedAVGAggregator(object):
 
     def __init__(self, train_pca, train_label, test_pca, test_label, worker_num, args, model_trainer):
         self.trainer = model_trainer
@@ -51,7 +49,6 @@ class FedAVGAggregator2(object):
         training_num = 0
 
         for idx in range(self.worker_num):
-            self.model_dict[idx] = to_list_arrays(self.model_dict[idx])
             model_list.append((self.sample_num_dict[idx], self.model_dict[idx]))
             training_num += self.sample_num_dict[idx]
 

@@ -13,10 +13,8 @@ except ImportError:
     from FedML.fedml_core.distributed.client.client_manager import ClientManager
     from FedML.fedml_core.distributed.communication.message import Message
 from .message_define import MyMessage
-from FedML.fedml_api.distributed.fedavg.utils_LCHA import to_list_arrays, to_nested_list
 
-
-class FedAVGClientManager2(ClientManager):
+class FedAVGClientManager(ClientManager):
     def __init__(self, args, trainer, comm=None, rank=0, size=0, backend="MPI"):
         super().__init__(args, comm, rank, size, backend)
         self.trainer = trainer
@@ -36,9 +34,6 @@ class FedAVGClientManager2(ClientManager):
         global_model_params = msg_params.get(MyMessage.MSG_ARG_KEY_MODEL_PARAMS)
         client_index = msg_params.get(MyMessage.MSG_ARG_KEY_CLIENT_INDEX)
 
-        if self.args.is_mobile == 1:
-            global_model_params = to_list_arrays(global_model_params)
-
         self.trainer.update_model(global_model_params)
         self.round_idx = 0
         self.__train()
@@ -51,9 +46,6 @@ class FedAVGClientManager2(ClientManager):
         logging.info("handle_message_receive_model_from_server.")
         model_params = msg_params.get(MyMessage.MSG_ARG_KEY_MODEL_PARAMS)
         client_index = msg_params.get(MyMessage.MSG_ARG_KEY_CLIENT_INDEX)
-
-        if self.args.is_mobile == 1:
-            model_params = to_list_arrays(model_params)
 
         self.trainer.update_model(model_params)
         self.round_idx += 1

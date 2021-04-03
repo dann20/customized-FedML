@@ -14,9 +14,6 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../../FedML"
 
 from FedML.fedml_api.data_preprocessing.VAE_LSTM.data_loader import \
     DataGenerator
-from FedML.fedml_api.distributed.fedavg.utils_LCHA import (aa_to_list_arrays,
-                                                           to_array_arrays,
-                                                           to_list_arrays)
 from FedML.fedml_api.distributed.fedavg.utils_VAE_LSTM import (create_dirs,
                                                                get_args,
                                                                process_config,
@@ -61,7 +58,7 @@ class FedAVGAggregator(object):
     def set_global_vae_model_params(self, global_train_var): # arg is list of arrays
         # for i in range(len(self.train_vars_VAE_of_clients[0])):
         for i in range(len(self.global_vae_trainer.model.train_vars_VAE)):
-            self.global_vae_trainer.model.train_vars_VAE[i].load(global_train_var[i], self.global_vae_trainer.sess)
+            self.global_vae_trainer.model.train_vars_VAE[i].assign(global_train_var[i], self.global_vae_trainer.sess)
 
     def get_global_lstm_model_params(self):
         global_model_params = self.global_lstm_model.lstm_nn_model.get_weights()
@@ -104,16 +101,13 @@ class FedAVGAggregator(object):
         logging.info("start aggregating VAE model...")
         start_time = time.time()
         global_train_var = list()
-        # 2 parameters transmitted
-        # [[self.global_vae_trainer.model.train_vars_VAE[i].eval(self.global_vae_trainer.sess) for i in range(len(vae_trainer.model.train_vars_VAE))] for _ in range(len(num_clients))]
-        # [ vae_trainer.model.train_vars_VAE for _ in range(num_clients)] # maybe no need
         for i in range(len(self.train_vars_VAE_of_clients[0])):
             global_train_var_eval = np.zeros_like(self.train_vars_VAE_of_clients[0][i], dtype=np.float16)
             for client in range(len(self.train_vars_VAE_of_clients)):
                 global_train_var_eval += np.multiply(self.weights[client], self.train_vars_VAE_of_clients[client][i], dtype=np.float16)
             print(global_train_var_eval)
             print('type of global_train_var_eval: ' + str( type(global_train_var_eval) ))
-            self.global_vae_trainer.model.train_vars_VAE[i].load(global_train_var_eval, self.global_vae_trainer.sess) # set global vae model
+            self.global_vae_trainer.model.train_vars_VAE[i].assign(global_train_var_eval, self.global_vae_trainer.sess) # set global vae model
             global_train_var.append(global_train_var_eval)
 
         end_time = time.time()

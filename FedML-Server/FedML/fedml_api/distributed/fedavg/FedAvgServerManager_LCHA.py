@@ -12,9 +12,8 @@ try:
 except ImportError:
     from FedML.fedml_core.distributed.communication.message import Message
     from FedML.fedml_core.distributed.server.server_manager import ServerManager
-from FedML.fedml_api.distributed.fedavg.utils_LCHA import to_nested_list
 
-class FedAVGServerManager2(ServerManager):
+class FedAVGServerManager(ServerManager):
     def __init__(self, args, aggregator, comm=None, rank=0, size=0, backend="MPI", is_preprocessed=False):
         super().__init__(args, comm, rank, size, backend)
         self.args = args
@@ -66,10 +65,6 @@ class FedAVGServerManager2(ServerManager):
                                                                  self.args.client_num_per_round)
 
             print("size = %d" % self.size)
-            if self.args.is_mobile == 1:
-                print("transform_to_list")
-                global_model_params = to_nested_list(global_model_params)
-
             for receiver_id in range(1, self.size):
                 self.send_message_sync_model_to_client(receiver_id, global_model_params,
                                                        client_indexes[receiver_id - 1])

@@ -13,12 +13,9 @@ from sklearn.decomposition import PCA
 import pickle
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../")))
-from FedML.fedml_api.distributed.fedavg.MyModelTrainer import MyModelTrainer
 from FedML.fedml_api.distributed.fedavg.MyModelTrainer_LCHA import MyModelTrainerLCHA
-from FedML.fedml_api.distributed.fedavg.FedAVGTrainer import FedAVGTrainer
-from FedML.fedml_api.distributed.fedavg.FedAvgClientManager import FedAVGClientManager
-from FedML.fedml_api.distributed.fedavg.FedAVGTrainer2 import FedAVGTrainer2
-from FedML.fedml_api.distributed.fedavg.FedAvgClientManager2 import FedAVGClientManager2
+from FedML.fedml_api.distributed.fedavg.FedAVGTrainer_LCHA import FedAVGTrainer
+from FedML.fedml_api.distributed.fedavg.FedAvgClientManager_LCHA import FedAVGClientManager
 
 from FedML.fedml_api.data_preprocessing.LCHA_xlsx.data_loader import load_data_LCHA
 
@@ -112,10 +109,10 @@ if __name__ == '__main__':
     test_pca = pca.transform(test_data)
 
     # start training
-    trainer = FedAVGTrainer2(client_index, train_pca, train_label, test_pca, test_label, args, model_trainer)
+    trainer = FedAVGTrainer(client_index, train_pca, train_label, test_pca, test_label, args, model_trainer)
 
     size = args.client_num_per_round + 1
-    client_manager = FedAVGClientManager2(args, trainer, rank=client_ID, size=size, backend="MQTT")
+    client_manager = FedAVGClientManager(args, trainer, rank=client_ID, size=size, backend="MQTT")
     client_manager.run()
     client_manager.start_training()
 

@@ -11,24 +11,12 @@ import pandas as pd
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../")))
 
-from FedML.fedml_api.distributed.fedavg.FedAVGAggregator import FedAVGAggregator
-from FedML.fedml_api.distributed.fedavg.FedAVGAggregator2 import FedAVGAggregator2
-from FedML.fedml_api.distributed.fedavg.FedAvgServerManager import FedAVGServerManager
-from FedML.fedml_api.distributed.fedavg.FedAvgServerManager2 import FedAVGServerManager2
-from FedML.fedml_api.distributed.fedavg.MyModelTrainer import MyModelTrainer
+from FedML.fedml_api.distributed.fedavg.FedAVGAggregator_LCHA import FedAVGAggregator
+from FedML.fedml_api.distributed.fedavg.FedAvgServerManager_LCHA import FedAVGServerManager
 from FedML.fedml_api.distributed.fedavg.MyModelTrainer_LCHA import MyModelTrainerLCHA
 
-from FedML.fedml_api.data_preprocessing.MNIST.data_loader import load_partition_data_mnist
-from FedML.fedml_api.data_preprocessing.cifar10.data_loader import load_partition_data_cifar10
-from FedML.fedml_api.data_preprocessing.cifar100.data_loader import load_partition_data_cifar100
-from FedML.fedml_api.data_preprocessing.cinic10.data_loader import load_partition_data_cinic10
-from FedML.fedml_api.data_preprocessing.shakespeare.data_loader import load_partition_data_shakespeare
 from FedML.fedml_api.data_preprocessing.LCHA_xlsx.data_loader import load_data_LCHA
 
-from FedML.fedml_api.model.cv.mobilenet import mobilenet
-from FedML.fedml_api.model.cv.resnet import resnet56
-from FedML.fedml_api.model.linear.lr import LogisticRegression
-from FedML.fedml_api.model.nlp.rnn import RNN_OriginalFedAvg
 from FedML.fedml_api.model.LCHA.LCHA import LCHA
 
 from FedML.fedml_core.distributed.communication.observer import Observer
@@ -98,8 +86,6 @@ def add_args(parser):
                         help='continuous integration')
 
     parser.add_argument('--is_preprocessed', type=bool, default=True, help='True if data has been preprocessed')
-
-    # parser.add_argument('--total_number_of_samples', type=int, default=20000, help='Number of samples, for calculating weights of clients')
 
     args = parser.parse_args()
     return args
@@ -173,68 +159,17 @@ def register_device():
                     "training_task_args": training_task_args})
 
 
-def load_data(args, dataset_name):
-    if dataset_name == "mnist":
-        logging.info("load_data. dataset_name = %s" % dataset_name)
-        client_num, train_data_num, test_data_num, train_data_global, test_data_global, \
-        train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
-        class_num = load_partition_data_mnist(args.batch_size,
-                                              train_path="./../FedML/data/MNIST/train",
-                                              test_path="./../FedML/data/MNIST/test")
-        """
-        For shallow NN or linear models,
-        we uniformly sample a fraction of clients each round (as the original FedAvg paper)
-        """
-        args.client_num_in_total = client_num
-    elif dataset_name == "LCHA_xlsx":
-        logging.info("load_data. dataset_name = %s" % dataset_name)
+def load_data(args):
+        logging.info("load_data. dataset_name = LCHA_xlsx")
         train_data, train_label, \
         test_data, test_label, class_num = load_data_LCHA(train_data_dir = "./../FedML/data/LCHA_xlsx/train",
                                                test_data_dir = "./../FedML/data/LCHA_xlsx/test")
         dataset = [train_data, train_label, test_data, test_label, class_num]
         return dataset
 
-    elif dataset_name == "shakespeare":
-        logging.info("load_data. dataset_name = %s" % dataset_name)
-        client_num, train_data_num, test_data_num, train_data_global, test_data_global, \
-        train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
-        class_num = load_partition_data_shakespeare(args.batch_size)
-        args.client_num_in_total = client_num
-    else:
-        if dataset_name == "cifar10":
-            data_loader = load_partition_data_cifar10
-        elif dataset_name == "cifar100":
-            data_loader = load_partition_data_cifar100
-        elif dataset_name == "cinic10":
-            data_loader = load_partition_data_cinic10
-        else:
-            data_loader = load_partition_data_cifar10
-
-        train_data_num, test_data_num, train_data_global, test_data_global, \
-        train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
-        class_num = data_loader(args.dataset, args.data_dir, args.partition_method,
-                                args.partition_alpha, args.client_num_in_total, args.batch_size)
-
-    dataset = [train_data_num, test_data_num, train_data_global, test_data_global,
-               train_data_local_num_dict, train_data_local_dict, test_data_local_dict, class_num]
-    return dataset
-
-
 def create_model(args, model_name, output_dim):
     logging.info("create_model. model_name = %s, output_dim = %s" % (model_name, output_dim))
-    model = None
-    if model_name == "lr" and args.dataset == "mnist":
-        model = LogisticRegression(28 * 28, output_dim)
-        args.client_optimizer = "sgd"
-    elif model_name == "rnn" and args.dataset == "shakespeare":
-        model = RNN_OriginalFedAvg(28 * 28, output_dim)
-        args.client_optimizer = "sgd"
-    elif model_name == "resnet56":
-        model = resnet56(class_num=output_dim)
-    elif model_name == "mobilenet":
-        model = mobilenet(class_num=output_dim)
-    elif model_name == "LCHA":
-        model = LCHA().build(6,output_dim) # nk=6
+    model = LCHA().build(6,output_dim) # nk=6
     return model
 
 
@@ -261,53 +196,24 @@ if __name__ == '__main__':
     )
 
     # load data
-    dataset = load_data(args, args.dataset)
-    if args.dataset != "LCHA_xlsx":
-        # Set the random seed. The np.random seed determines the dataset partition.
-        # The torch_manual_seed determines the initial weight.
-        # We fix these two, so that we can reproduce the result.
-        np.random.seed(0)
-        torch.manual_seed(10)
-        # GPU 0
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        [train_data_num, test_data_num, train_data_global, test_data_global,
-         train_data_local_num_dict, train_data_local_dict, test_data_local_dict, class_num] = dataset
-        # create model.
-        # Note if the model is DNN (e.g., ResNet), the training will be very slow.
-        # In this case, please use our FedML distributed version (./fedml_experiments/distributed_fedavg)
-        model = create_model(args, model_name=args.model, output_dim=dataset[7])
-        model_trainer = MyModelTrainer(model)
-        aggregator = FedAVGAggregator(train_data_global, test_data_global, train_data_num,
-                                      train_data_local_dict, test_data_local_dict, train_data_local_num_dict,
-                                      args.client_num_per_round, device, args, model_trainer)
-        size = args.client_num_per_round + 1
-        server_manager = FedAVGServerManager(args,
-                                             aggregator,
-                                             rank=0,
-                                             size=size,
-                                             backend="MQTT",
-                                             is_preprocessed=args.is_preprocessed)
-        server_manager.run()
-    else:
-        [train_data, train_label, test_data, test_label, class_num] = dataset
-        model = create_model(args, model_name=args.model, output_dim=dataset[4])
-        model_trainer = MyModelTrainerLCHA(model,args)
-        # PCA transform
-        pca_model = 'pca.sav'
-        pca = pickle.load(open(pca_model, 'rb'))
-        train_pca = pca.transform(train_data)
-        test_pca = pca.transform(test_data)
+    dataset = load_data(args)
+    [train_data, train_label, test_data, test_label, class_num] = dataset
+    model = create_model(args, model_name=args.model, output_dim=dataset[4])
+    model_trainer = MyModelTrainerLCHA(model,args)
+    # PCA transform
+    pca_model = 'pca.sav'
+    pca = pickle.load(open(pca_model, 'rb'))
+    train_pca = pca.transform(train_data)
+    test_pca = pca.transform(test_data)
 
-        aggregator = FedAVGAggregator2(train_pca, train_label, test_pca, test_label, args.client_num_per_round, args, model_trainer)
-        size = args.client_num_per_round + 1
-        server_manager = FedAVGServerManager2(args,
-                                             aggregator,
-                                             rank=0,
-                                             size=size,
-                                             backend="MQTT",
-                                             is_preprocessed=args.is_preprocessed)
-        server_manager.run()
+    aggregator = FedAVGAggregator(train_pca, train_label, test_pca, test_label, args.client_num_per_round, args, model_trainer)
+    size = args.client_num_per_round + 1
+    server_manager = FedAVGServerManager(args,
+                                         aggregator,
+                                         rank=0,
+                                         size=size,
+                                         backend="MQTT",
+                                         is_preprocessed=args.is_preprocessed)
+    server_manager.run()
     # if run in debug mode, process will be single threaded by default
-    # app.run(host='192.168.6.6', port=5000)
-    app.run(host='192.168.0.4', port=5000)
-    # app.run(host='192.168.10.108', port=5000)
+    app.run(host='192.168.1.10', port=5000)

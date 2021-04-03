@@ -68,7 +68,6 @@ class FedAVGServerManager(ServerManager):
             client_indexes = [self.round_idx]*self.num_client
             print('indexes of clients: ' + str(client_indexes))
             print('size = %d' % self.size)
-            print("transforming vae model to transmit-able data...")
             for receiver_id in range(1,self.size):
                 self.send_message_sync_vae_model_to_client(receiver_id, global_vae_model_params, client_indexes[receiver_id - 1])
 
@@ -85,7 +84,6 @@ class FedAVGServerManager(ServerManager):
             client_indexes = [self.round_idx]*self.num_client
             print('indexes of clients: ' + str(client_indexes))
             print('size = %d' % self.size)
-            print("transforming lstm model to transmit-able data...")
             for receiver_id in range(1,self.size):
                 self.send_message_sync_lstm_model_to_client(receiver_id, global_lstm_model_params, client_indexes[receiver_id - 1])
         if self.round_idx == self.round_num:

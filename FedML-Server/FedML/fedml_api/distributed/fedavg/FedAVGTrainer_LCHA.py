@@ -1,7 +1,6 @@
 import numpy as np
-from FedML.fedml_api.distributed.fedavg.utils_LCHA import to_nested_list
 
-class FedAVGTrainer2(object):
+class FedAVGTrainer(object):
     def __init__(self, client_index, train_pca, train_label, test_pca, test_label, args, model_trainer):
         self.trainer = model_trainer
         self.train_pca = train_pca
@@ -17,7 +16,6 @@ class FedAVGTrainer2(object):
     def train(self):
         self.trainer.train(self.train_pca, self.train_label, self.args)
         weights = self.trainer.get_model_params()
-        weights = to_nested_list(weights)
         return weights, self.local_sample_number
 
     def test(self):

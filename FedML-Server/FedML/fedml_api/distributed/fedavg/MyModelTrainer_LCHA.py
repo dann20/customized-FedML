@@ -2,11 +2,11 @@ import logging
 import tensorflow as tf
 
 try:
-    from fedml_core.trainer.model_trainer2 import ModelTrainer2
+    from fedml_core.trainer.model_trainer_LCHA import ModelTrainerLCHA
 except ImportError:
-    from FedML.fedml_core.trainer.model_trainer2 import ModelTrainer2
+    from FedML.fedml_core.trainer.model_trainer_LCHA import ModelTrainerLCHA
 
-class MyModelTrainerLCHA(ModelTrainer2):
+class MyModelTrainerLCHA(ModelTrainerLCHA):
     def __init__(self, model, args):
         super().__init__(model)
         loss='sparse_categorical_crossentropy'

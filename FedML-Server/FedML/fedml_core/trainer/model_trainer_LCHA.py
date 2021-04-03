@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
-# This abstract class is for additional models (LCHA, VAE - LSTM)
-class ModelTrainer2(ABC):
+# This abstract class is for LCHA model
+class ModelTrainerLCHA(ABC):
     def __init__(self, model):
         self.model = model
         self.id = 0
