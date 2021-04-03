@@ -124,4 +124,4 @@ if __name__ == '__main__':
     server_manager.send_init_vae_msg()
 
     # if run in debug mode, process will be single threaded by default
-    app.run(host='192.168.4.5', port=5000)
+    app.run(host='192.168.1.10', port=5000)

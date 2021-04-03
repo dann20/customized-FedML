@@ -3,5 +3,5 @@ outDirPath: ../output
 modelDirPath: ../models
 resourceDirPath: ../resource
 mqttBroker:
-  host: 192.168.4.5
+  host: 192.168.1.10
   port: 1883
