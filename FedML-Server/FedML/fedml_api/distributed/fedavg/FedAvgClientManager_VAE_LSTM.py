@@ -56,8 +56,9 @@ class FedAVGClientManager(ClientManager):
 
         self.vae_trainer.set_vae_model_params(global_model_params)
         self.round_idx += 1
-        self.__vae_train()
-        if self.round_idx == self.num_rounds:
+        if self.round_idx < self.num_rounds:
+            self.__vae_train()
+        elif self.round_idx == self.num_rounds:
             send_phase_confirmation_to_server(0)
 
     def send_vae_model_to_server(self, receive_id, vae_model_params):
@@ -94,8 +95,9 @@ class FedAVGClientManager(ClientManager):
 
         self.vae_trainer.set_lstm_model_params(global_model_params)
         self.round_idx += 1
-        self.__lstm_train(global_model_params)
-        if self.round_idx == self.num_rounds - 1:
+        if self.round_idx < self.num_rounds:
+            self.__lstm_train(global_model_params)
+        if self.round_idx == self.num_rounds:
             self.finish()
 
     def send_lstm_model_to_server(self, receive_id, lstm_model_params):
