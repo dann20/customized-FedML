@@ -59,7 +59,7 @@ class FedAVGClientManager(ClientManager):
         if self.round_idx < self.num_rounds:
             self.__vae_train()
         elif self.round_idx == self.num_rounds:
-            send_phase_confirmation_to_server(0)
+            self.send_phase_confirmation_to_server(0)
 
     def send_vae_model_to_server(self, receive_id, vae_model_params):
         message = Message(MyMessage.MSG_TYPE_C2S_SEND_VAE_MODEL_TO_SERVER, self.get_sender_id(), receive_id)
