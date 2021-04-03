@@ -29,16 +29,18 @@ class FedAVGServerManager(ServerManager):
 
     def send_init_vae_msg(self):
         self.round_idx = 0
+        client_indexes = [self.round_idx]*self.num_client
         global_model_params = self.aggregator.get_global_vae_model_params()
         for process_id in range(1, self.size):
-            self.send_message_init_vae_config(process_id, global_model_params, process_id - 1)
+            self.send_message_init_vae_config(process_id, global_model_params, client_indexes[process_id - 1])
         logging.info('all init vae msgs sent')
 
     def send_init_lstm_msg(self):
         self.round_idx = 0
+        client_indexes = [self.round_idx]*self.num_client
         global_model_params = self.aggregator.get_global_lstm_model_params()
         for process_id in range(1, self.size):
-            self.send_message_init_lstm_config(process_id, global_model_params, process_id - 1)
+            self.send_message_init_lstm_config(process_id, global_model_params, client_indexes[process_id - 1])
         logging.info('all init lstm msgs sent')
 
     def register_message_receive_handlers(self):
@@ -103,19 +105,18 @@ class FedAVGServerManager(ServerManager):
             self.finish()
 
     def send_message_init_vae_config(self, receive_id, global_model_params, client_index):
+        logging.info('sent init vae to client ' + str(receive_id))
         message = Message(MyMessage.MSG_TYPE_S2C_VAE_INIT_CONFIG, self.get_sender_id(), receive_id)
         message.add_params(MyMessage.MSG_ARG_KEY_VAE_MODEL_PARAMS, global_model_params)
         message.add_params(MyMessage.MSG_ARG_KEY_CLIENT_INDEX, str(client_index))
         self.send_message(message)
-        logging.info('sent init vae to client ' + str(receive_id))
-
 
     def send_message_init_lstm_config(self, receive_id, global_model_params, client_index):
+        logging.info('sent init lstm to client ' + str(receive_id))
         message = Message(MyMessage.MSG_TYPE_S2C_LSTM_INIT_CONFIG, self.get_sender_id(), receive_id)
         message.add_params(MyMessage.MSG_ARG_KEY_LSTM_MODEL_PARAMS, global_model_params)
         message.add_params(MyMessage.MSG_ARG_KEY_CLIENT_INDEX, str(client_index))
         self.send_message(message)
-        logging.info('sent init lstm to client ' + str(receive_id))
 
     def send_message_sync_vae_model_to_client(self, receive_id, global_vae_model_params, client_index):
         logging.info("send_message_sync_vae_model_to_client. receive_id = %d" % receive_id)
