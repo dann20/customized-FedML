@@ -93,10 +93,10 @@ class FedAVGClientManager(ClientManager):
         global_model_params = msg_params.get(MyMessage.MSG_ARG_KEY_LSTM_MODEL_PARAMS)
         client_index = msg_params.get(MyMessage.MSG_ARG_KEY_CLIENT_INDEX)
 
-        self.vae_trainer.set_lstm_model_params(global_model_params)
+        self.lstm_model.set_lstm_model_params(global_model_params)
         self.round_idx += 1
         if self.round_idx < self.num_rounds:
-            self.__lstm_train(global_model_params)
+            self.__lstm_train()
         if self.round_idx == self.num_rounds:
             self.finish()
 
@@ -106,10 +106,9 @@ class FedAVGClientManager(ClientManager):
         self.send_message(message)
         logging.info('sent lstm model')
 
-    def __lstm_train(self, global_model_params):
+    def __lstm_train(self):
         logging.info("#######LSTM training########### round_id = %d" % self.round_idx)
         self.lstm_model.produce_embeddings(self.vae_trainer.model, self.vae_trainer.data, self.vae_trainer.sess)
-        self.lstm_model.set_lstm_model_params(global_model_params)
         self.lstm_model.lstm_nn_model.summary()
         checkpoint_path = self.args['checkpoint_dir_lstm']\
                                           + "cp_{}.ckpt".format(self.lstm_model.name)
