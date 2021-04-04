@@ -72,7 +72,7 @@ if __name__ == '__main__':
     save_config(config)
 
     sess = tf.compat.v1.Session(config=tf.compat.v1.ConfigProto())
-    dataset = DataGenerator(config, client_ID)
+    dataset = DataGenerator(config, client_ID+1)
     vae_model = VAEmodel(config, "Client{}".format(client_ID))
     vae_model.load(sess)
     vae_trainer = vaeTrainer(sess, vae_model, dataset, config)

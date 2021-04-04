@@ -13,7 +13,8 @@ class DataGenerator(BaseDataGenerator):
 
     def load_NAB_dataset(self, dataset, y_scale=6):
         if dataset == 'ecg':
-            data_dir = '../VAE-LSTM-related/datasets/NAB-known-anomaly/'
+            # data_dir = '../VAE-LSTM-related/datasets/NAB-known-anomaly/'
+            data_dir = '/home/pi/customized-FedML/FedML-IoT/raspberrypi/VAE-LSTM-related/datasets/NAB-known-anomaly/'
             data = np.load(data_dir + dataset + '_{}.npz'.format(self.num_client))
 
             # normalise the dataset by training set mean and std
@@ -72,8 +73,8 @@ class DataGenerator(BaseDataGenerator):
             print("shape of train, val set lstm:",self.train_set_lstm['data'].shape,self.val_set_lstm['data'].shape)
 
         else:
-
-            data_dir = '../VAE-LSTM-related/datasets/NAB-known-anomaly/'
+            # data_dir = '../VAE-LSTM-related/datasets/NAB-known-anomaly/'
+            data_dir = '/home/pi/customized-FedML/FedML-IoT/raspberrypi/VAE-LSTM-related/datasets/NAB-known-anomaly/'
             data = np.load(data_dir + dataset + '.npz')
 
             # normalise the dataset by training set mean and std

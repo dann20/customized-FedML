@@ -36,6 +36,7 @@ class FedAVGServerManager(ServerManager):
         logging.info('all init vae msgs sent')
 
     def send_init_lstm_msg(self):
+        logging.info('start function send_init_lstm_msg')
         self.round_idx = 0
         client_indexes = [self.round_idx]*self.num_client
         global_model_params = self.aggregator.get_global_lstm_model_params()
