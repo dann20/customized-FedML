@@ -80,6 +80,19 @@ def register_device():
                     "client_id": client_id,
                     "training_task_args": training_task_args})
 
+def model_log(vae_trainer, lstm_model):
+    print('----------- VAE MODEL ----------')
+    vae_params = vae_trainer.get_vae_model_params()
+    print('Len: ' + str(len(vae_params)))
+    for i in range(len(vae_params)):
+        print('Shape of layer ' + str(i) + str(vae_params[i].shape))
+
+    print('----------- LSTM MODEL ----------')
+    lstm_params = lstm_model.get_lstm_model_params()
+    print('Len: ' + str(len(lstm_params)))
+    for i in range(len(lstm_params)):
+        print('Shape of layer ' + str(i) + str(lstm_params[i].shape))
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     # MQTT client connection
@@ -120,8 +133,9 @@ if __name__ == '__main__':
                                          rank=0,
                                          size=size,
                                          backend="MQTT")
+    model_log(server_manager.aggregator.global_vae_trainer, server_manager.aggregator.global_lstm_model)
     server_manager.run()
-    # server_manager.send_init_config()
+    server_manager.send_init_config()
 
     # if run in debug mode, process will be single threaded by default
     app.run(host= cfg.HOST, port=5000)
