@@ -28,6 +28,7 @@ class FedAVGServerManager(ServerManager):
         super().run()
 
     def send_init_vae_msg(self):
+        logging.info('sending init VAE model...')
         self.round_idx = 0
         client_indexes = [self.round_idx]*self.num_client
         global_model_params = self.aggregator.get_global_vae_model_params()
@@ -36,13 +37,22 @@ class FedAVGServerManager(ServerManager):
         logging.info('all init vae msgs sent')
 
     def send_init_lstm_msg(self):
-        logging.info('start function send_init_lstm_msg')
+        logging.info('sending init LSTM model...')
         self.round_idx = 0
         client_indexes = [self.round_idx]*self.num_client
         global_model_params = self.aggregator.get_global_lstm_model_params()
         for process_id in range(1, self.size):
             self.send_message_init_lstm_config(process_id, global_model_params, client_indexes[process_id - 1])
         logging.info('all init lstm msgs sent')
+
+    def send_init_config(self):
+        logging.info('sending init config...')
+        self.round_idx = 0
+        client_indexes = [self.round_idx] * self.num_client
+        global_vae_params = self.aggregator.get_global_vae_model_params()
+        global_lstm_params = self.aggregator.get_global_lstm_model_params()
+        for process_id in range(1, self.size):
+            self.send_message_init_config(process_id, global_vae_params, global_lstm_params, client_indexes[process_id - 1])
 
     def register_message_receive_handlers(self):
         self.register_message_receive_handler(MyMessage.MSG_TYPE_C2S_SEND_VAE_MODEL_TO_SERVER,
@@ -67,8 +77,8 @@ class FedAVGServerManager(ServerManager):
         b_all_received = self.check_whether_all_phase_confirm()
         logging.info('b_phase_confirm_all_received = ' + str(b_all_received))
         if b_all_received:
-            self.send_init_lstm_msg()
-            logging.info('received all phase confirmations and sent init lstm model')
+            self.send_init_config()
+            logging.info('received all connection confirmations and sent init model')
 
     def handle_message_receive_vae_model_from_client(self, msg_params):
         sender_id = msg_params.get(MyMessage.MSG_ARG_KEY_SENDER)
@@ -116,6 +126,14 @@ class FedAVGServerManager(ServerManager):
         logging.info('sent init lstm to client ' + str(receive_id))
         message = Message(MyMessage.MSG_TYPE_S2C_LSTM_INIT_CONFIG, self.get_sender_id(), receive_id)
         message.add_params(MyMessage.MSG_ARG_KEY_LSTM_MODEL_PARAMS, global_model_params)
+        message.add_params(MyMessage.MSG_ARG_KEY_CLIENT_INDEX, str(client_index))
+        self.send_message(message)
+
+    def send_message_init_config(self, receive_id, global_vae_params, global_lstm_params, client_index):
+        logging.info('sending init config to client ' + str(receive_id))
+        message = Message(MyMessage.MSG_TYPE_S2C_INIT_CONFIG, self.get_sender_id(), receive_id)
+        message.add_params(MyMessage.MSG_ARG_KEY_VAE_MODEL_PARAMS, global_vae_params)
+        message.add_params(MyMessage.MSG_ARG_KEY_LSTM_MODEL_PARAMS, global_lstm_params)
         message.add_params(MyMessage.MSG_ARG_KEY_CLIENT_INDEX, str(client_index))
         self.send_message(message)
 

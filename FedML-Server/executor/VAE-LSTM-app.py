@@ -5,7 +5,6 @@ import sys
 import tensorflow as tf
 import argparse
 import numpy as np
-import torch
 import wandb
 import pandas as pd
 
@@ -82,7 +81,7 @@ def register_device():
                     "training_task_args": training_task_args})
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
     # MQTT client connection
     class Obs(Observer):
         def receive_message(self, msg_type, msg_params) -> None:
@@ -122,7 +121,7 @@ if __name__ == '__main__':
                                          size=size,
                                          backend="MQTT")
     server_manager.run()
-    # server_manager.send_init_vae_msg()
+    # server_manager.send_init_config()
 
     # if run in debug mode, process will be single threaded by default
     app.run(host= cfg.HOST, port=5000)

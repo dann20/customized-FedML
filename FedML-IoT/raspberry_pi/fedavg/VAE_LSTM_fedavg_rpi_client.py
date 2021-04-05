@@ -81,5 +81,6 @@ if __name__ == '__main__':
     size = config['num_client'] + 1
     client_manager = FedAVGClientManager(config, vae_trainer, lstm_model, rank=client_ID, size=size, backend="MQTT")
     client_manager.run()
+    client_manager.send_phase_confirmation_to_server(0)
 
     time.sleep(1000000)
