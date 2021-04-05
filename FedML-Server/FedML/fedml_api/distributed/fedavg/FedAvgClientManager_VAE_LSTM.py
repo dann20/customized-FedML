@@ -107,6 +107,7 @@ class FedAVGClientManager(ClientManager):
         client_index = msg_params.get(MyMessage.MSG_ARG_KEY_CLIENT_INDEX)
 
         self.lstm_model.set_lstm_model_params(global_model_params)
+        logging.info('set lstm model... Start training...')
         self.round_idx += 1
         if self.round_idx < self.num_rounds:
             self.__lstm_train()
