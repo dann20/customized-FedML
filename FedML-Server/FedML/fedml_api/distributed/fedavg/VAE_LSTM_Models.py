@@ -477,4 +477,5 @@ class lstmKerasModel:
 
     def set_lstm_model_params(self, weights): # args is list of arrays
         print(weights)
+        self.lstm_nn_model.summary()
         self.lstm_nn_model.set_weights(weights)

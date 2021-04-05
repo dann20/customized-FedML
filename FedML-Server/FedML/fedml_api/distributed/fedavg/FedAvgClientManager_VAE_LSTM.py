@@ -58,7 +58,7 @@ class FedAVGClientManager(ClientManager):
 
     def start_training(self):
         self.round_idx = 0
-        self.__vae_train()
+        self.__lstm_train()
 
     def handle_message_receive_vae_model_from_server(self, msg_params):
         logging.info("handle_message_receive_vae_model_from_server.")
