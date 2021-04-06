@@ -93,7 +93,7 @@ if __name__ == '__main__':
 
     size = config['num_client'] + 1
     client_manager = FedAVGClientManager(config, vae_trainer, lstm_model, rank=client_ID, size=size, backend="MQTT")
-    model_log(client_manager.vae_trainer, client_manager.lstm_model)
+    # model_log(client_manager.vae_trainer, client_manager.lstm_model)
     client_manager.run()
 
     time.sleep(1000000)
