@@ -44,7 +44,7 @@ class FedAVGClientManager(ClientManager):
         client_index = msg_params.get(MyMessage.MSG_ARG_KEY_CLIENT_INDEX)
         logging.info('received init config')
         self.vae_trainer.set_vae_model_params(global_vae_params)
-        self.lstm_model.set_lstm_model_params(global_lstm_params)
+        # self.lstm_model.set_lstm_model_params(global_lstm_params)
         self.round_idx = 0
         self.__vae_train()
 
@@ -58,7 +58,7 @@ class FedAVGClientManager(ClientManager):
 
     def start_training(self):
         self.round_idx = 0
-        self.__lstm_train()
+        self.__vae_train()
 
     def handle_message_receive_vae_model_from_server(self, msg_params):
         logging.info("handle_message_receive_vae_model_from_server.")

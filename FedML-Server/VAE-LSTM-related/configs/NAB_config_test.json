@@ -13,7 +13,7 @@
     "batch_size_lstm": 32,
     "load_model": 1,
     "load_dir": "default",
-    "num_comm_rounds": 1,
+    "num_comm_rounds": 3,
     "vae_epochs_per_comm_round": 1,
     "lstm_epochs_per_comm_round": 1,
     "learning_rate_vae": 0.0004,
