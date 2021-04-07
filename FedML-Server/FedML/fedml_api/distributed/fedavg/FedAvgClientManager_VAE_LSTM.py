@@ -122,15 +122,16 @@ class FedAVGClientManager(ClientManager):
 
     def __lstm_train(self):
         logging.info("#######LSTM training########### round_id = %d" % self.round_idx)
-        self.lstm_model.produce_embeddings(self.vae_trainer.model, self.vae_trainer.data, self.vae_trainer.sess)
+        if self.round_idx == 0:
+            self.lstm_model.produce_embeddings(self.vae_trainer.model, self.vae_trainer.data, self.vae_trainer.sess)
         self.lstm_model.lstm_nn_model.summary()
-        checkpoint_path = self.args['checkpoint_dir_lstm']\
-                                          + "cp_{}.ckpt".format(self.lstm_model.name)
-        cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
-                                                          save_weights_only=True,
-                                                          verbose=1)
+        # checkpoint_path = self.args['checkpoint_dir_lstm']\
+        #                                   + "cp_{}.ckpt".format(self.lstm_model.name)
+        # cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
+        #                                                   save_weights_only=True,
+        #                                                   verbose=1)
         if self.args['lstm_epochs_per_comm_round'] > 0:
-            self.lstm_model.train(self.lstm_model.lstm_nn_model, cp_callback)
+            self.lstm_model.train(self.lstm_model.lstm_nn_model)#, cp_callback)
 
         local_train_vars = self.lstm_model.get_lstm_model_params()
         self.send_lstm_model_to_server(0, local_train_vars)
