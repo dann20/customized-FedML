@@ -405,7 +405,8 @@ class lstmKerasModel:
                        validation_data=(self.x_test, self.y_test),
                        batch_size=config['batch_size_lstm'],
                        epochs=config['lstm_epochs_per_comm_round'],
-                       callbacks=[cp_callback])
+                       callbacks=[cp_callback],
+                       verbose=1)
         print('checkpoint 3')
 
     def plot_reconstructed_lt_seq(self, idx_test, model_vae, sess, data, lstm_embedding_test):
