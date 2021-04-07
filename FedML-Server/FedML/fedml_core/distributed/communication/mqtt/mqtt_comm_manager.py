@@ -118,7 +118,7 @@ class MqttCommManager(BaseCommunicationManager):
             logging.info("sent")
         else:
             # client
-            self._client.publish(self._topic + str(self.client_id), payload=msg.to_byte_array(), retain=True)
+            self._client.publish(self._topic + str(self.client_id), payload=msg.to_byte_array())
             logging.info("topic = %s" % str(self._topic + str(self.client_id)))
 
     def handle_receive_message(self):
