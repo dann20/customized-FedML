@@ -397,7 +397,7 @@ class lstmKerasModel:
         else:
             print("No LSTM model loaded.")
 
-    def train(self, lstm_model):
+    def train(self, lstm_model, cp_callback):
         print('checkpoint 1')
         config = self.config
         print('checkpoint 2')
