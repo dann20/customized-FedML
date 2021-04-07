@@ -130,8 +130,14 @@ class FedAVGClientManager(ClientManager):
         cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
                                                           save_weights_only=True,
                                                           verbose=1)
+        # load weights if possible
+        self.lstm_model.load_model(self.lstm_model.lstm_nn_model, checkpoint_path)
+
         if self.args['lstm_epochs_per_comm_round'] > 0:
             self.lstm_model.train(self.lstm_model.lstm_nn_model, cp_callback)
+
+        glb_checkpoint_path = self.config['checkpoint_dir_lstm'] + "cp_{}.ckpt".format(self.lstm_model.name)
+        self.lstm_model.lstm_nn_model.save_weights(glb_checkpoint_path)
 
         local_train_vars = self.lstm_model.get_lstm_model_params()
         self.send_lstm_model_to_server(0, local_train_vars)
