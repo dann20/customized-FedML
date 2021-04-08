@@ -60,7 +60,9 @@ class FedAVGClientManager(ClientManager):
 
     def start_training(self):
         self.round_idx = 0
-        self.__lstm_train()
+        # self.lstm_model = lstmKerasModel("Client{}".format(self.rank), self.args)
+        # self.__lstm_train()
+        self.__vae_train()
 
     def handle_message_receive_vae_model_from_server(self, msg_params):
         logging.info("handle_message_receive_vae_model_from_server.")
@@ -73,6 +75,7 @@ class FedAVGClientManager(ClientManager):
             self.__vae_train()
         elif self.round_idx == self.num_rounds:
             self.round_idx = 0
+            self.lstm_model = lstmKerasModel("Client{}".format(self.rank), self.args)
             self.__lstm_train()
             # self.send_phase_confirmation_to_server(0)
 
@@ -99,6 +102,7 @@ class FedAVGClientManager(ClientManager):
 
         logging.info('received lstm init')
 
+        self.lstm_model = lstmKerasModel("Client{}".format(self.rank), self.args)
         self.lstm_model.set_lstm_model_params(global_model_params)
         self.round_idx = 0
         self.__lstm_train()
