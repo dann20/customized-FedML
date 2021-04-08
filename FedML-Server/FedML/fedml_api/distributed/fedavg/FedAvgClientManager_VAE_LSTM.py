@@ -76,7 +76,7 @@ class FedAVGClientManager(ClientManager):
             self.__vae_train()
         elif self.round_idx == self.num_rounds:
             self.embeddings = ProduceEmbeddings(self.vae_trainer.model, self.vae_trainer.data, self.vae_trainer.sess, self.args)
-            lstm_model.set_embeddings(self.embeddings)
+            self.lstm_model.set_embeddings(self.embeddings)
             self.start_lstm_training()
 
     def send_vae_model_to_server(self, receive_id, vae_model_params):
@@ -107,6 +107,7 @@ class FedAVGClientManager(ClientManager):
         self.round_idx = 0
         self.__lstm_train()
 
+    # Due to issue #3
     def handle_message_receive_lstm_model_from_server(self, msg_params):
         logging.info("handle_message_receive_lstm_model_from_server.")
         global_model_params = msg_params.get(MyMessage.MSG_ARG_KEY_LSTM_MODEL_PARAMS)
