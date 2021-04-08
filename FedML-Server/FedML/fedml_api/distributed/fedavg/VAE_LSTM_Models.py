@@ -345,21 +345,17 @@ class VAEmodel(BaseModel):
 
 # This LSTM Keras Model also acts as a LSTM Trainer
 class lstmKerasModel:
-    def __init__(self, name, config):
+    def __init__(self, name, config, embeddings=None):
         self.name = name
         self.config = config
         self.lstm_nn_model = self.create_lstm_model()
-
-    def __init__(self, name, config, embeddings):
-        self.name = name
-        self.config = config
-        self.lstm_nn_model = self.create_lstm_model()
-        self.x_train = embeddings.x_train
-        self.y_train = embeddings.y_train
-        self.x_test = embeddings.x_test
-        self.y_test = embeddings.y_test
-        self.embedding_lstm_train = embeddings.embedding_lstm_train
-        self.embedding_lstm_test = embeddings.embedding_lstm_test
+        if embeddings:
+            self.x_train = embeddings.x_train
+            self.y_train = embeddings.y_train
+            self.x_test = embeddings.x_test
+            self.y_test = embeddings.y_test
+            self.embedding_lstm_train = embeddings.embedding_lstm_train
+            self.embedding_lstm_test = embeddings.embedding_lstm_test
 
     def set_embeddings(self, embeddings):
         self.x_train = embeddings.x_train
