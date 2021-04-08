@@ -13,6 +13,7 @@ try:
 except ImportError:
     from FedML.fedml_core.distributed.client.client_manager import ClientManager
     from FedML.fedml_core.distributed.communication.message import Message
+from FedML.fedml_api.distributed.fedavg.VAE_LSTM_Models import lstmKerasModel
 from .message_define import MyMessage
 
 class FedAVGClientManager(ClientManager):
@@ -58,6 +59,7 @@ class FedAVGClientManager(ClientManager):
 
     def start_training(self):
         self.round_idx = 0
+        self.lstm_model.produce_embeddings(self.vae_trainer.model, self.vae_trainer.data, self.vae_trainer.sess)
         self.__lstm_train()
 
     def handle_message_receive_vae_model_from_server(self, msg_params):
@@ -122,8 +124,7 @@ class FedAVGClientManager(ClientManager):
 
     def __lstm_train(self):
         logging.info("#######LSTM training########### round_id = %d" % self.round_idx)
-        if self.round_idx == 0:
-            self.lstm_model.produce_embeddings(self.vae_trainer.model, self.vae_trainer.data, self.vae_trainer.sess)
+        self.lstm_model = lstmKerasModel("Client{}".format(self.rank), self.args)
         self.lstm_model.lstm_nn_model.summary()
         checkpoint_path = self.args['checkpoint_dir_lstm']\
                                           + "cp_{}.ckpt".format(self.lstm_model.name)
@@ -131,13 +132,13 @@ class FedAVGClientManager(ClientManager):
                                                           save_weights_only=True,
                                                           verbose=1)
         # load weights if possible
-        self.lstm_model.load_model(self.lstm_model.lstm_nn_model, checkpoint_path)
+        # self.lstm_model.load_model(self.lstm_model.lstm_nn_model, checkpoint_path)
 
         if self.args['lstm_epochs_per_comm_round'] > 0:
             self.lstm_model.train(self.lstm_model.lstm_nn_model, cp_callback)
 
-        glb_checkpoint_path = self.config['checkpoint_dir_lstm'] + "cp_{}.ckpt".format(self.lstm_model.name)
-        self.lstm_model.lstm_nn_model.save_weights(glb_checkpoint_path)
+        # glb_checkpoint_path = self.args['checkpoint_dir_lstm'] + "cp_{}.ckpt".format(self.lstm_model.name)
+        # self.lstm_model.lstm_nn_model.save_weights(glb_checkpoint_path)
 
         local_train_vars = self.lstm_model.get_lstm_model_params()
         self.send_lstm_model_to_server(0, local_train_vars)
