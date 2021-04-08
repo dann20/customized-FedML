@@ -13,7 +13,8 @@ from repo [emqx](https://github.com/emqx/emqx)
     - Set mqtt.retain_available = true
   - In plugins/emqx_retainer.conf:
     - Set retainer.max_payload_size = 10MB (> 2.5Mb for the largest, VAE and LSTM model config)
-#### Install required python packages in anaconda on server (recommended) and Raspberry Pi's  machine env or virtual env (no conda due to unavailable tensorflow package)
+#### Install required python packages
+Install in anaconda on server (recommended) and Raspberry Pi's machine env or virtual env (no conda due to unavailable tensorflow package)
 
 ### 1. Configuration
 #### Clients and Server
@@ -34,7 +35,10 @@ Instructions are written in chronological order of executions
   - `./emqx start` (built from source) or `emqx start` (binary package)
 - Run Aggregator Server:
   - Activate your installed environment
-  - VAE-LSTM Model: `python VAE-LSTM-app.py --config $(dir to model config file) --num-client $(number of workers)
+  - VAE-LSTM Model: `python VAE-LSTM-app.py --config $(dir to model config file) --num-client $(number of workers)`
   - LockEdge Model: `python LCHA-app.py --client-num-per-round $(number of workers) --comm-round $(number of comm rounds)`
  #### On clients:
  After server has run, execute ./run.sh
+
+### 3. Restart 
+Before re-run scripts on server and clients, restart EMQ X broker by `./emqx restart` or `emqx restart`
