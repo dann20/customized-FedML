@@ -350,6 +350,25 @@ class lstmKerasModel:
         self.config = config
         self.lstm_nn_model = self.create_lstm_model()
 
+    def __init__(self, name, config, embeddings):
+        self.name = name
+        self.config = config
+        self.lstm_nn_model = self.create_lstm_model()
+        self.x_train = embeddings.x_train
+        self.y_train = embeddings.y_train
+        self.x_test = embeddings.x_test
+        self.y_test = embeddings.y_test
+        self.embedding_lstm_train = embeddings.embedding_lstm_train
+        self.embedding_lstm_test = embeddings.embedding_lstm_test
+
+    def set_embeddings(self, embeddings):
+        self.x_train = embeddings.x_train
+        self.y_train = embeddings.y_train
+        self.x_test = embeddings.x_test
+        self.y_test = embeddings.y_test
+        self.embedding_lstm_train = embeddings.embedding_lstm_train
+        self.embedding_lstm_test = embeddings.embedding_lstm_test
+
     def create_lstm_model(self):
         config = self.config
         lstm_input = tf.keras.layers.Input(shape=(config['l_seq'] - 1, config['code_size']))
@@ -490,3 +509,25 @@ class lstmKerasModel:
         except:
             print('Funtion set_lstm_model_params failed')
         self.lstm_nn_model.summary()
+
+class ProduceEmbeddings:
+    def __init__(self, model_vae, data, sess, config):
+        self.embedding_lstm_train = np.zeros((data.n_train_lstm, config['l_seq'], config['code_size']))
+        for i in range(data.n_train_lstm):
+            feed_dict = {model_vae.original_signal: np.reshape(data.train_set_lstm['data'][i],(-1,config['l_win'],config['n_channel'])), #sua dong nay
+                         model_vae.is_code_input: False,
+                         model_vae.code_input: np.zeros((1, config['code_size']))}
+            self.embedding_lstm_train[i] = sess.run(model_vae.code_mean, feed_dict=feed_dict)
+        print("Finish processing the embeddings of the entire dataset of {}.".format(model_vae.name))
+        #print("The first a few embeddings are\n{}".format(self.embedding_lstm_train[0, 0:5]))
+        self.x_train = self.embedding_lstm_train[:, :config['l_seq'] - 1]
+        self.y_train = self.embedding_lstm_train[:, 1:]
+
+        self.embedding_lstm_test = np.zeros((data.n_val_lstm, config['l_seq'], config['code_size']))
+        for i in range(data.n_val_lstm):
+            feed_dict = {model_vae.original_signal: np.reshape(data.val_set_lstm['data'][i], (-1, config['l_win'], config['n_channel'])),
+                        model_vae.is_code_input: False,
+                        model_vae.code_input: np.zeros((1, config['code_size']))}
+            self.embedding_lstm_test[i] = sess.run(model_vae.code_mean, feed_dict=feed_dict)
+        self.x_test = self.embedding_lstm_test[:, :config['l_seq'] - 1]
+        self.y_test = self.embedding_lstm_test[:, 1:]
