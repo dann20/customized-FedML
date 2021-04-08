@@ -5,3 +5,4 @@ FedML-Server/executor/log-server*
 FedML-Server/executor/logs/
 FedML-Server/executor/conf/__pycache__/
 FedML-Server/executor/console_*
+FedML-IoT/raspberry_pi/VAE-LSTM-related/experiments/
