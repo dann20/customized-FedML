@@ -13,6 +13,7 @@ try:
 except ImportError:
     from FedML.fedml_core.distributed.client.client_manager import ClientManager
     from FedML.fedml_core.distributed.communication.message import Message
+from FedML.fedml_api.distributed.fedavg.VAE_LSTM_Models import lstmKerasModel, ProduceEmbeddings
 from .message_define import MyMessage
 
 class FedAVGClientManager(ClientManager):
@@ -44,9 +45,9 @@ class FedAVGClientManager(ClientManager):
         client_index = msg_params.get(MyMessage.MSG_ARG_KEY_CLIENT_INDEX)
         logging.info('received init config')
         self.vae_trainer.set_vae_model_params(global_vae_params)
+        self.lstm_model = lstmKerasModel("Client{}".format(self.rank), self.args)
         self.lstm_model.set_lstm_model_params(global_lstm_params)
-        self.round_idx = 0
-        self.__vae_train()
+        self.start_vae_training()
 
     def handle_message_vae_init(self, msg_params):
         global_model_params = msg_params.get(MyMessage.MSG_ARG_KEY_VAE_MODEL_PARAMS)
@@ -56,9 +57,13 @@ class FedAVGClientManager(ClientManager):
         self.round_idx = 0
         self.__vae_train()
 
-    def start_training(self):
+    def start_vae_training(self):
         self.round_idx = 0
         self.__vae_train()
+
+    def start_lstm_training(self):
+        self.round_idx = 0
+        self.__lstm_train()
 
     def handle_message_receive_vae_model_from_server(self, msg_params):
         logging.info("handle_message_receive_vae_model_from_server.")
@@ -70,9 +75,9 @@ class FedAVGClientManager(ClientManager):
         if self.round_idx < self.num_rounds:
             self.__vae_train()
         elif self.round_idx == self.num_rounds:
-            self.round_idx = 0
-            self.__lstm_train()
-            # self.send_phase_confirmation_to_server(0)
+            self.embeddings = ProduceEmbeddings(self.vae_trainer.model, self.vae_trainer.data, self.vae_trainer.sess, self.args)
+            self.lstm_model.set_embeddings(self.embeddings)
+            self.start_lstm_training()
 
     def send_vae_model_to_server(self, receive_id, vae_model_params):
         message = Message(MyMessage.MSG_TYPE_C2S_SEND_VAE_MODEL_TO_SERVER, self.get_sender_id(), receive_id)
@@ -97,16 +102,20 @@ class FedAVGClientManager(ClientManager):
 
         logging.info('received lstm init')
 
+        self.lstm_model = lstmKerasModel("Client{}".format(self.rank), self.args)
         self.lstm_model.set_lstm_model_params(global_model_params)
         self.round_idx = 0
         self.__lstm_train()
 
+    # Due to issue #3
     def handle_message_receive_lstm_model_from_server(self, msg_params):
         logging.info("handle_message_receive_lstm_model_from_server.")
         global_model_params = msg_params.get(MyMessage.MSG_ARG_KEY_LSTM_MODEL_PARAMS)
         client_index = msg_params.get(MyMessage.MSG_ARG_KEY_CLIENT_INDEX)
 
+        self.lstm_model = lstmKerasModel("Client{}".format(self.rank), self.args, self.embeddings)
         self.lstm_model.set_lstm_model_params(global_model_params)
+        logging.info('set lstm model... Start training...')
         self.round_idx += 1
         if self.round_idx < self.num_rounds:
             self.__lstm_train()
@@ -121,15 +130,20 @@ class FedAVGClientManager(ClientManager):
 
     def __lstm_train(self):
         logging.info("#######LSTM training########### round_id = %d" % self.round_idx)
-        self.lstm_model.produce_embeddings(self.vae_trainer.model, self.vae_trainer.data, self.vae_trainer.sess)
         self.lstm_model.lstm_nn_model.summary()
         checkpoint_path = self.args['checkpoint_dir_lstm']\
                                           + "cp_{}.ckpt".format(self.lstm_model.name)
         cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
                                                           save_weights_only=True,
                                                           verbose=1)
+        # load weights if possible
+        # self.lstm_model.load_model(self.lstm_model.lstm_nn_model, checkpoint_path)
+
         if self.args['lstm_epochs_per_comm_round'] > 0:
             self.lstm_model.train(self.lstm_model.lstm_nn_model, cp_callback)
+
+        glb_checkpoint_path = self.args['checkpoint_dir_lstm'] + "cp_{}.ckpt".format(self.lstm_model.name)
+        self.lstm_model.lstm_nn_model.save_weights(glb_checkpoint_path)
 
         local_train_vars = self.lstm_model.get_lstm_model_params()
         self.send_lstm_model_to_server(0, local_train_vars)

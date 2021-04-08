@@ -133,7 +133,7 @@ if __name__ == '__main__':
                                          rank=0,
                                          size=size,
                                          backend="MQTT")
-    model_log(server_manager.aggregator.global_vae_trainer, server_manager.aggregator.global_lstm_model)
+    # model_log(server_manager.aggregator.global_vae_trainer, server_manager.aggregator.global_lstm_model)
     server_manager.run()
     server_manager.send_init_config()
 

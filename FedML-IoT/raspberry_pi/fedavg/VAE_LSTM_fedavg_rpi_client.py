@@ -89,11 +89,12 @@ if __name__ == '__main__':
     vae_model = VAEmodel(config, "Client{}".format(client_ID))
     vae_model.load(sess)
     vae_trainer = vaeTrainer(sess, vae_model, dataset, config)
-    lstm_model = lstmKerasModel("Client{}".format(client_ID), config)
+    # lstm_model = lstmKerasModel("Client{}".format(client_ID), config)
 
     size = config['num_client'] + 1
-    client_manager = FedAVGClientManager(config, vae_trainer, lstm_model, rank=client_ID, size=size, backend="MQTT")
-    model_log(client_manager.vae_trainer, client_manager.lstm_model)
+    client_manager = FedAVGClientManager(config, vae_trainer, None, rank=client_ID, size=size, backend="MQTT")
+    # model_log(client_manager.vae_trainer, client_manager.lstm_model)
     client_manager.run()
+    # client_manager.start_training()
 
     time.sleep(1000000)

@@ -345,10 +345,25 @@ class VAEmodel(BaseModel):
 
 # This LSTM Keras Model also acts as a LSTM Trainer
 class lstmKerasModel:
-    def __init__(self, name, config):
+    def __init__(self, name, config, embeddings=None):
         self.name = name
         self.config = config
         self.lstm_nn_model = self.create_lstm_model()
+        if embeddings:
+            self.x_train = embeddings.x_train
+            self.y_train = embeddings.y_train
+            self.x_test = embeddings.x_test
+            self.y_test = embeddings.y_test
+            self.embedding_lstm_train = embeddings.embedding_lstm_train
+            self.embedding_lstm_test = embeddings.embedding_lstm_test
+
+    def set_embeddings(self, embeddings):
+        self.x_train = embeddings.x_train
+        self.y_train = embeddings.y_train
+        self.x_test = embeddings.x_test
+        self.y_test = embeddings.y_test
+        self.embedding_lstm_train = embeddings.embedding_lstm_train
+        self.embedding_lstm_test = embeddings.embedding_lstm_test
 
     def create_lstm_model(self):
         config = self.config
@@ -398,12 +413,16 @@ class lstmKerasModel:
             print("No LSTM model loaded.")
 
     def train(self, lstm_model, cp_callback):
+        print('checkpoint 1')
         config = self.config
+        print('checkpoint 2')
         lstm_model.fit(self.x_train, self.y_train,
                        validation_data=(self.x_test, self.y_test),
                        batch_size=config['batch_size_lstm'],
                        epochs=config['lstm_epochs_per_comm_round'],
-                       callbacks=[cp_callback])
+                       callbacks=[cp_callback],
+                       verbose=1)
+        print('checkpoint 3')
 
     def plot_reconstructed_lt_seq(self, idx_test, model_vae, sess, data, lstm_embedding_test):
         config = self.config
@@ -470,10 +489,41 @@ class lstmKerasModel:
         plt.close()
 
     def get_lstm_model_params(self):
-        global_model_params = self.lstm_nn_model.get_weights()
-        for i in range(len(global_model_params)):
-            global_model_params[i] = global_model_params[i].astype(np.float16, copy=False)
-        return global_model_params # returns list of arrays
+        try:
+            global_model_params = self.lstm_nn_model.get_weights()
+        except:
+            print('Function get_lstm_model_params failed')
+        else:
+            for i in range(len(global_model_params)):
+                global_model_params[i] = global_model_params[i].astype(np.float16, copy=False)
+            return global_model_params # returns list of arrays
 
     def set_lstm_model_params(self, weights): # args is list of arrays
-        self.lstm_nn_model.set_weights(weights)
+        # print(weights)
+        try:
+            self.lstm_nn_model.set_weights(weights)
+        except:
+            print('Funtion set_lstm_model_params failed')
+        self.lstm_nn_model.summary()
+
+class ProduceEmbeddings:
+    def __init__(self, model_vae, data, sess, config):
+        self.embedding_lstm_train = np.zeros((data.n_train_lstm, config['l_seq'], config['code_size']))
+        for i in range(data.n_train_lstm):
+            feed_dict = {model_vae.original_signal: np.reshape(data.train_set_lstm['data'][i],(-1,config['l_win'],config['n_channel'])), #sua dong nay
+                         model_vae.is_code_input: False,
+                         model_vae.code_input: np.zeros((1, config['code_size']))}
+            self.embedding_lstm_train[i] = sess.run(model_vae.code_mean, feed_dict=feed_dict)
+        print("Finish processing the embeddings of the entire dataset of {}.".format(model_vae.name))
+        #print("The first a few embeddings are\n{}".format(self.embedding_lstm_train[0, 0:5]))
+        self.x_train = self.embedding_lstm_train[:, :config['l_seq'] - 1]
+        self.y_train = self.embedding_lstm_train[:, 1:]
+
+        self.embedding_lstm_test = np.zeros((data.n_val_lstm, config['l_seq'], config['code_size']))
+        for i in range(data.n_val_lstm):
+            feed_dict = {model_vae.original_signal: np.reshape(data.val_set_lstm['data'][i], (-1, config['l_win'], config['n_channel'])),
+                        model_vae.is_code_input: False,
+                        model_vae.code_input: np.zeros((1, config['code_size']))}
+            self.embedding_lstm_test[i] = sess.run(model_vae.code_mean, feed_dict=feed_dict)
+        self.x_test = self.embedding_lstm_test[:, :config['l_seq'] - 1]
+        self.y_test = self.embedding_lstm_test[:, 1:]
