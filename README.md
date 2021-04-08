@@ -22,7 +22,7 @@ Install in anaconda on server (recommended) and Raspberry Pi's machine env or vi
 #### Clients
 - In run.sh: 
   - Modify server_ip to server's IP address, 
-  - Modify client_uuid from 0 for each client and 
+  - Modify client_uuid from 0 for each client
   - Change run script for your model (VAE_LSTM_fedavg_rpi_client.py or lockedge_fedavg_rpi_client.py)
 #### Server
 - Modify model configuration json file (for VAE-LSTM) to your needs
@@ -35,10 +35,12 @@ Instructions are written in chronological order of executions
   - `./emqx start` (built from source) or `emqx start` (binary package)
 - Run Aggregator Server:
   - Activate your installed environment
-  - VAE-LSTM Model: `python VAE-LSTM-app.py --config $(dir to model config file) --num-client $(number of workers)`
-  - LockEdge Model: `python LCHA-app.py --client-num-per-round $(number of workers) --comm-round $(number of comm rounds)`
+  - VAE-LSTM Model: 
+  -   `python VAE-LSTM-app.py --config $(dir to model config file) --num-client $(number of workers)`
+  - LockEdge Model: 
+  -   `python LCHA-app.py --client-num-per-round $(number of workers) --comm-round $(number of comm rounds)`
  #### On clients:
- After server has run, execute ./run.sh
+ After server has run, execute `./run.sh`
 
 ### 3. Restart 
 Before re-run scripts on server and clients, restart EMQ X broker by `./emqx restart` or `emqx restart`
