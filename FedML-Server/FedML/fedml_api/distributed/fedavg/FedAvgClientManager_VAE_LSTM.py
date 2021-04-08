@@ -75,7 +75,6 @@ class FedAVGClientManager(ClientManager):
             self.__vae_train()
         elif self.round_idx == self.num_rounds:
             self.round_idx = 0
-            self.lstm_model = lstmKerasModel("Client{}".format(self.rank), self.args)
             self.__lstm_train()
             # self.send_phase_confirmation_to_server(0)
 
