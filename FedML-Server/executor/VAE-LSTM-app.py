@@ -5,7 +5,7 @@ import sys
 import tensorflow as tf
 import argparse
 import numpy as np
-import wandb
+# import wandb
 import pandas as pd
 
 tf.compat.v1.disable_eager_execution()
@@ -111,12 +111,12 @@ if __name__ == '__main__':
     # save the config in a txt file
     save_config(config)
 
-    wandb.init(
-        project="fedml",
-        name="mobile(mqtt)" + str(args.config),
-        settings=wandb.Settings(start_method="fork"),
-        config=args # needs attention
-    )
+    # wandb.init(
+    #     project="fedml",
+    #     name="mobile(mqtt)" + str(args.config),
+    #     settings=wandb.Settings(start_method="fork"),
+    #     config=args # needs attention
+    # )
 
     model_vae_global = VAEmodel(config, "Global")
     sess_global = tf.compat.v1.Session(config=tf.compat.v1.ConfigProto())
@@ -138,4 +138,4 @@ if __name__ == '__main__':
     server_manager.send_init_config()
 
     # if run in debug mode, process will be single threaded by default
-    app.run(host= cfg.HOST, port=5000)
+    app.run(host= cfg.APP_HOST, port=5000)
