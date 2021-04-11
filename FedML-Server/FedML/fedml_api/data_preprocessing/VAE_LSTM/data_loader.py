@@ -72,6 +72,52 @@ class DataGenerator(BaseDataGenerator):
             self.val_set_lstm = dict(data=lstm_seq[idx_val])
             print("shape of train, val set lstm:",self.train_set_lstm['data'].shape,self.val_set_lstm['data'].shape)
 
+        elif 'scada' in dataset:
+            data_dir = '../VAE-LSTM-related/datasets/NAB-known-anomaly/'
+            data = np.load(data_dir + dataset + '.npz')
+
+            # slice training set into rolling windows
+            n_train_sample = len(data['training'])
+            n_train_sample = int(n_train_sample*0.3)
+            if self.num_client==1:
+                dataclient = data['training'][:n_train_sample]
+            else:
+                dataclient = data['training'][n_train_sample:]
+                n_train_sample = len(data['training']) - n_train_sample
+            stride_ori = data['training'].reshape((-1,self.config['n_channel'])).strides
+            strides = np.insert(stride_ori, 0, stride_ori[0], axis = 0)
+            n_train_vae = n_train_sample - self.config['l_win'] + 1
+            shape = [n_train_vae, self.config['l_win'], self.config['n_channel']]
+            rolling_windows = np.lib.stride_tricks.as_strided(data['training'],shape, strides, writeable = False)
+            for i in range(n_train_sample - self.config['l_win'] + 1):
+                rolling_windows[i] = np.reshape(data['training'][i:i + self.config['l_win']],(self.config['l_win'], self.config['n_channel']))
+
+            # create VAE training and validation set
+            idx_train, idx_val, self.n_train_vae, self.n_val_vae = self.separate_train_and_val_set(n_train_vae)
+            self.train_set_vae = dict(data=np.reshape(rolling_windows[idx_train],(-1, self.config['l_win'], self.config['n_channel'])))
+            self.val_set_vae = dict(data=np.reshape(rolling_windows[idx_val],(-1, self.config['l_win'], self.config['n_channel'])))
+            self.test_set_vae = dict(data=np.reshape(rolling_windows[idx_val[:self.config['batch_size']]], (-1, self.config['l_win'], self.config['n_channel'])))
+            print("shape of train,val,test set vae:",self.train_set_vae['data'].shape,\
+                self.val_set_vae['data'].shape,self.test_set_vae['data'].shape)
+
+            # create LSTM training and validation set
+            for k in range(self.config['l_win']):
+              n_not_overlap_wins = (n_train_sample - k) // self.config['l_win']
+              n_train_lstm = n_not_overlap_wins - self.config['l_seq'] + 1
+              shape = [n_train_lstm, self.config['l_seq'], self.config['l_win'], self.config['n_channel']]
+              strides = np.insert(stride_ori, 0, [stride_ori[0]*self.config['l_win'], stride_ori[0]*self.config['l_win']], axis = 0)
+              cur_lstm_seq = np.lib.stride_tricks.as_strided(data['training'][k:],shape, strides, writeable = False)
+              if k == 0:
+                lstm_seq = cur_lstm_seq
+              else:
+                lstm_seq = np.concatenate((lstm_seq, cur_lstm_seq), axis=0)
+
+            n_train_lstm = lstm_seq.shape[0]
+            idx_train, idx_val, self.n_train_lstm, self.n_val_lstm = self.separate_train_and_val_set(n_train_lstm)
+            self.train_set_lstm = dict(data=lstm_seq[idx_train])
+            self.val_set_lstm = dict(data=lstm_seq[idx_val])
+            print("shape of train, val set lstm:",self.train_set_lstm['data'].shape,self.val_set_lstm['data'].shape)
+
         else:
             data_dir = '../VAE-LSTM-related/datasets/NAB-known-anomaly/'
             # data_dir = '/home/pi/customized-FedML/FedML-IoT/raspberry_pi/VAE-LSTM-related/datasets/NAB-known-anomaly/'
@@ -155,7 +201,6 @@ class DataGenerator(BaseDataGenerator):
             self.train_set_lstm = dict(data=lstm_seq[idx_train])
             self.val_set_lstm = dict(data=lstm_seq[idx_val])
             print("shape of train, val set lstm:",self.train_set_lstm['data'].shape,self.val_set_lstm['data'].shape)
-
 
     def plot_time_series(self, data, time, data_list):
         fig, axs = plt.subplots(1, 4, figsize=(18, 2.5), edgecolor='k')
