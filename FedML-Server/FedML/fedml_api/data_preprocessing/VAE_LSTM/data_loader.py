@@ -88,7 +88,7 @@ class DataGenerator(BaseDataGenerator):
             strides = np.insert(stride_ori, 0, stride_ori[0], axis = 0)
             n_train_vae = n_train_sample - self.config['l_win'] + 1
             shape = [n_train_vae, self.config['l_win'], self.config['n_channel']]
-            rolling_windows = np.lib.stride_tricks.as_strided(data['training'],shape, strides, writeable = False)
+            rolling_windows = np.lib.stride_tricks.as_strided(data['training'],shape, strides)
             for i in range(n_train_sample - self.config['l_win'] + 1):
                 rolling_windows[i] = np.reshape(data['training'][i:i + self.config['l_win']],(self.config['l_win'], self.config['n_channel']))
 
