@@ -78,19 +78,13 @@ class DataGenerator(BaseDataGenerator):
 
             # slice training set into rolling windows
             n_train_sample = len(data['training'])
-            n_train_sample = int(n_train_sample*0.3)
-            if self.num_client==1:
-                dataclient = data['training'][:n_train_sample]
-            else:
-                dataclient = data['training'][n_train_sample:]
-                n_train_sample = len(data['training']) - n_train_sample
+            n_train_sample = int(n_train_sample*0.25)
+            dataclient = data['training'][( n_train_sample*(self.num_client-1) ):( n_train_sample*self.num_client )]
             stride_ori = data['training'].reshape((-1,self.config['n_channel'])).strides
             strides = np.insert(stride_ori, 0, stride_ori[0], axis = 0)
             n_train_vae = n_train_sample - self.config['l_win'] + 1
             shape = [n_train_vae, self.config['l_win'], self.config['n_channel']]
-            rolling_windows = np.lib.stride_tricks.as_strided(data['training'],shape, strides)
-            for i in range(n_train_sample - self.config['l_win'] + 1):
-                rolling_windows[i] = np.reshape(data['training'][i:i + self.config['l_win']],(self.config['l_win'], self.config['n_channel']))
+            rolling_windows = np.lib.stride_tricks.as_strided(data['training'],shape, strides, writeable=False)
 
             # create VAE training and validation set
             idx_train, idx_val, self.n_train_vae, self.n_val_vae = self.separate_train_and_val_set(n_train_vae)

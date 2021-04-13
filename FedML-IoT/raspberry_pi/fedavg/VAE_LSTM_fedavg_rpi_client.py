@@ -9,7 +9,6 @@ import numpy as np
 import pandas as pd
 import requests
 import tensorflow as tf
-import wandb
 
 tf.compat.v1.disable_eager_execution()
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../")))
