@@ -72,14 +72,14 @@ class DataGenerator(BaseDataGenerator):
             self.val_set_lstm = dict(data=lstm_seq[idx_val])
             print("shape of train, val set lstm:",self.train_set_lstm['data'].shape,self.val_set_lstm['data'].shape)
 
-        elif 'scada' in dataset:
+        elif 'scada' in dataset: # divided dataset for each client beforehand
             data_dir = '../VAE-LSTM-related/datasets/NAB-known-anomaly/'
             data = np.load(data_dir + dataset + '.npz')
 
             # slice training set into rolling windows
             n_train_sample = len(data['training'])
-            n_train_sample = int(n_train_sample*0.25)
-            dataclient = data['training'][( n_train_sample*(self.num_client-1) ):( n_train_sample*self.num_client )]
+            # n_train_sample = int(n_train_sample*0.25)
+            # dataclient = data['training'][( n_train_sample*(self.num_client-1) ):( n_train_sample*self.num_client )]
             stride_ori = data['training'].reshape((-1,self.config['n_channel'])).strides
             strides = np.insert(stride_ori, 0, stride_ori[0], axis = 0)
             n_train_vae = n_train_sample - self.config['l_win'] + 1

@@ -96,6 +96,8 @@ class FedAVGServerManager(ServerManager):
             print('size = %d' % self.size)
             for receiver_id in range(1,self.size):
                 self.send_message_sync_vae_model_to_client(receiver_id, global_vae_model_params, client_indexes[receiver_id - 1])
+        if self.round_idx == self.round_num:
+            self.round_idx = 0
 
     def handle_message_receive_lstm_model_from_client(self, msg_params):
         sender_id = msg_params.get(MyMessage.MSG_ARG_KEY_SENDER)
