@@ -4,6 +4,7 @@ import logging
 import os
 import sys
 import time
+import subprocess
 
 import numpy as np
 import pandas as pd
@@ -67,6 +68,9 @@ python mobile_client_simulator.py --client_uuid '0'
 python mobile_client_simulator.py --client_uuid '1'
 """
 if __name__ == '__main__':
+    # bmon_process = subprocess.Popen(['bmon', '-p', 'wlp7s0', '-r', '1', '-o', 'format:fmt=$(attr:txrate:bytes) $(attr:rxrate:bytes)\n', '>', bmon_log])
+    bmon_process = subprocess.Popen(["bmon -p wlp7s0 -r 1 -o 'format:fmt=$(attr:txrate:bytes) $(attr:rxrate:bytes)\n' > scada1-16-1r-client-test1.txt"], shell=True)
+    resmon_process = subprocess.Popen(["resmon", "-o", 'resmon-scada1-16-1r-client-test1.csv'])
     logging.basicConfig(level=logging.INFO)
     # parse python script input parameters
     parser = argparse.ArgumentParser()
@@ -91,7 +95,14 @@ if __name__ == '__main__':
     # lstm_model = lstmKerasModel("Client{}".format(client_ID), config)
 
     size = config['num_client'] + 1
-    client_manager = FedAVGClientManager(config, vae_trainer, None, rank=client_ID, size=size, backend="MQTT")
+    client_manager = FedAVGClientManager(config,
+                                         vae_trainer,
+                                         None,
+                                         rank=client_ID,
+                                         size=size,
+                                         backend="MQTT",
+                                         bmon_process=bmon_process,
+                                         resmon_process=resmon_process)
     # model_log(client_manager.vae_trainer, client_manager.lstm_model)
     client_manager.run()
     # client_manager.start_training()

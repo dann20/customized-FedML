@@ -17,15 +17,26 @@ from FedML.fedml_api.distributed.fedavg.VAE_LSTM_Models import lstmKerasModel, P
 from .message_define import MyMessage
 
 class FedAVGClientManager(ClientManager):
-    def __init__(self, args, vae_trainer, lstm_model, comm=None, rank=0, size=0, backend="MPI"):
+    def __init__(self, args, vae_trainer, lstm_model, comm=None, rank=0, size=0, backend="MPI", bmon_process=None, resmon_process=None):
         super().__init__(args, comm, rank, size, backend) # now args is config_dict
         self.vae_trainer = vae_trainer
         self.lstm_model = lstm_model
         self.num_rounds = args['num_comm_rounds']
         self.round_idx = 0
+        if bmon_process:
+            self.bmon_process = bmon_process
+        if resmon_process:
+            self.resmon_process = resmon_process
 
     def run(self):
         super().run()
+
+    def finish(self):
+        super().finish()
+        if self.bmon_process:
+            self.bmon_process.terminate()
+        if self.resmon_process:
+            self.resmon_process.terminate()
 
     def register_message_receive_handlers(self):
         self.register_message_receive_handler(MyMessage.MSG_TYPE_S2C_VAE_INIT_CONFIG,

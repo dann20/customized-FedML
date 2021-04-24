@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+import subprocess
 
 import tensorflow as tf
 import argparse
@@ -94,6 +95,9 @@ def model_log(vae_trainer, lstm_model):
         print('Shape of layer ' + str(i) + str(lstm_params[i].shape))
 
 if __name__ == '__main__':
+    # bmon_process = subprocess.Popen(['bmon', '-p', 'wlp7s0', '-r', '1', '-o', 'format:fmt=$(attr:txrate:bytes) $(attr:rxrate:bytes)\n', '>', bmon_log])
+    bmon_process = subprocess.Popen(["bmon -p wlp7s0 -r 1 -o 'format:fmt=$(attr:txrate:bytes) $(attr:rxrate:bytes)\n' > scada1-16-1r-server-test1.txt"], shell=True)
+    resmon_process = subprocess.Popen(["resmon", "-o", 'resmon-scada1-16-1r-server-test1.csv'])
     logging.basicConfig(level=logging.DEBUG)
     # MQTT client connection
     class Obs(Observer):
@@ -132,7 +136,9 @@ if __name__ == '__main__':
                                          aggregator,
                                          rank=0,
                                          size=size,
-                                         backend="MQTT")
+                                         backend="MQTT",
+                                         bmon_process=bmon_process,
+                                         resmon_process=resmon_process)
     # model_log(server_manager.aggregator.global_vae_trainer, server_manager.aggregator.global_lstm_model)
     server_manager.run()
     server_manager.send_init_config()
