@@ -14,334 +14,102 @@ from FedML.fedml_core.trainer.base_vae_lstm import BaseModel
 tfd = tfp.distributions
 
 class VAEmodel(BaseModel):
-    def __init__(self, config, name):
-        super(VAEmodel, self).__init__(config, name)
-        self.input_dims = self.config['l_win'] * self.config['n_channel']
+  def __init__(self, config, name):
+    super(VAEmodel, self).__init__(config, name)
+    self.input_dims = self.config['l_win'] * self.config['n_channel']
 
-        self.define_iterator()
-        self.build_model()
-        self.define_loss()
-        self.training_variables()
-        self.compute_gradients()
-        self.init_saver()
+    self.define_iterator()
+    self.build_model()
+    self.define_loss()
+    self.training_variables()
+    self.compute_gradients()
+    self.init_saver()
 
-    def define_iterator(self):
-        self.original_signal = tf.compat.v1.placeholder(tf.float32, [None, self.config['l_win'], self.config['n_channel']])
-        print("original_signal shape: ", self.original_signal.shape)
-        self.seed = tf.compat.v1.placeholder(tf.int64, shape=())
-        self.dataset = tf.data.Dataset.from_tensor_slices(self.original_signal)
-        self.dataset = self.dataset.shuffle(buffer_size=60000, seed=self.seed)
-        self.dataset = self.dataset.repeat(8000)
-        self.dataset = self.dataset.batch(self.config['batch_size'], drop_remainder=True)
-        self.iterator = tf.compat.v1.data.make_initializable_iterator(self.dataset)
-        self.input_image = self.iterator.get_next()
-        self.code_input = tf.compat.v1.placeholder(tf.float32, [None, self.config['code_size']])
-        self.is_code_input = tf.compat.v1.placeholder(tf.bool)
-        self.sigma2_offset = tf.constant(self.config['sigma2_offset'])
+  def define_iterator(self):
+    self.original_signal = tf.compat.v1.placeholder(tf.float32, [None, self.config['l_win'], self.config['n_channel']])
+    self.seed = tf.compat.v1.placeholder(tf.int64, shape=())
+    self.dataset = tf.data.Dataset.from_tensor_slices(self.original_signal)
+    self.dataset = self.dataset.shuffle(buffer_size=60000, seed=self.seed)
+    self.dataset = self.dataset.repeat(8000)
+    self.dataset = self.dataset.batch(self.config['batch_size'], drop_remainder=True)
+    self.iterator = tf.compat.v1.data.make_initializable_iterator(self.dataset)
+    self.input_image = self.iterator.get_next()
+    self.code_input = tf.compat.v1.placeholder(tf.float32, [None, self.config['code_size']])
+    self.is_code_input = tf.compat.v1.placeholder(tf.bool)
+    self.sigma2_offset = tf.constant(self.config['sigma2_offset'])
 
-    def build_model(self):
-        init = tf.compat.v1.keras.initializers.VarianceScaling(scale=1.0, mode="fan_avg", distribution="uniform")
-        with tf.compat.v1.variable_scope('encoder_{}'.format(self.name)):
-            #if self.config['n_channel'] == 1:
-            input_tensor = tf.expand_dims(self.original_signal, -1)
-            #else:
-            #    input_tensor = self.original_signal #them dong nay
-            print("input_tensor shape:", input_tensor.shape)
-            if self.config['l_win'] == 24:
-                conv_1 = tf.compat.v1.layers.conv2d(inputs=tf.pad(tensor=input_tensor, paddings=[[0, 0], [4, 4], [0, 0], [0, 0]], mode="SYMMETRIC"),
-                                          filters=self.config['num_hidden_units'] / 16,
-                                          kernel_size=(3, self.config['n_channel']),
-                                          strides=(2, 1),
-                                          padding='same',
-                                          activation=tf.nn.leaky_relu,
-                                          kernel_initializer=init)
-                print("conv_1: {}".format(conv_1))
-                conv_2 = tf.compat.v1.layers.conv2d(inputs=conv_1,
-                                          filters=self.config['num_hidden_units'] / 8,
-                                          kernel_size=(3, self.config['n_channel']),
-                                          strides=(2, 1),
-                                          padding='same',
-                                          activation=tf.nn.leaky_relu,
-                                          kernel_initializer=init)
-                print("conv_2: {}".format(conv_2))
-                conv_3 = tf.compat.v1.layers.conv2d(inputs=conv_2,
-                                          filters=self.config['num_hidden_units'] / 4,
-                                          kernel_size=(3, self.config['n_channel']),
-                                          strides=(2, 1),
-                                          padding='same',
-                                          activation=tf.nn.leaky_relu,
-                                          kernel_initializer=init)
-                print("conv_3: {}".format(conv_3))
-                conv_4 = tf.compat.v1.layers.conv2d(inputs=conv_3,
-                                          filters=self.config['num_hidden_units'],
-                                          kernel_size=(4, self.config['n_channel']),
-                                          strides=1,
-                                          padding='valid',
-                                          activation=tf.nn.leaky_relu,
-                                          kernel_initializer=init)
-                print("conv_4: {}".format(conv_4))
-            elif self.config['l_win'] == 48:
-                conv_1 = tf.compat.v1.layers.conv2d(input_tensor,
-                                          filters=self.config['num_hidden_units'] / 16,
-                                          kernel_size=(3, self.config['n_channel']),
-                                          strides=(2, 1),
-                                          padding='same',
-                                          activation=tf.nn.leaky_relu,
-                                          kernel_initializer=init)
-                print("conv_1: {}".format(conv_1))
-                conv_2 = tf.compat.v1.layers.conv2d(inputs=conv_1,
-                                          filters=self.config['num_hidden_units'] / 8,
-                                          kernel_size=(3, self.config['n_channel']),
-                                          strides=(2, 1),
-                                          padding='same',
-                                          activation=tf.nn.leaky_relu,
-                                          kernel_initializer=init)
-                print("conv_2: {}".format(conv_2))
-                conv_3 = tf.compat.v1.layers.conv2d(inputs=conv_2,
-                                          filters=self.config['num_hidden_units'] / 4,
-                                          kernel_size=(3, self.config['n_channel']),
-                                          strides=(2, 1),
-                                          padding='same',
-                                          activation=tf.nn.leaky_relu,
-                                          kernel_initializer=init)
-                print("conv_3: {}".format(conv_3))
-                conv_4 = tf.compat.v1.layers.conv2d(inputs=conv_3,
-                                          filters=self.config['num_hidden_units'],
-                                          kernel_size=(6, self.config['n_channel']),
-                                          strides=1,
-                                          padding='valid',
-                                          activation=tf.nn.leaky_relu,
-                                          kernel_initializer=init)
-                print("conv_4: {}".format(conv_4))
-            elif self.config['l_win'] == 144:
-                conv_1 = tf.compat.v1.layers.conv2d(inputs=input_tensor,
-                                          filters=self.config['num_hidden_units'] / 16,
-                                          kernel_size=(3, self.config['n_channel']),
-                                          strides=(4, 1),
-                                          padding='same',
-                                          activation=tf.nn.leaky_relu,
-                                          kernel_initializer=init)
-                print("conv_1: {}".format(conv_1))
-                conv_2 = tf.compat.v1.layers.conv2d(inputs=conv_1,
-                                          filters=self.config['num_hidden_units'] / 8,
-                                          kernel_size=(3, self.config['n_channel']),
-                                          strides=(4, 1),
-                                          padding='same',
-                                          activation=tf.nn.leaky_relu,
-                                          kernel_initializer=init)
-                print("conv_2: {}".format(conv_2))
-                conv_3 = tf.compat.v1.layers.conv2d(inputs=conv_2,
-                                          filters=self.config['num_hidden_units'] / 4,
-                                          kernel_size=(3, self.config['n_channel']),
-                                          strides=(3, 1),
-                                          padding='same',
-                                          activation=tf.nn.leaky_relu,
-                                          kernel_initializer=init)
-                print("conv_3: {}".format(conv_3))
-                conv_4 = tf.compat.v1.layers.conv2d(inputs=conv_3,
-                                          filters=self.config['num_hidden_units'],
-                                          kernel_size=(3, self.config['n_channel']),
-                                          strides=1,
-                                          padding='valid',
-                                          activation=tf.nn.leaky_relu,
-                                          kernel_initializer=init)
-                print("conv_4: {}".format(conv_4))
+  def build_model(self):
+    init = tf.compat.v1.keras.initializers.VarianceScaling(scale=1.0, mode="fan_avg", distribution="uniform")
+    with tf.compat.v1.variable_scope('encoder_{}'.format(self.name)):
+      #if self.config['n_channel']==1: #them doan nay
+      input_tensor = tf.expand_dims(self.original_signal, -1)
+      #    print(input_tensor.shape)
+      #else:
+      #    input_tensor = self.original_signal
+      #if self.config['l_win'] == 24:
+      conv_1 = tf.compat.v1.layers.dense(inputs=input_tensor,
+                                  units = self.config['n_channel']*10,
+                                  activation=tf.nn.leaky_relu,
+                                  kernel_initializer=init)
+      print("conv_1: {}".format(conv_1))
 
-            encoded_signal = tf.compat.v1.layers.flatten(conv_4)
-            encoded_signal = tf.compat.v1.layers.dense(encoded_signal,
-                                             units=self.config['code_size'] * 4,
-                                             activation=tf.nn.leaky_relu,
-                                             kernel_initializer=init)
-            self.code_mean = tf.compat.v1.layers.dense(encoded_signal,
-                                             units=self.config['code_size'],
-                                             activation=None,
-                                             kernel_initializer=init,
-                                             name='code_mean')
-            self.code_std_dev = tf.compat.v1.layers.dense(encoded_signal,
-                                                units=self.config['code_size'],
-                                                activation=tf.nn.relu,
-                                                kernel_initializer=init,
-                                                name='code_std_dev')
-            self.code_std_dev = self.code_std_dev + 1e-2
-            mvn = tfp.distributions.MultivariateNormalDiag(loc=self.code_mean, scale_diag=self.code_std_dev)
-            self.code_sample = mvn.sample()
-        print("finish encoder for {}: \n{}".format(self.name, self.code_sample))
-        print("\n")
 
-        with tf.compat.v1.variable_scope('decoder_{}'.format(self.name)):
-            encoded = tf.cond(pred=self.is_code_input, true_fn=lambda: self.code_input, false_fn=lambda: self.code_sample)
-            print("Decoder input shape:",encoded.shape)
-            decoded_1 = tf.compat.v1.layers.dense(encoded,
-                                        units=self.config['num_hidden_units'],
-                                        activation=tf.nn.leaky_relu,
-                                        kernel_initializer=init)
-            decoded_1 = tf.reshape(decoded_1, [-1, 1, 1, self.config['num_hidden_units']])
-            if self.config['l_win'] == 24:
-                decoded_2 = tf.compat.v1.layers.conv2d(decoded_1,
-                                             filters=self.config['num_hidden_units'],
-                                             kernel_size=1,
-                                             padding='same',
-                                             activation=tf.nn.leaky_relu)
-                decoded_2 = tf.reshape(decoded_2, [-1, 4, 1, self.config['num_hidden_units'] // 4])
-                print("decoded_2 is: {}".format(decoded_2))
-                decoded_3 = tf.compat.v1.layers.conv2d(decoded_2,
-                                             filters=self.config['num_hidden_units'] // 4,
-                                             kernel_size=(3, 1),
-                                             strides=1,
-                                             padding='same',
-                                             activation=tf.nn.leaky_relu,
-                                             kernel_initializer=init)
-                decoded_3 = tf.nn.depth_to_space(input=decoded_3,
-                                                 block_size=2)
-                decoded_3 = tf.reshape(decoded_3, [-1, 8, 1, self.config['num_hidden_units'] // 8])
-                print("decoded_3 is: {}".format(decoded_3))
-                decoded_4 = tf.compat.v1.layers.conv2d(decoded_3,
-                                             filters=self.config['num_hidden_units'] // 8,
-                                             kernel_size=(3, 1),
-                                             strides=1,
-                                             padding='same',
-                                             activation=tf.nn.leaky_relu,
-                                             kernel_initializer=init)
-                decoded_4 = tf.nn.depth_to_space(input=decoded_4,
-                                                 block_size=2)
-                decoded_4 = tf.reshape(decoded_4, [-1, 16, 1, self.config['num_hidden_units'] // 16])
-                print("decoded_4 is: {}".format(decoded_4))
-                decoded_5 = tf.compat.v1.layers.conv2d(decoded_4,
-                                             filters=self.config['num_hidden_units'] // 16,
-                                             kernel_size=(3, 1),
-                                             strides=1,
-                                             padding='same',
-                                             activation=tf.nn.leaky_relu,
-                                             kernel_initializer=init)
-                decoded_5 = tf.nn.depth_to_space(input=decoded_5,
-                                                 block_size=2)
-                decoded_5 = tf.reshape(decoded_5, [-1, self.config['num_hidden_units'] // 16, 1, 16])
-                print("decoded_5 is: {}".format(decoded_5))
-                decoded = tf.compat.v1.layers.conv2d(inputs=decoded_5,
-                                           filters=self.config['n_channel'],
-                                           kernel_size=(9, 1),
-                                           strides=1,
-                                           padding='valid',
-                                           activation=None,
-                                           kernel_initializer=init)
-                print("decoded_6 is: {}".format(decoded))
-                self.decoded = tf.reshape(decoded, [-1, self.config['l_win'], self.config['n_channel']])
-            elif self.config['l_win'] == 48:
-                decoded_2 = tf.compat.v1.layers.conv2d(decoded_1,
-                                             filters=256 * 3,
-                                             kernel_size=1,
-                                             padding='same',
-                                             activation=tf.nn.leaky_relu)
-                decoded_2 = tf.reshape(decoded_2, [-1, 3, 1, 256])
-                print("decoded_2 is: {}".format(decoded_2))
-                decoded_3 = tf.compat.v1.layers.conv2d(decoded_2,
-                                             filters=256,
-                                             kernel_size=(3, 1),
-                                             strides=1,
-                                             padding='same',
-                                             activation=tf.nn.leaky_relu,
-                                             kernel_initializer=init)
-                decoded_3 = tf.nn.depth_to_space(input=decoded_3,
-                                                 block_size=2)
-                decoded_3 = tf.reshape(decoded_3, [-1, 6, 1, 128])
-                print("decoded_3 is: {}".format(decoded_3))
-                decoded_4 = tf.compat.v1.layers.conv2d(decoded_3,
-                                             filters=128,
-                                             kernel_size=(3, 1),
-                                             strides=1,
-                                             padding='same',
-                                             activation=tf.nn.leaky_relu,
-                                             kernel_initializer=init)
-                decoded_4 = tf.nn.depth_to_space(input=decoded_4,
-                                                 block_size=2)
-                decoded_4 = tf.reshape(decoded_4, [-1, 24, 1, 32])
-                print("decoded_4 is: {}".format(decoded_4))
-                decoded_5 = tf.compat.v1.layers.conv2d(decoded_4,
-                                             filters=32,
-                                             kernel_size=(3, 1),
-                                             strides=1,
-                                             padding='same',
-                                             activation=tf.nn.leaky_relu,
-                                             kernel_initializer=init)
-                decoded_5 = tf.nn.depth_to_space(input=decoded_5,
-                                                 block_size=2)
-                decoded_5 = tf.reshape(decoded_5, [-1, 48, 1, 16])
-                print("decoded_5 is: {}".format(decoded_5))
-                decoded = tf.compat.v1.layers.conv2d(inputs=decoded_5,
-                                           filters=1, #thay bang n_channel?
-                                           kernel_size=(5, self.config['n_channel']),
-                                           strides=1,
-                                           padding='same',
-                                           activation=None,
-                                           kernel_initializer=init)
-                print("decoded_6 is: {}".format(decoded))
-                self.decoded = tf.reshape(decoded, [-1, self.config['l_win'], self.config['n_channel']])
-            elif self.config['l_win'] == 144:
-                decoded_2 = tf.compat.v1.layers.conv2d(decoded_1,
-                                             filters=32 * 27,
-                                             kernel_size=1,
-                                             strides=1,
-                                             padding='same',
-                                             activation=tf.nn.leaky_relu)
-                decoded_2 = tf.reshape(decoded_2, [-1, 3, 1, 32 * 9])
-                print("decoded_2 is: {}".format(decoded_2))
-                decoded_3 = tf.compat.v1.layers.conv2d(decoded_2,
-                                             filters=32 * 9,
-                                             kernel_size=(3, 1),
-                                             strides=1,
-                                             padding='same',
-                                             activation=tf.nn.leaky_relu,
-                                             kernel_initializer=init)
-                decoded_3 = tf.nn.depth_to_space(input=decoded_3,
-                                                 block_size=3)
-                decoded_3 = tf.reshape(decoded_3, [-1, 9, 1, 32 * 3])
-                print("decoded_3 is: {}".format(decoded_3))
-                decoded_4 = tf.compat.v1.layers.conv2d(decoded_3,
-                                             filters=32 * 3,
-                                             kernel_size=(3, 1),
-                                             strides=1,
-                                             padding='same',
-                                             activation=tf.nn.leaky_relu,
-                                             kernel_initializer=init)
-                decoded_4 = tf.nn.depth_to_space(input=decoded_4,
-                                                 block_size=2)
-                decoded_4 = tf.reshape(decoded_4, [-1, 36, 1, 24])
-                print("decoded_4 is: {}".format(decoded_4))
-                decoded_5 = tf.compat.v1.layers.conv2d(decoded_4,
-                                             filters=24,
-                                             kernel_size=(3, 1),
-                                             strides=1,
-                                             padding='same',
-                                             activation=tf.nn.leaky_relu,
-                                             kernel_initializer=init)
-                decoded_5 = tf.nn.depth_to_space(input=decoded_5,
-                                                 block_size=2)
-                decoded_5 = tf.reshape(decoded_5, [-1, 144, 1, 6])
-                print("decoded_5 is: {}".format(decoded_5))
-                decoded = tf.compat.v1.layers.conv2d(inputs=decoded_5,
-                                           filters=1,
-                                           kernel_size=(9, self.config['n_channel']),
-                                           strides=1,
-                                           padding='same',
-                                           activation=None,
-                                           kernel_initializer=init)
-                print("decoded_6 is: {}".format(decoded))
-                self.decoded = tf.reshape(decoded, [-1, self.config['l_win'], self.config['n_channel']])
-        print("finish decoder for {}: \n{}".format(self.name, self.decoded))
-        print('\n')
+      encoded_signal = tf.compat.v1.layers.flatten(conv_1)
+      encoded_signal = tf.compat.v1.layers.dense(encoded_signal,
+                                       units=self.config['code_size'] * 4,
+                                       activation=tf.nn.leaky_relu,
+                                       kernel_initializer=init)
+      self.code_mean = tf.compat.v1.layers.dense(encoded_signal,
+                                       units=self.config['code_size'],
+                                       activation=None,
+                                       kernel_initializer=init,
+                                       name='code_mean')
+      self.code_std_dev = tf.compat.v1.layers.dense(encoded_signal,
+                                          units=self.config['code_size'],
+                                          activation=tf.nn.relu,
+                                          kernel_initializer=init,
+                                          name='code_std_dev')
+      self.code_std_dev = self.code_std_dev + 1e-2
+      #mvn = tfp.distributions.MultivariateNormalDiag(loc=self.code_mean, scale_diag=self.code_std_dev)
+      #self.code_sample = mvn.sample()
+      mvn = tfp.distributions.MultivariateNormalDiag(loc=tf.zeros([self.config['code_size']]), scale_diag=tf.ones([self.config['code_size']]))
+      self.code_sample = tf.add(self.code_mean , self.code_std_dev * mvn.sample())
+    print("finish encoder: \n{}".format(self.code_sample))
+    print("\n")
 
-        # define sigma2 parameter to be trained to optimise ELBO
-        with tf.compat.v1.variable_scope('sigma2_dataset_{}'.format(self.name)):
-            if self.config['TRAIN_sigma'] == 1:
-                sigma = tf.Variable(tf.cast(self.config['sigma'], tf.float32),
-                                  dtype=tf.float32, trainable=True)
-            else:
-                sigma = tf.cast(self.config['sigma'], tf.float32)
-            self.sigma2 = tf.square(sigma)
-            if self.config['TRAIN_sigma'] == 1:
-                self.sigma2 = self.sigma2 + self.sigma2_offset
+    with tf.compat.v1.variable_scope('decoder_{}'.format(self.name)):
+      encoded = tf.cond(pred=self.is_code_input, true_fn=lambda: self.code_input, false_fn=lambda: self.code_sample)
+      decoded_1 = tf.compat.v1.layers.dense(encoded,
+                                  units=self.config['code_size'] * 4,
+                                  activation=tf.nn.leaky_relu,
+                                  kernel_initializer=init)
+      #decoded_1 = tf.reshape(decoded_1, [-1, 1, 1, self.config['num_hidden_units']])
+      if self.config['l_win'] == 24:
+        decoded_2 = tf.compat.v1.layers.dense(decoded_1,
+                                  units=self.config['n_channel']*10,
+                                  activation=tf.nn.leaky_relu,
+                                  kernel_initializer=init)
+        decoded = tf.compat.v1.layers.dense(decoded_2,
+                                   units=self.config['n_channel']*self.config['l_win'],
+                                   activation=None,
+                                   kernel_initializer=init)
+        print("decoded is: {}".format(decoded))
+        self.decoded = tf.reshape(decoded, [-1, self.config['l_win'], self.config['n_channel']])
+    print("finish decoder: \n{}".format(self.decoded))
+    print('\n')
 
-        print("sigma2 for {}: \n{}\n".format(self.name, self.sigma2))
+    # define sigma2 parameter to be trained to optimise ELBO
+    with tf.compat.v1.variable_scope('sigma2_dataset_{}'.format(self.name)):
+      if self.config['TRAIN_sigma'] == 1:
+        sigma = tf.Variable(tf.cast(self.config['sigma'], tf.float32),
+                            dtype=tf.float32, trainable=True)
+      else:
+        sigma = tf.cast(self.config['sigma'], tf.float32)
+      self.sigma2 = tf.square(sigma)
+      if self.config['TRAIN_sigma'] == 1:
+        self.sigma2 = self.sigma2 + self.sigma2_offset
+
+    print("sigma2: \n{}\n".format(self.sigma2))
 
 # This LSTM Keras Model also acts as a LSTM Trainer
 class lstmKerasModel:
