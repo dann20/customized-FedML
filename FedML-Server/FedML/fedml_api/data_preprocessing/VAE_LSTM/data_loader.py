@@ -78,7 +78,7 @@ class DataGenerator(BaseDataGenerator):
 
             # slice training set into rolling windows
             n_train_sample = len(data['training'])
-            # n_train_sample = int(n_train_sample*0.25)
+            n_train_sample = int(n_train_sample*0.25)
             # dataclient = data['training'][( n_train_sample*(self.num_client-1) ):( n_train_sample*self.num_client )]
             stride_ori = data['training'].reshape((-1,self.config['n_channel'])).strides
             strides = np.insert(stride_ori, 0, stride_ori[0], axis = 0)
