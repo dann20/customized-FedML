@@ -78,7 +78,7 @@ class DataGenerator(BaseDataGenerator):
 
             # slice training set into rolling windows
             n_train_sample = len(data['training'])
-            n_train_sample = int(n_train_sample*0.25)
+            # n_train_sample = int(n_train_sample*0.25)
             # dataclient = data['training'][( n_train_sample*(self.num_client-1) ):( n_train_sample*self.num_client )]
             stride_ori = data['training'].reshape((-1,self.config['n_channel'])).strides
             strides = np.insert(stride_ori, 0, stride_ori[0], axis = 0)
@@ -101,6 +101,7 @@ class DataGenerator(BaseDataGenerator):
               shape = [n_train_lstm, self.config['l_seq'], self.config['l_win'], self.config['n_channel']]
               strides = np.insert(stride_ori, 0, [stride_ori[0]*self.config['l_win'], stride_ori[0]*self.config['l_win']], axis = 0)
               cur_lstm_seq = np.lib.stride_tricks.as_strided(data['training'][k:],shape, strides, writeable = False)
+              cur_lstm_seq = cur_lstm_seq.astype(np.float32)
               if k == 0:
                 lstm_seq = cur_lstm_seq
               else:
