@@ -95,9 +95,16 @@ def model_log(vae_trainer, lstm_model):
         print('Shape of layer ' + str(i) + str(lstm_params[i].shape))
 
 if __name__ == '__main__':
-    # bmon_process = subprocess.Popen(['bmon', '-p', 'wlp7s0', '-r', '1', '-o', 'format:fmt=$(attr:txrate:bytes) $(attr:rxrate:bytes)\n', '>', bmon_log])
-    bmon_process = subprocess.Popen(["bmon -p wlp7s0 -r 1 -o 'format:fmt=$(attr:txrate:bytes) $(attr:rxrate:bytes)\n' > scada1-16-1r-server-test1.txt"], shell=True)
-    resmon_process = subprocess.Popen(["resmon", "-o", 'resmon-scada1-16-1r-server-test1.csv'])
+    if args.bmonOutfile != 'None':
+        bmon_command = "bmon -p wlp7s0 -r 1 -o 'format:fmt=$(attr:txrate:bytes) $(attr:rxrate:bytes)\n' > " + args.bmonOutfile
+        bmon_process = subprocess.Popen([bmon_command], shell=True)
+    else:
+        bmon_process = None
+
+    if args.resmonOutfile != 'None':
+        resmon_process = subprocess.Popen(["resmon", "-o", args.resmonOutfile])
+    else:
+        resmon_process = None
     logging.basicConfig(level=logging.DEBUG)
     # MQTT client connection
     class Obs(Observer):

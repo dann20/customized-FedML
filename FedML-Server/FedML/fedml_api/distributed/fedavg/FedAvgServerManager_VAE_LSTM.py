@@ -37,6 +37,7 @@ class FedAVGServerManager(ServerManager):
             self.bmon_process.terminate()
         if self.resmon_process:
             self.resmon_process.terminate()
+        sys.exit()
 
     def send_init_vae_msg(self):
         logging.info('sending init VAE model...')

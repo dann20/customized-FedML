@@ -25,10 +25,24 @@ from FedML.fedml_api.distributed.fedavg.utils_VAE_LSTM import process_config, cr
 from FedML.fedml_core.distributed.communication.observer import Observer
 
 def add_args(parser):
-    parser.add_argument('--server_ip', type=str, default="http://127.0.0.1:5000",
+    parser.add_argument('--server_ip',
+                        type=str,
+                        default="http://127.0.0.1:5000",
                         help='IP address of the FedML server')
-    parser.add_argument('--client_uuid', type=str, default="0",
+    parser.add_argument('--client_uuid',
+                        type=str,
+                        default="0",
                         help='number of workers in a distributed cluster')
+    parser.add_argument('-ob',
+                        '--bmonOutfile',
+                        type=str,
+                        default='None',
+                        help='Bmon logfile')
+    parser.add_argument('-or',
+                        '--resmonOutfile',
+                        type=str,
+                        default='None',
+                        help='Resmon logfile')
     args = parser.parse_args()
     return args
 
@@ -68,14 +82,22 @@ python mobile_client_simulator.py --client_uuid '0'
 python mobile_client_simulator.py --client_uuid '1'
 """
 if __name__ == '__main__':
-    # bmon_process = subprocess.Popen(['bmon', '-p', 'wlp7s0', '-r', '1', '-o', 'format:fmt=$(attr:txrate:bytes) $(attr:rxrate:bytes)\n', '>', bmon_log])
-    bmon_process = subprocess.Popen(["bmon -p wlp7s0 -r 1 -o 'format:fmt=$(attr:txrate:bytes) $(attr:rxrate:bytes)\n' > scada1-16-1r-client-test1.txt"], shell=True)
-    resmon_process = subprocess.Popen(["resmon", "-o", 'resmon-scada1-16-1r-client-test1.csv'])
-    logging.basicConfig(level=logging.INFO)
-    # parse python script input parameters
     parser = argparse.ArgumentParser()
     main_args = add_args(parser)
     uuid = main_args.client_uuid
+
+    if main_args.bmonOutfile != 'None':
+        bmon_command = "bmon -p wlan0 -r 1 -o 'format:fmt=$(attr:txrate:bytes) $(attr:rxrate:bytes)\n' > " + args.bmonOutfile
+        bmon_process = subprocess.Popen([bmon_command], shell=True)
+    else:
+        bmon_process = None
+
+    if main_args.resmonOutfile != 'None':
+        resmon_process = subprocess.Popen(["resmon", "-o", args.resmonOutfile])
+    else:
+        resmon_process = None
+
+    logging.basicConfig(level=logging.INFO)
 
     client_ID, config = register(main_args, uuid)
     logging.info("client_ID = " + str(client_ID))
