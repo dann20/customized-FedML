@@ -87,13 +87,13 @@ if __name__ == '__main__':
     uuid = main_args.client_uuid
 
     if main_args.bmonOutfile != 'None':
-        bmon_command = "bmon -p wlan0 -r 1 -o 'format:fmt=$(attr:txrate:bytes) $(attr:rxrate:bytes)\n' > " + args.bmonOutfile
+        bmon_command = "bmon -p wlan0 -r 1 -o 'format:fmt=$(attr:txrate:bytes) $(attr:rxrate:bytes)\n' > " + main_args.bmonOutfile
         bmon_process = subprocess.Popen([bmon_command], shell=True)
     else:
         bmon_process = None
 
     if main_args.resmonOutfile != 'None':
-        resmon_process = subprocess.Popen(["resmon", "-o", args.resmonOutfile])
+        resmon_process = subprocess.Popen(["resmon", "-o", main_args.resmonOutfile])
     else:
         resmon_process = None
 

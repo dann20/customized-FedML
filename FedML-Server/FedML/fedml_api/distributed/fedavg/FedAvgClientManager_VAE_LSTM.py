@@ -31,13 +31,13 @@ class FedAVGClientManager(ClientManager):
     def run(self):
         super().run()
 
-    def finish(self):
-        super().finish()
-        if self.bmon_process:
-            self.bmon_process.terminate()
-        if self.resmon_process:
-            self.resmon_process.terminate()
-        sys.exit()
+    # def finish(self):
+    #     super().finish()
+    #     if self.bmon_process:
+    #         self.bmon_process.terminate()
+    #     if self.resmon_process:
+    #         self.resmon_process.terminate()
+    #     sys.exit()
 
     def register_message_receive_handlers(self):
         self.register_message_receive_handler(MyMessage.MSG_TYPE_S2C_VAE_INIT_CONFIG,
