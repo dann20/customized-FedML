@@ -115,7 +115,7 @@ def slice_rolling_windows_and_sequences(config, time_seq):
     #        lstm_seq[i,j] = cur_seq[config['l_win']*j:config['l_win']*(j+1)]
     return rolling_windows, lstm_seq, sample_m, sample_std
 
-
+result['test'] = result['test'].astype(np.float32)
 test_windows, test_seq, test_sample_m, test_sample_std = slice_rolling_windows_and_sequences(config, result['test'])
 test_windows = np.reshape(test_windows, (-1,config['l_win'],config['n_channel']))
 test_seq = np.reshape(test_seq, (-1,config['l_seq'],config['l_win'],config['n_channel']))
@@ -127,7 +127,7 @@ print('test_seq ',test_seq.shape)
 def evaluate_vae_anomaly_metrics_for_a_window(test_win):
     feed_dict = {model_vae.original_signal: np.expand_dims(test_win, 0),
                  model_vae.is_code_input: False,
-                 model_vae.code_input: np.zeros((1, config['code_size']))}
+                 model_vae.code_input: np.zeros((1, config['code_size']), dtype=np.float32)}
 
     # VAE reconstruction error
     recons_win_vae = np.squeeze(sess.run(model_vae.decoded, feed_dict=feed_dict))
@@ -149,7 +149,7 @@ def evaluate_vae_anomaly_metrics_for_a_window(test_win):
 def evaluate_lstm_anomaly_metric_for_a_seq(test_seq):
     feed_dict = {model_vae.original_signal: test_seq,
                  model_vae.is_code_input: False,
-                 model_vae.code_input: np.zeros((1, config['code_size']))}
+                 model_vae.code_input: np.zeros((1, config['code_size']), dtype=np.float32)}
     vae_embedding = np.squeeze(sess.run(model_vae.code_mean, feed_dict=feed_dict))
     #print(vae_embedding.shape)
     lstm_embedding = np.squeeze(lstm_nn_model.predict(np.expand_dims(vae_embedding[:config['l_seq']-1], 0), batch_size=1))
@@ -158,42 +158,42 @@ def evaluate_lstm_anomaly_metric_for_a_seq(test_seq):
     #print(error_original.shape)
 
     # LSTM prediction error
-    feed_dict_lstm = {model_vae.original_signal: np.zeros((config['l_seq'] - 1, config['l_win'], config['n_channel'])),
+    feed_dict_lstm = {model_vae.original_signal: np.zeros((config['l_seq'] - 1, config['l_win'], config['n_channel']), dtype=np.float32),
                       model_vae.is_code_input: True,
                       model_vae.code_input: lstm_embedding}
     recons_win_lstm = np.squeeze(sess.run(model_vae.decoded, feed_dict=feed_dict_lstm))
     lstm_recons_error = np.sum(np.square(recons_win_lstm - np.squeeze(test_seq[1:])))
     error_original = np.abs(recons_win_lstm - np.squeeze(test_seq[1:])).reshape((config['l_seq']-1,-1)) #them dong nay de tinh
     return lstm_recons_error, lstm_embedding_error, error_original
-data.val_set_vae['data'] = np.asarray(data.val_set_vae['data'])
-data.val_set_lstm['data'] = np.asarray(data.val_set_lstm['data'])
-data.train_set_lstm['data'] = np.asarray(data.train_set_lstm['data'])
-data.train_set_vae['data'] = np.asarray(data.train_set_vae['data'])
+data.val_set_vae['data'] = np.asarray(data.val_set_vae['data']).astype(np.float32)
+data.val_set_lstm['data'] = np.asarray(data.val_set_lstm['data']).astype(np.float32)
+data.train_set_lstm['data'] = np.asarray(data.train_set_lstm['data']).astype(np.float32)
+# data.train_set_vae['data'] = np.asarray(data.train_set_vae['data']).astype(np.float32)
 n_val_vae = data.val_set_vae['data'].shape[0]
 n_val_lstm = data.val_set_lstm['data'].shape[0]
 
-val_vae_recons_error = np.zeros(n_val_vae)
-val_vae_kl_error = np.zeros(n_val_vae)
-val_vae_elbo_loss = np.zeros(n_val_vae)
+val_vae_recons_error = np.zeros(n_val_vae, dtype=np.float32)
+val_vae_kl_error = np.zeros(n_val_vae, dtype=np.float32)
+val_vae_elbo_loss = np.zeros(n_val_vae, dtype=np.float32)
 for i in range(n_val_vae):
     val_vae_recons_error[i], val_vae_kl_error[i], val_vae_elbo_loss[i] = evaluate_vae_anomaly_metrics_for_a_window(data.val_set_vae['data'][i])
 
-val_lstm_recons_error, val_lstm_embedding_error = np.zeros(n_val_lstm), np.zeros(n_val_lstm)
-val_lstm_error_original = np.zeros((n_val_lstm,config['l_seq']-1,config['l_win']*config['n_channel']))
+val_lstm_recons_error, val_lstm_embedding_error = np.zeros(n_val_lstm, dtype=np.float32), np.zeros(n_val_lstm, dtype=np.float32)
+val_lstm_error_original = np.zeros((n_val_lstm,config['l_seq']-1,config['l_win']*config['n_channel']), dtype=np.float32)
 for i in range(n_val_lstm):
     val_lstm_recons_error[i], val_lstm_embedding_error[i], val_lstm_error_original[i] = evaluate_lstm_anomaly_metric_for_a_seq(data.val_set_lstm['data'][i])
 
 n_train_lstm = data.train_set_lstm['data'].shape[0]
-train_lstm_recons_error, train_lstm_embedding_error = np.zeros(n_train_lstm), np.zeros(n_train_lstm)
-train_lstm_error_original = np.zeros((n_train_lstm,config['l_seq']-1,config['l_win']*config['n_channel'])) #them de tinh OCSVM
+train_lstm_recons_error, train_lstm_embedding_error = np.zeros(n_train_lstm, dtype=np.float32), np.zeros(n_train_lstm, dtype=np.float32)
+train_lstm_error_original = np.zeros((n_train_lstm,config['l_seq']-1,config['l_win']*config['n_channel']), dtype=np.float32) #them de tinh OCSVM
 for i in range(n_train_lstm):
     train_lstm_recons_error[i], train_lstm_embedding_error[i], train_lstm_error_original[i] = evaluate_lstm_anomaly_metric_for_a_seq(data.train_set_lstm['data'][i])
 
 # Evaluate the anomaly metrics on the test windows and sequences
 n_test_lstm = test_seq.shape[0]
 
-test_lstm_recons_error, test_lstm_embedding_error = np.zeros(n_test_lstm), np.zeros(n_test_lstm)
-test_lstm_error_original = np.zeros((n_test_lstm,config['l_seq']-1,config['l_win']*config['n_channel']))
+test_lstm_recons_error, test_lstm_embedding_error = np.zeros(n_test_lstm, dtype=np.float32), np.zeros(n_test_lstm, dtype=np.float32)
+test_lstm_error_original = np.zeros((n_test_lstm,config['l_seq']-1,config['l_win']*config['n_channel']), dtype=np.float32)
 for i in range(n_test_lstm):
     test_lstm_recons_error[i], test_lstm_embedding_error[i], test_lstm_error_original[i] = evaluate_lstm_anomaly_metric_for_a_seq(test_seq[i])
 print("All windows' reconstruction error is computed.")
@@ -206,7 +206,7 @@ print("The total number of windows is {}".format(len(test_lstm_recons_error)))
 #     idx_anomaly_test = result['idx_anomaly_test'][0]
 idx_anomaly_test = result['idx_anomaly_test']
 anomaly_index_lstm = []
-test_labels_lstm = np.zeros(n_test_lstm)
+test_labels_lstm = np.zeros(n_test_lstm, dtype=np.float32)
 for i in range(len(idx_anomaly_test)):
     idx_start = idx_anomaly_test[i]-(config['l_win']*config['l_seq']-1)
     idx_end = idx_anomaly_test[i]+1
@@ -281,13 +281,13 @@ def compute_precision_and_recall(idx_detected_anomaly, anomaly_index, test_label
     return precision, recall, F1, fpr, n_TP, n_FP, n_FN
 
 n_threshold = 25
-precision = np.zeros(n_threshold)
-recall = np.zeros(n_threshold)
-F1 = np.zeros(n_threshold)
-precision_aug = np.zeros(n_threshold)
-recall_aug = np.zeros(n_threshold)
-F1_aug = np.zeros(n_threshold)
-fpr_aug = np.zeros(n_threshold)
+precision = np.zeros(n_threshold, dtype=np.float32)
+recall = np.zeros(n_threshold, dtype=np.float32)
+F1 = np.zeros(n_threshold, dtype=np.float32)
+precision_aug = np.zeros(n_threshold, dtype=np.float32)
+recall_aug = np.zeros(n_threshold, dtype=np.float32)
+F1_aug = np.zeros(n_threshold, dtype=np.float32)
+fpr_aug = np.zeros(n_threshold, dtype=np.float32)
 i = 0
 threshold_list = np.linspace(np.amin(test_lstm_recons_error), np.amax(test_lstm_recons_error), n_threshold, endpoint=True)
 threshold_list = np.flip(threshold_list)
