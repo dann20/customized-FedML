@@ -19,8 +19,9 @@ import random
 import time
 import os
 import sys
+import subprocess
 
-# tf.compat.v1.disable_eager_execution()
+tf.compat.v1.disable_eager_execution()
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../")))
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   # see issue #152
 os.environ["CUDA_VISIBLE_DEVICES"]="0"
@@ -41,14 +42,14 @@ def get_available_gpus():
 print(get_available_gpus())
 
 # load VAE model
-config = process_config('NAB_config_scada1.json')#('NAB_config_centralized.json')
+config = process_config('../VAE-LSTM-related/configs/scada1_config.json')
 # create the experiments dirs
 create_dirs([config['result_dir'], config['checkpoint_dir']])
 # create tensorflow session
 sess = tf.compat.v1.Session(config=tf.compat.v1.ConfigProto(log_device_placement=True))
 # create your data generator
 
-data = DataGenerator(config)
+data = DataGenerator(config,3)
 # create a CNN model
 model_vae = VAEmodel(config, "Global")
 # create a CNN model
@@ -72,7 +73,7 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
 lstm_model.load_model(lstm_nn_model, checkpoint_path)
 
 # load normalised time series
-save_dir = '../datasets/NAB-known-anomaly/'
+save_dir = '../VAE-LSTM-related/datasets/NAB-known-anomaly/'
 # config['dataset'] = 'ecg_3'
 dataset = config['dataset']
 filename = '{}.npz'.format(dataset)
@@ -81,6 +82,11 @@ if dataset == 'machine_temp':
     result['test'] = result['test'][0]
     result['idx_anomaly_test'] = result['idx_anomaly_test'][0]
     result['t_test'] = result['t_test'][0]
+
+print("------START-TESTING-------")
+bmon_command = "bmon -p wlan0 -r 1 -o 'format:fmt=$(attr:txrate:bytes) $(attr:rxrate:bytes)\n' > bmon_scada1_testing_1.txt"
+bmon_process = subprocess.Popen([bmon_command], shell=True)
+resmon_process = subprocess.Popen(["resmon", "-o", "resmon_scada1_testing_1.csv"])
 
 # slice into rolling windows and rolling sequences
 def slice_rolling_windows_and_sequences(config, time_seq):
@@ -386,3 +392,6 @@ print("F1: {}".format(F1))
 print("TP: {}".format(n_TP))
 print("FP: {}".format(n_FP))
 
+bmon_process.terminate()
+resmon_process.terminate()
+print("------END-TESTING-------")
