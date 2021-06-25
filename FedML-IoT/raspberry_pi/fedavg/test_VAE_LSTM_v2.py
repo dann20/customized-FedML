@@ -41,6 +41,8 @@ def get_available_gpus():
 
 print(get_available_gpus())
 
+start = time.time()
+
 # load VAE model
 config = process_config('../VAE-LSTM-related/configs/scada1_config.json')
 # create the experiments dirs
@@ -84,8 +86,7 @@ if dataset == 'machine_temp':
     result['t_test'] = result['t_test'][0]
 
 print("------START-TESTING-------")
-bmon_command = "bmon -p wlan0 -r 1 -o 'format:fmt=$(attr:txrate:bytes) $(attr:rxrate:bytes)\n' > bmon_scada1_testing_1.txt"
-bmon_process = subprocess.Popen([bmon_command], shell=True)
+start_testing=time.time()
 resmon_process = subprocess.Popen(["resmon", "-o", "resmon_scada1_testing_1.csv"])
 
 # slice into rolling windows and rolling sequences
@@ -392,6 +393,8 @@ print("F1: {}".format(F1))
 print("TP: {}".format(n_TP))
 print("FP: {}".format(n_FP))
 
-bmon_process.terminate()
 resmon_process.terminate()
 print("------END-TESTING-------")
+end = time.time()
+print("Total time: {}".format(end-start))
+print("Testing time: {}".format(end-start_testing))
