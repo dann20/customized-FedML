@@ -31,13 +31,13 @@ class FedAVGServerManager(ServerManager):
     def run(self):
         super().run()
 
-    def finish(self):
-        super().finish()
-        if self.bmon_process:
-            self.bmon_process.terminate()
-        if self.resmon_process:
-            self.resmon_process.terminate()
-        sys.exit()
+    # def finish(self):
+    #     super().finish()
+    #     if self.bmon_process:
+    #         self.bmon_process.terminate()
+    #     if self.resmon_process:
+    #         self.resmon_process.terminate()
+    #     sys.exit()
 
     def send_init_vae_msg(self):
         logging.info('sending init VAE model...')
