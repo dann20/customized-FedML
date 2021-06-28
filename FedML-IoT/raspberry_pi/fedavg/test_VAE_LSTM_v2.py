@@ -212,8 +212,7 @@ def main_func(test_set):
     print("\nThreshold is {}".format(threshold))
     idx_detection = return_anomaly_idx_by_threshold(test_lstm_recons_error, threshold)
     print(idx_detection)
-    idx_detection_augmented = augment_detected_idx(idx_detection, anomaly_index_lstm)
-    #print(anomaly_index_lstm)
+    # idx_detection_augmented = augment_detected_idx(idx_detection, anomaly_index_lstm)
     # print(idx_detection_augmented)
 
 print("------START-TESTING-------")
