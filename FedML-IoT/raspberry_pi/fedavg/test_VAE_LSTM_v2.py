@@ -23,17 +23,17 @@ import subprocess
 import math
 from scipy.stats import norm
 
+tf.compat.v1.disable_eager_execution()
+sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../")))
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   # see issue #152
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
+
 import tensorflow as tf
 from FedML.fedml_api.data_preprocessing.VAE_LSTM.data_loader import DataGenerator
 from FedML.fedml_api.distributed.fedavg.VAE_LSTM_Models import VAEmodel, lstmKerasModel
 from FedML.fedml_api.distributed.fedavg.VAE_Trainer import vaeTrainer
 
 from FedML.fedml_api.distributed.fedavg.utils_VAE_LSTM import process_config, create_dirs, get_args, save_config
-
-tf.compat.v1.disable_eager_execution()
-sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../")))
-os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   # see issue #152
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 # slice into rolling windows and rolling sequences
 def slice_rolling_windows_and_sequences(config, time_seq):
@@ -140,6 +140,7 @@ create_dirs([config['result_dir'], config['checkpoint_dir']])
 sess = tf.compat.v1.Session(config=tf.compat.v1.ConfigProto(log_device_placement=True))
 # create a CNN model
 model_vae = VAEmodel(config, "Global")
+trainer_vae = vaeTrainer(sess, model_vae, None, config)
 # create a CNN model
 model_vae.load(sess)
 
@@ -165,7 +166,8 @@ dataset = config['dataset']
 filename = '{}.npz'.format(dataset)
 result = dict(np.load(save_dir+filename, allow_pickle=True))
 result['test'] = result['test'].astype(np.float32)
-test_data = np.split(result['test'], [10000, 20000, 30000, 40000, 50000, 60000])
+test_data = np.split(result['test'], [68000])
+test_data = np.split(test_data[0], 68)
 
 if dataset == 'machine_temp':
     result['test'] = result['test'][0]
@@ -207,20 +209,17 @@ def main_func(test_set):
 
     # Now select a threshold
     threshold = 1000
-    idx_detection = return_anomaly_idx_by_threshold(test_lstm_recons_error, threshold)
-    # print(idx_detection)
-    idx_detection_augmented = augment_detected_idx(idx_detection, anomaly_index_lstm)
-    #print(anomaly_index_lstm)
-    print(idx_detection_augmented)
-
     print("\nThreshold is {}".format(threshold))
     idx_detection = return_anomaly_idx_by_threshold(test_lstm_recons_error, threshold)
+    print(idx_detection)
     idx_detection_augmented = augment_detected_idx(idx_detection, anomaly_index_lstm)
+    #print(anomaly_index_lstm)
+    # print(idx_detection_augmented)
 
 print("------START-TESTING-------")
 start_testing=time.time()
 resmon_process = subprocess.Popen(["resmon", "-o", "resmon_scada1_testing_1.csv"])
-for i in range(len(test_data)):
+for i in range(3):
     main_func(test_data[i])
 resmon_process.terminate()
 print("------END-TESTING-------")
