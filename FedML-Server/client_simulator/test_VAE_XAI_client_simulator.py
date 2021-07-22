@@ -4,9 +4,11 @@ import os
 import sys
 import time
 import subprocess
+from IPython import embed
 
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 import requests
 import tensorflow as tf
 import shap
@@ -82,5 +84,7 @@ if __name__ == '__main__':
     shap.force_plot(shap_explainer.expected_value[3], shap_values[3])
     shap.force_plot(shap_explainer.expected_value[0], shap_values[6][0], data.iloc[6, :])
     shap.force_plot(shap_explainer.expected_value[0], shap_values[3][0], data.iloc[3, :])
+
+    embed()
 
     # time.sleep(1000000)
