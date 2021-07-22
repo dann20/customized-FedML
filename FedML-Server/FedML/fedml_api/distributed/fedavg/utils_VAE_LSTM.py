@@ -20,12 +20,9 @@ def get_config_from_json(json_file):
 def save_config(config):
     dateTimeObj = datetime.now()
     timestampStr = dateTimeObj.strftime("%d-%b-%Y-%H-%M")
-    filename = config['result_dir'] + 'training_config_{}.txt'.format(timestampStr)
-    config_to_save = json.dumps(config)
-    f = open(filename, "w")
-    f.write(config_to_save)
-    f.close()
-
+    filename = config['result_dir'] + 'training_config_{}.json'.format(timestampStr)
+    with open(filename, 'w') as f:
+        json.dump(config, f)
 
 def process_config(json_file):
     config = get_config_from_json(json_file)
@@ -54,6 +51,21 @@ def process_config(json_file):
     config['result_dir'] = os.path.join(save_dir, save_name, "result/")
     config['checkpoint_dir'] = os.path.join(save_dir, save_name, "checkpoint/")
     config['checkpoint_dir_lstm'] = os.path.join(save_dir, save_name, "checkpoint/lstm/")
+
+    return config
+
+def process_config_VAE(json_file):
+    config = get_config_from_json(json_file)
+
+    # create directories to save experiment results and trained models
+    if config['load_dir'] == "default":
+        save_dir = "../VAE-XAI-related/experiments/{}/{}/batch-{}".format(
+            config['exp_name'], config['dataset'], config['batch_size'])
+    else:
+        save_dir = config['load_dir']
+
+    config['result_dir'] = os.path.join(save_dir, "result/")
+    config['checkpoint_dir'] = os.path.join(save_dir, "checkpoint/")
 
     return config
 
