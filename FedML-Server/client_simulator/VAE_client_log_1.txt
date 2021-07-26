@@ -1,472 +1,0 @@
-INFO:root:client_ID = 3
-INFO:root:dataset = scada_processed
-INFO:root:{'batch_size': 256, 'checkpoint_dir': '../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/', 'dataset': 'scada_processed', 'epochs': 100, 'exp_name': 'scada', 'intermediate_dim': [8, 6], 'latent_dim': 4, 'learning_rate': 0.0015, 'load_dir': 'default', 'num_client': 4, 'num_comm_rounds': 1, 'original_dim': 10, 'result_dir': '../VAE-XAI-related/experiments/scada/scada_processed/batch-256/result/client3/'}
-2021-07-22 15:17:10.602650: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 FMA
-To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
-2021-07-22 15:17:10.606953: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2300800000 Hz
-2021-07-22 15:17:10.607313: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55ad6f717800 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
-2021-07-22 15:17:10.607368: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
-2021-07-22 15:17:10.607431: I tensorflow/core/common_runtime/process_util.cc:146] Creating new thread pool with default inter op setting: 2. Tune using inter_op_parallelism_threads for best performance.
-INFO:root:received vae init
-INFO:root:#######VAE training########### round_id = 0
-Model: "encoder"
-__________________________________________________________________________________________________
-Layer (type)                    Output Shape         Param #     Connected to                     
-==================================================================================================
-encoder_input (InputLayer)      [(None, 10)]         0                                            
-__________________________________________________________________________________________________
-dense (Dense)                   (None, 8)            88          encoder_input[0][0]              
-__________________________________________________________________________________________________
-dense_1 (Dense)                 (None, 6)            54          dense[0][0]                      
-__________________________________________________________________________________________________
-z_mean (Dense)                  (None, 4)            28          dense_1[0][0]                    
-__________________________________________________________________________________________________
-z_log_var (Dense)               (None, 4)            28          dense_1[0][0]                    
-__________________________________________________________________________________________________
-z (Lambda)                      (None, 4)            0           z_mean[0][0]                     
-                                                                 z_log_var[0][0]                  
-==================================================================================================
-Total params: 198
-Trainable params: 198
-Non-trainable params: 0
-__________________________________________________________________________________________________
-Model: "decoder"
-_________________________________________________________________
-Layer (type)                 Output Shape              Param #   
-=================================================================
-z_sampling (InputLayer)      [(None, 4)]               0         
-_________________________________________________________________
-dense_2 (Dense)              (None, 6)                 30        
-_________________________________________________________________
-dense_3 (Dense)              (None, 8)                 56        
-_________________________________________________________________
-dense_4 (Dense)              (None, 10)                90        
-=================================================================
-Total params: 176
-Trainable params: 176
-Non-trainable params: 0
-_________________________________________________________________
-Model: "Client3"
-_________________________________________________________________
-Layer (type)                 Output Shape              Param #   
-=================================================================
-encoder_input (InputLayer)   [(None, 10)]              0         
-_________________________________________________________________
-encoder (Functional)         [(None, 4), (None, 4), (N 198       
-_________________________________________________________________
-decoder (Functional)         (None, 10)                176       
-=================================================================
-Total params: 374
-Trainable params: 374
-Non-trainable params: 0
-_________________________________________________________________
-Connection returned with result code:0
-0
-onSubscribe :1
-Epoch 1/100
-1/6 [====>.........................] - ETA: 0s - loss: 2.01564/6 [===================>..........] - ETA: 0s - loss: 1.9911
-Epoch 00001: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 242ms/step - loss: 1.9662 - val_loss: 1.8817
-Epoch 2/100
-1/6 [====>.........................] - ETA: 0s - loss: 1.88622/6 [=========>....................] - ETA: 0s - loss: 1.84575/6 [========================>.....] - ETA: 0s - loss: 1.8328
-Epoch 00002: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 110ms/step - loss: 1.8261 - val_loss: 1.6987
-Epoch 3/100
-1/6 [====>.........................] - ETA: 0s - loss: 1.73355/6 [========================>.....] - ETA: 0s - loss: 1.7017
-Epoch 00003: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 44ms/step - loss: 1.6950 - val_loss: 1.6273
-Epoch 4/100
-1/6 [====>.........................] - ETA: 0s - loss: 1.6179
-Epoch 00004: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 50ms/step - loss: 1.5967 - val_loss: 1.5066
-Epoch 5/100
-1/6 [====>.........................] - ETA: 0s - loss: 1.49864/6 [===================>..........] - ETA: 0s - loss: 1.5255
-Epoch 00005: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 38ms/step - loss: 1.5263 - val_loss: 1.4432
-Epoch 6/100
-1/6 [====>.........................] - ETA: 0s - loss: 1.4408
-Epoch 00006: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 64ms/step - loss: 1.4254 - val_loss: 1.3828
-Epoch 7/100
-1/6 [====>.........................] - ETA: 0s - loss: 1.39973/6 [==============>...............] - ETA: 0s - loss: 1.35406/6 [==============================] - ETA: 0s - loss: 1.3479
-Epoch 00007: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 118ms/step - loss: 1.3479 - val_loss: 1.3093
-Epoch 8/100
-1/6 [====>.........................] - ETA: 0s - loss: 1.33045/6 [========================>.....] - ETA: 0s - loss: 1.2780
-Epoch 00008: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 73ms/step - loss: 1.2750 - val_loss: 1.2467
-Epoch 9/100
-1/6 [====>.........................] - ETA: 0s - loss: 1.23305/6 [========================>.....] - ETA: 0s - loss: 1.1887
-Epoch 00009: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 59ms/step - loss: 1.1892 - val_loss: 1.1742
-Epoch 10/100
-1/6 [====>.........................] - ETA: 0s - loss: 1.1114
-Epoch 00010: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 79ms/step - loss: 1.1018 - val_loss: 1.0602
-Epoch 11/100
-1/6 [====>.........................] - ETA: 0s - loss: 1.02092/6 [=========>....................] - ETA: 0s - loss: 1.04045/6 [========================>.....] - ETA: 0s - loss: 1.0566
-Epoch 00011: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 120ms/step - loss: 1.0515 - val_loss: 1.0219
-Epoch 12/100
-1/6 [====>.........................] - ETA: 0s - loss: 1.00035/6 [========================>.....] - ETA: 0s - loss: 0.9811
-Epoch 00012: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 130ms/step - loss: 0.9756 - val_loss: 0.9431
-Epoch 13/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.92914/6 [===================>..........] - ETA: 0s - loss: 0.9203
-Epoch 00013: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 77ms/step - loss: 0.9176 - val_loss: 0.9053
-Epoch 14/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.91144/6 [===================>..........] - ETA: 0s - loss: 0.8970
-Epoch 00014: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 102ms/step - loss: 0.8842 - val_loss: 0.8380
-Epoch 15/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.86253/6 [==============>...............] - ETA: 0s - loss: 0.83716/6 [==============================] - ETA: 0s - loss: 0.8354
-Epoch 00015: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 83ms/step - loss: 0.8354 - val_loss: 0.8017
-Epoch 16/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.76473/6 [==============>...............] - ETA: 0s - loss: 0.7910
-Epoch 00016: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 57ms/step - loss: 0.7712 - val_loss: 0.7386
-Epoch 17/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.7674
-Epoch 00017: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 60ms/step - loss: 0.7591 - val_loss: 0.7110
-Epoch 18/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.7413
-Epoch 00018: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 96ms/step - loss: 0.7203 - val_loss: 0.7149
-Epoch 19/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.64083/6 [==============>...............] - ETA: 0s - loss: 0.70236/6 [==============================] - ETA: 0s - loss: 0.6983
-Epoch 00019: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 58ms/step - loss: 0.6983 - val_loss: 0.6680
-Epoch 20/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.6456
-Epoch 00020: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 75ms/step - loss: 0.6672 - val_loss: 0.6501
-Epoch 21/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.6659
-Epoch 00021: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 76ms/step - loss: 0.6414 - val_loss: 0.6307
-Epoch 22/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.57534/6 [===================>..........] - ETA: 0s - loss: 0.6088
-Epoch 00022: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 30ms/step - loss: 0.6029 - val_loss: 0.5962
-Epoch 23/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.5976
-Epoch 00023: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 17ms/step - loss: 0.5956 - val_loss: 0.5953
-Epoch 24/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.53093/6 [==============>...............] - ETA: 0s - loss: 0.5816
-Epoch 00024: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 41ms/step - loss: 0.5784 - val_loss: 0.5581
-Epoch 25/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.57035/6 [========================>.....] - ETA: 0s - loss: 0.5557
-Epoch 00025: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 41ms/step - loss: 0.5516 - val_loss: 0.5451
-Epoch 26/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.54923/6 [==============>...............] - ETA: 0s - loss: 0.5756
-Epoch 00026: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 61ms/step - loss: 0.5695 - val_loss: 0.5087
-Epoch 27/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.55823/6 [==============>...............] - ETA: 0s - loss: 0.54396/6 [==============================] - ETA: 0s - loss: 0.5396
-Epoch 00027: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 78ms/step - loss: 0.5396 - val_loss: 0.4839
-Epoch 28/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.4659
-Epoch 00028: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 74ms/step - loss: 0.5004 - val_loss: 0.4822
-Epoch 29/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.48626/6 [==============================] - ETA: 0s - loss: 0.4904
-Epoch 00029: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 67ms/step - loss: 0.4904 - val_loss: 0.4739
-Epoch 30/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.4642
-Epoch 00030: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 98ms/step - loss: 0.4618 - val_loss: 0.4623
-Epoch 31/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.45464/6 [===================>..........] - ETA: 0s - loss: 0.4507
-Epoch 00031: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 79ms/step - loss: 0.4559 - val_loss: 0.4426
-Epoch 32/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.43045/6 [========================>.....] - ETA: 0s - loss: 0.4526
-Epoch 00032: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 83ms/step - loss: 0.4496 - val_loss: 0.4222
-Epoch 33/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.4190
-Epoch 00033: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 84ms/step - loss: 0.4348 - val_loss: 0.4082
-Epoch 34/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.4481
-Epoch 00034: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 45ms/step - loss: 0.4173 - val_loss: 0.4335
-Epoch 35/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.44474/6 [===================>..........] - ETA: 0s - loss: 0.4303
-Epoch 00035: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 53ms/step - loss: 0.4190 - val_loss: 0.4110
-Epoch 36/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.40895/6 [========================>.....] - ETA: 0s - loss: 0.41076/6 [==============================] - ETA: 0s - loss: 0.4094
-Epoch 00036: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 102ms/step - loss: 0.4094 - val_loss: 0.3960
-Epoch 37/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.47706/6 [==============================] - ETA: 0s - loss: 0.4162
-Epoch 00037: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 86ms/step - loss: 0.4162 - val_loss: 0.3947
-Epoch 38/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.40026/6 [==============================] - ETA: 0s - loss: 0.3948
-Epoch 00038: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 82ms/step - loss: 0.3948 - val_loss: 0.3846
-Epoch 39/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.42262/6 [=========>....................] - ETA: 0s - loss: 0.4087
-Epoch 00039: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 92ms/step - loss: 0.3967 - val_loss: 0.3644
-Epoch 40/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.37295/6 [========================>.....] - ETA: 0s - loss: 0.3782
-Epoch 00040: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 93ms/step - loss: 0.3795 - val_loss: 0.3800
-Epoch 41/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.3906
-Epoch 00041: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 89ms/step - loss: 0.3829 - val_loss: 0.3739
-Epoch 42/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.36635/6 [========================>.....] - ETA: 0s - loss: 0.3654
-Epoch 00042: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 58ms/step - loss: 0.3675 - val_loss: 0.3684
-Epoch 43/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.35676/6 [==============================] - ETA: 0s - loss: 0.3602
-Epoch 00043: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 114ms/step - loss: 0.3602 - val_loss: 0.3610
-Epoch 44/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.37615/6 [========================>.....] - ETA: 0s - loss: 0.3658
-Epoch 00044: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 42ms/step - loss: 0.3655 - val_loss: 0.3524
-Epoch 45/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.35185/6 [========================>.....] - ETA: 0s - loss: 0.3628
-Epoch 00045: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 57ms/step - loss: 0.3633 - val_loss: 0.3491
-Epoch 46/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.3657
-Epoch 00046: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 46ms/step - loss: 0.3530 - val_loss: 0.3498
-Epoch 47/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.40895/6 [========================>.....] - ETA: 0s - loss: 0.3596
-Epoch 00047: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 55ms/step - loss: 0.3565 - val_loss: 0.3386
-Epoch 48/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.3571
-Epoch 00048: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 17ms/step - loss: 0.3490 - val_loss: 0.3327
-Epoch 49/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.3368
-Epoch 00049: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 31ms/step - loss: 0.3516 - val_loss: 0.3409
-Epoch 50/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.3625
-Epoch 00050: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 69ms/step - loss: 0.3412 - val_loss: 0.3365
-Epoch 51/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.32855/6 [========================>.....] - ETA: 0s - loss: 0.3483
-Epoch 00051: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 108ms/step - loss: 0.3455 - val_loss: 0.3289
-Epoch 52/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.34754/6 [===================>..........] - ETA: 0s - loss: 0.3362
-Epoch 00052: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 110ms/step - loss: 0.3462 - val_loss: 0.3295
-Epoch 53/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.3635
-Epoch 00053: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 39ms/step - loss: 0.3444 - val_loss: 0.3241
-Epoch 54/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.3584
-Epoch 00054: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 61ms/step - loss: 0.3374 - val_loss: 0.3306
-Epoch 55/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.3672
-Epoch 00055: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 59ms/step - loss: 0.3382 - val_loss: 0.3302
-Epoch 56/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.3329
-Epoch 00056: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 26ms/step - loss: 0.3343 - val_loss: 0.3255
-Epoch 57/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.3503
-Epoch 00057: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 63ms/step - loss: 0.3348 - val_loss: 0.3266
-Epoch 58/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.33264/6 [===================>..........] - ETA: 0s - loss: 0.3332
-Epoch 00058: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 101ms/step - loss: 0.3320 - val_loss: 0.3276
-Epoch 59/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.31973/6 [==============>...............] - ETA: 0s - loss: 0.3235
-Epoch 00059: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 111ms/step - loss: 0.3301 - val_loss: 0.3273
-Epoch 60/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.33075/6 [========================>.....] - ETA: 0s - loss: 0.3297
-Epoch 00060: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 68ms/step - loss: 0.3319 - val_loss: 0.3211
-Epoch 61/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.31526/6 [==============================] - ETA: 0s - loss: 0.3311
-Epoch 00061: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 83ms/step - loss: 0.3311 - val_loss: 0.3185
-Epoch 62/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.36383/6 [==============>...............] - ETA: 0s - loss: 0.3413
-Epoch 00062: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 79ms/step - loss: 0.3294 - val_loss: 0.3172
-Epoch 63/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.32983/6 [==============>...............] - ETA: 0s - loss: 0.3296
-Epoch 00063: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 71ms/step - loss: 0.3314 - val_loss: 0.3208
-Epoch 64/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.3152
-Epoch 00064: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 29ms/step - loss: 0.3276 - val_loss: 0.3179
-Epoch 65/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.3354
-Epoch 00065: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 30ms/step - loss: 0.3292 - val_loss: 0.3159
-Epoch 66/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.3254
-Epoch 00066: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 34ms/step - loss: 0.3291 - val_loss: 0.3189
-Epoch 67/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.2902
-Epoch 00067: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 41ms/step - loss: 0.3269 - val_loss: 0.3193
-Epoch 68/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.3541
-Epoch 00068: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 37ms/step - loss: 0.3261 - val_loss: 0.3173
-Epoch 69/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.31753/6 [==============>...............] - ETA: 0s - loss: 0.32804/6 [===================>..........] - ETA: 0s - loss: 0.3262
-Epoch 00069: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 92ms/step - loss: 0.3253 - val_loss: 0.3155
-Epoch 70/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.2888
-Epoch 00070: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 40ms/step - loss: 0.3235 - val_loss: 0.3165
-Epoch 71/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.3393
-Epoch 00071: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 87ms/step - loss: 0.3273 - val_loss: 0.3192
-Epoch 72/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.32052/6 [=========>....................] - ETA: 0s - loss: 0.32274/6 [===================>..........] - ETA: 0s - loss: 0.3151
-Epoch 00072: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 90ms/step - loss: 0.3261 - val_loss: 0.3149
-Epoch 73/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.36063/6 [==============>...............] - ETA: 0s - loss: 0.32895/6 [========================>.....] - ETA: 0s - loss: 0.32846/6 [==============================] - ETA: 0s - loss: 0.3258
-Epoch 00073: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 156ms/step - loss: 0.3258 - val_loss: 0.3154
-Epoch 74/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.34133/6 [==============>...............] - ETA: 0s - loss: 0.33244/6 [===================>..........] - ETA: 0s - loss: 0.32675/6 [========================>.....] - ETA: 0s - loss: 0.3285
-Epoch 00074: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 154ms/step - loss: 0.3254 - val_loss: 0.3140
-Epoch 75/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.3711
-Epoch 00075: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 59ms/step - loss: 0.3266 - val_loss: 0.3135
-Epoch 76/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.32454/6 [===================>..........] - ETA: 0s - loss: 0.3292
-Epoch 00076: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 112ms/step - loss: 0.3257 - val_loss: 0.3155
-Epoch 77/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.32032/6 [=========>....................] - ETA: 0s - loss: 0.31583/6 [==============>...............] - ETA: 0s - loss: 0.32225/6 [========================>.....] - ETA: 0s - loss: 0.3234
-Epoch 00077: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 136ms/step - loss: 0.3258 - val_loss: 0.3157
-Epoch 78/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.2940
-Epoch 00078: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 57ms/step - loss: 0.3245 - val_loss: 0.3150
-Epoch 79/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.34375/6 [========================>.....] - ETA: 0s - loss: 0.3278
-Epoch 00079: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 101ms/step - loss: 0.3260 - val_loss: 0.3148
-Epoch 80/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.32575/6 [========================>.....] - ETA: 0s - loss: 0.3231
-Epoch 00080: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 91ms/step - loss: 0.3237 - val_loss: 0.3151
-Epoch 81/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.3321
-Epoch 00081: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 105ms/step - loss: 0.3236 - val_loss: 0.3141
-Epoch 82/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.31364/6 [===================>..........] - ETA: 0s - loss: 0.3225
-Epoch 00082: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 143ms/step - loss: 0.3249 - val_loss: 0.3144
-Epoch 83/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.32385/6 [========================>.....] - ETA: 0s - loss: 0.3239
-Epoch 00083: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 88ms/step - loss: 0.3243 - val_loss: 0.3179
-Epoch 84/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.32425/6 [========================>.....] - ETA: 0s - loss: 0.3284
-Epoch 00084: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 89ms/step - loss: 0.3267 - val_loss: 0.3133
-Epoch 85/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.3082
-Epoch 00085: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 67ms/step - loss: 0.3238 - val_loss: 0.3163
-Epoch 86/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.30764/6 [===================>..........] - ETA: 0s - loss: 0.3280
-Epoch 00086: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 88ms/step - loss: 0.3263 - val_loss: 0.3164
-Epoch 87/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.34175/6 [========================>.....] - ETA: 0s - loss: 0.3263
-Epoch 00087: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 90ms/step - loss: 0.3250 - val_loss: 0.3157
-Epoch 88/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.32355/6 [========================>.....] - ETA: 0s - loss: 0.3197
-Epoch 00088: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 64ms/step - loss: 0.3245 - val_loss: 0.3164
-Epoch 89/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.3135
-Epoch 00089: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 62ms/step - loss: 0.3253 - val_loss: 0.3128
-Epoch 90/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.2963
-Epoch 00090: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 75ms/step - loss: 0.3245 - val_loss: 0.3130
-Epoch 91/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.3189
-Epoch 00091: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 63ms/step - loss: 0.3245 - val_loss: 0.3149
-Epoch 92/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.31283/6 [==============>...............] - ETA: 0s - loss: 0.31436/6 [==============================] - ETA: 0s - loss: 0.3242
-Epoch 00092: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 79ms/step - loss: 0.3242 - val_loss: 0.3149
-Epoch 93/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.35514/6 [===================>..........] - ETA: 0s - loss: 0.33236/6 [==============================] - ETA: 0s - loss: 0.3235
-Epoch 00093: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 98ms/step - loss: 0.3235 - val_loss: 0.3135
-Epoch 94/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.32484/6 [===================>..........] - ETA: 0s - loss: 0.3245
-Epoch 00094: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 93ms/step - loss: 0.3228 - val_loss: 0.3154
-Epoch 95/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.3432
-Epoch 00095: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 89ms/step - loss: 0.3232 - val_loss: 0.3150
-Epoch 96/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.31493/6 [==============>...............] - ETA: 0s - loss: 0.33366/6 [==============================] - ETA: 0s - loss: 0.3241
-Epoch 00096: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 132ms/step - loss: 0.3241 - val_loss: 0.3135
-Epoch 97/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.29766/6 [==============================] - ETA: 0s - loss: 0.3237
-Epoch 00097: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 98ms/step - loss: 0.3237 - val_loss: 0.3156
-Epoch 98/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.31822/6 [=========>....................] - ETA: 0s - loss: 0.3278
-Epoch 00098: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 1s 90ms/step - loss: 0.3229 - val_loss: 0.3158
-Epoch 99/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.3125
-Epoch 00099: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 53ms/step - loss: 0.3230 - val_loss: 0.3141
-Epoch 100/100
-1/6 [====>.........................] - ETA: 0s - loss: 0.2918
-Epoch 00100: saving model to ../VAE-XAI-related/experiments/scada/scada_processed/batch-256/checkpoint/client3/cp_Client3.ckpt
-6/6 [==============================] - 0s 55ms/step - loss: 0.3226 - val_loss: 0.3130
-WARNING: QApplication was not created in the main() thread.
-/home/dann/Documents/FedML-AI-2/FedML-Server/FedML/fedml_api/distributed/fedavg/VAE_Model.py:130: UserWarning: Starting a Matplotlib GUI outside of the main thread will likely fail.
-  plt.plot(self.history.history["loss"], label="Training Loss")
-INFO:root:topic = fedml3
-INFO:root:sent vae model
-INFO:root:handle_message_receive_vae_model_from_server.
-INFO:root:__finish server
