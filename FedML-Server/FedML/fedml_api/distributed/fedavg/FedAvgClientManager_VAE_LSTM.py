@@ -13,7 +13,7 @@ try:
 except ImportError:
     from FedML.fedml_core.distributed.client.client_manager import ClientManager
     from FedML.fedml_core.distributed.communication.message import Message
-from FedML.fedml_api.distributed.fedavg.VAE_LSTM_Models import lstmKerasModel, ProduceEmbeddings
+from FedML.fedml_api.model.VAE_LSTM.VAE_LSTM_Models import lstmKerasModel, ProduceEmbeddings
 from .message_define import MyMessage
 
 class FedAVGClientManager(ClientManager):

@@ -15,7 +15,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 from FedML.fedml_api.distributed.fedavg.FedAvgServerManager_VAE import FedAVGServerManager
 from FedML.fedml_api.distributed.fedavg.FedAVGAggregator_VAE import FedAVGAggregator
-from FedML.fedml_api.distributed.fedavg.VAE_Model import VAEmodel
+from FedML.fedml_api.model.VAE_XAI.VAE_Model import VAEmodel
 from FedML.fedml_api.distributed.fedavg.utils_VAE_LSTM import process_config_VAE, create_dirs, get_args, save_config
 from FedML.fedml_iot import cfg
 

@@ -12,16 +12,6 @@ import pickle
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../..")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../../FedML")))
 
-from FedML.fedml_api.data_preprocessing.VAE_LSTM.data_loader import \
-    DataGenerator
-from FedML.fedml_api.distributed.fedavg.utils_VAE_LSTM import (create_dirs,
-                                                               get_args,
-                                                               process_config,
-                                                               save_config)
-from FedML.fedml_api.distributed.fedavg.VAE_LSTM_Models import (VAEmodel,
-                                                                lstmKerasModel)
-from FedML.fedml_api.distributed.fedavg.VAE_Trainer import vaeTrainer
-
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 

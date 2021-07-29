@@ -17,7 +17,7 @@ os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152 VAE-LSTM
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 from FedML.fedml_api.distributed.fedavg.FedAvgClientManager_VAE_LSTM import FedAVGClientManager
-from FedML.fedml_api.distributed.fedavg.VAE_LSTM_Models import VAEmodel, lstmKerasModel
+from FedML.fedml_api.model.VAE_LSTM.VAE_LSTM_Models import VAEmodel, lstmKerasModel
 from FedML.fedml_api.distributed.fedavg.VAE_Trainer import vaeTrainer
 from FedML.fedml_api.data_preprocessing.VAE_LSTM.data_loader import DataGenerator
 from FedML.fedml_api.distributed.fedavg.utils_VAE_LSTM import process_config, create_dirs, get_args, save_config

@@ -4,7 +4,7 @@ from tensorflow.keras import backend as K
 from tensorflow.keras.losses import mse, binary_crossentropy
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.metrics import accuracy_score, precision_score, recall_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 def sampling_z(args):
   """Reparameterization trick by sampling from an isotropic unit Gaussian.
@@ -99,8 +99,8 @@ class VAEmodel:
 
     def get_vae_model_params(self):
         model_params = self.model.get_weights()
-        for i in range(len(model_params)):
-            model_params[i] = model_params[i].astype(np.float16, copy=False)
+        # for i in range(len(model_params)):
+        #     model_params[i] = model_params[i].astype(np.float16, copy=False)
         return model_params
 
     def set_vae_model_params(self, weights):
@@ -154,6 +154,7 @@ class VAEmodel:
         print("Accuracy = {}".format(accuracy_score(labels, preds)))
         print("Precision = {}".format(precision_score(labels, preds)))
         print("Recall = {}".format(recall_score(labels, preds)))
+        print("F1_Score = {}".format(f1_score(labels, preds)))
 
     def save_model(self):
         self.model.save_weights(self.checkpoint_dir)
