@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../")))
 
 from FedML.fedml_api.distributed.fedavg.FedAVGAggregator_LCHA import FedAVGAggregator
 from FedML.fedml_api.distributed.fedavg.FedAvgServerManager_LCHA import FedAVGServerManager
-from FedML.fedml_api.distributed.fedavg.MyModelTrainer_LCHA import MyModelTrainerLCHA
+from FedML.fedml_api.distributed.fedavg.LCHA_Trainer import MyModelTrainerLCHA
 
 from FedML.fedml_api.data_preprocessing.LCHA_xlsx.data_loader import load_data_LCHA
 from FedML.fedml_api.model.LCHA.LCHA import LCHA

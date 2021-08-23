@@ -13,6 +13,7 @@ def get_config_from_json(json_file):
     # parse the configurations from the config json file provided
     with open(json_file, 'r') as config_file:
       config_dict = json.load(config_file)
+
     return config_dict
 
 def save_config(config):
@@ -27,28 +28,13 @@ def process_config(json_file):
 
     # create directories to save experiment results and trained models
     if config['load_dir'] == "default":
-        save_dir = "../VAE-LSTM-related/experiments/local-results/{}/{}/batch-{}".format(
+        save_dir = "../VAE-XAI-related/experiments/{}/{}/batch-{}".format(
             config['exp_name'], config['dataset'], config['batch_size'])
     else:
         save_dir = config['load_dir']
-    # specify the saving folder name for this experiment
-    if config['TRAIN_sigma'] == 1:
-        save_name = '{}-{}-{}-{}-{}-trainSigma'.format(config['exp_name'],
-                                                       config['dataset'],
-                                                       config['l_win'],
-                                                       config['l_seq'],
-                                                       config['code_size'])
-    else:
-        save_name = '{}-{}-{}-{}-{}-fixedSigma-{}'.format(config['exp_name'],
-                                                          config['dataset'],
-                                                          config['l_win'],
-                                                          config['l_seq'],
-                                                          config['code_size'],
-                                                          config['sigma'])
-    config['summary_dir'] = os.path.join(save_dir, save_name, "summary/")
-    config['result_dir'] = os.path.join(save_dir, save_name, "result/")
-    config['checkpoint_dir'] = os.path.join(save_dir, save_name, "checkpoint/")
-    config['checkpoint_dir_lstm'] = os.path.join(save_dir, save_name, "checkpoint/lstm/")
+
+    config['result_dir'] = os.path.join(save_dir, "result/")
+    config['checkpoint_dir'] = os.path.join(save_dir, "checkpoint/")
 
     return config
 
@@ -66,19 +52,6 @@ def create_dirs(dirs):
     except Exception as err:
         print("Creating directories error: {0}".format(err))
         exit(-1)
-
-def count_trainable_variables(scope_name):
-    total_parameters = 0
-    for variable in tf.compat.v1.trainable_variables(scope_name):
-        # shape is an array of tf.Dimension
-        shape = variable.get_shape()
-        variable_parameters = 1
-        for dim in shape:
-            variable_parameters *= dim
-        total_parameters += variable_parameters
-    print(
-        'The total number of trainable parameters in the {} model is: {}'.format(scope_name, total_parameters))
-    return total_parameters
 
 def get_args():
     argparser = argparse.ArgumentParser(description=__doc__)
