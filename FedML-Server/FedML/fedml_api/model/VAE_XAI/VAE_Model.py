@@ -144,7 +144,7 @@ class VAEmodel:
 
     def test(self, data, labels):
         reconstructions = self.model.predict(data)
-        loss = tf.keras.losses.mae(data, reconstructions)
+        loss = mse(data, reconstructions)
         self.plot_test_loss(loss)
         try:
             preds = tf.math.less(loss, self.threshold)
