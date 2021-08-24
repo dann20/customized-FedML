@@ -80,7 +80,7 @@ if __name__ == '__main__':
     config["checkpoint_dir"] = os.path.join(config["checkpoint_dir"], "client{}/".format(client_ID))
     logging.info("client_ID = " + str(client_ID))
     logging.info("experiment = " + str(config['experiment']))
-    logging.info("dataset = " + str(config['dataset']))
+    logging.info("dataset = " + str(config['auto_dataset']))
     logging.info(config)
 
     # create the experiments dirs

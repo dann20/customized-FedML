@@ -110,7 +110,7 @@ if __name__ == '__main__':
                                              train_data=dataloader,
                                              device=device,
                                              config=config)
-    AutoencoderTrainer.train()
+    autoencoder_trainer.train()
 
     transformer_model = create_transformer(N=config['num_stacks'],
                                            d_model=config['d_model'],

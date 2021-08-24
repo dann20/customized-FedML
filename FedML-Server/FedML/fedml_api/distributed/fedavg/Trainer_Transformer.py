@@ -70,9 +70,7 @@ class TransformerTrainer(ModelTrainer):
         model_opt = optim.Adam(self.model.parameters())
         criterion = nn.MSELoss()
         for epoch in range(self.config["trans_num_epoch"]):
-            self.train_epoch(self.train_data,
-                             self.device,
-                             criterion,
+            self.train_epoch(criterion,
                              model_opt,
                              epoch)
         logging.info("-----COMPLETED TRAINING THE TRANSFORMER-----")

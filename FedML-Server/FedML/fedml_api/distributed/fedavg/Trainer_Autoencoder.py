@@ -63,9 +63,7 @@ class AutoencoderTrainer(ModelTrainer):
         criterion = nn.MSELoss()
         for epoch in range(self.config["auto_num_epoch"]):
             logging.info(f"Training local epoch {epoch}...")
-            self.train_epoch(self.train_data,
-                             self.device,
-                             criterion,
+            self.train_epoch(criterion,
                              model_opt,
                              epoch)
             logging.info(f"Done local epoch {epoch}.")
