@@ -5,15 +5,9 @@ import os
 import sys
 import time
 import subprocess
-
-import numpy as np
-import pandas as pd
 import requests
-import tensorflow as tf
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../")))
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152 VAE-LSTM
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 from FedML.fedml_api.distributed.fedavg.FedAvgClientManager_VAE import FedAVGClientManager
 from FedML.fedml_api.model.VAE_XAI.VAE_Model import VAEmodel

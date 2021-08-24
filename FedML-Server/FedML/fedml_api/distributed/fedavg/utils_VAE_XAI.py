@@ -1,7 +1,6 @@
 import json
 import os
 import argparse
-import tensorflow as tf
 from datetime import datetime
 
 def get_config_from_json(json_file):

@@ -2,16 +2,10 @@ import logging
 import os
 import sys
 import subprocess
-
-import tensorflow as tf
 import argparse
-import numpy as np
-import pandas as pd
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../")))
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152 VAE-LSTM
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 from FedML.fedml_api.distributed.fedavg.FedAvgServerManager_VAE import FedAVGServerManager
 from FedML.fedml_api.distributed.fedavg.FedAVGAggregator_VAE import FedAVGAggregator

@@ -1,18 +1,12 @@
-import copy
 import logging
 import os
 import sys
 import time
 
 import numpy as np
-import tensorflow as tf
-import wandb
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../..")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../../FedML")))
-
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 class FedAVGAggregator(object):
 

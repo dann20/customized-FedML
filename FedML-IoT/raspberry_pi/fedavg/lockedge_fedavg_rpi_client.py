@@ -5,12 +5,10 @@ import os
 import sys
 import time
 
-import numpy as np
-import pandas as pd
 import requests
-from sklearn.decomposition import PCA
-
 import pickle
+
+from sklearn.decomposition import PCA
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../")))
 from FedML.fedml_api.distributed.fedavg.MyModelTrainer_LCHA import MyModelTrainerLCHA

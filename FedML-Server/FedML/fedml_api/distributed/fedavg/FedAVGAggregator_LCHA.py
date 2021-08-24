@@ -1,9 +1,8 @@
-import copy
 import logging
 import time
 
 import numpy as np
-import wandb
+# import wandb
 
 class FedAVGAggregator(object):
 

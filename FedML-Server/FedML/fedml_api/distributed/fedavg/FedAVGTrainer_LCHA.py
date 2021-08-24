@@ -1,5 +1,3 @@
-import numpy as np
-
 class FedAVGTrainer(object):
     def __init__(self, client_index, train_pca, train_label, test_pca, test_label, args, model_trainer):
         self.trainer = model_trainer
