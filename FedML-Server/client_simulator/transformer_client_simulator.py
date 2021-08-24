@@ -1,16 +1,14 @@
-# this script has been removed all unnecessary models and functions
 import argparse
 import logging
 import os
 import sys
 import time
-import subprocess
 
 import requests
 import torch
 from torch.utils.data.dataloader import DataLoader
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../")))
 
 from FedML.fedml_api.distributed.fedavg.FedAvgClientManager_Transformer import FedAVGClientManager
 from FedML.fedml_api.model.autoencoder.autoencoder import create_autoencoder
@@ -23,31 +21,14 @@ from FedML.fedml_api.distributed.fedavg.utils_Transformer import process_config,
 from FedML.fedml_core.distributed.communication.observer import Observer
 
 def add_args(parser):
-    parser.add_argument('--server_ip',
-                        type=str,
-                        default="http://127.0.0.1:5000",
-                        help='IP address of the FedML server')
-    parser.add_argument('--client_uuid',
-                        type=str,
-                        default="0",
+    parser.add_argument('--client_uuid', type=str, default="0",
                         help='number of workers in a distributed cluster')
-    parser.add_argument('-ob',
-                        '--bmonOutfile',
-                        type=str,
-                        default='None',
-                        help='Bmon logfile')
-    parser.add_argument('-or',
-                        '--resmonOutfile',
-                        type=str,
-                        default='None',
-                        help='Resmon logfile')
     args = parser.parse_args()
     return args
 
-
-def register(args, uuid):
+def register(uuid):
     str_device_UUID = uuid
-    URL = args.server_ip + "/api/register"
+    URL = "http://127.0.0.1:5000/api/register"
 
     # defining a params dict for the parameters to be sent to the API
     PARAMS = {'device_id': str_device_UUID}
@@ -62,37 +43,48 @@ def register(args, uuid):
 
     return client_ID, config
 
+def init_training_device(process_ID, fl_worker_num, gpu_num_per_machine):
+    # initialize the mapping from process ID to GPU ID: <process ID, GPU ID>
+    # used when having multiple gpus in a single machine
+    if process_ID == 0:
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        return device
+    process_gpu_dict = dict()
+    for client_index in range(fl_worker_num):
+        gpu_index = client_index % gpu_num_per_machine
+        process_gpu_dict[client_index] = gpu_index
+
+    logging.info(process_gpu_dict)
+    device = torch.device("cuda:" + str(process_gpu_dict[process_ID - 1]) if torch.cuda.is_available() else "cpu")
+    logging.info(device)
+    return device
+
 """
 python mobile_client_simulator.py --client_uuid '0'
 python mobile_client_simulator.py --client_uuid '1'
 """
 if __name__ == '__main__':
+    if sys.platform == 'darwin':
+        # quick fix for issue : https://github.com/openai/spinningup/issues/16
+        os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+
+    # parse python script input parameters
     parser = argparse.ArgumentParser()
     main_args = add_args(parser)
     uuid = main_args.client_uuid
 
-    if main_args.bmonOutfile != 'None':
-        bmon_command = "bmon -p wlan0 -r 1 -o 'format:fmt=$(attr:txrate:bytes) $(attr:rxrate:bytes)\n' > " + main_args.bmonOutfile
-        bmon_process = subprocess.Popen([bmon_command], shell=True)
-    else:
-        bmon_process = None
-
-    if main_args.resmonOutfile != 'None':
-        resmon_process = subprocess.Popen(["resmon", "-o", main_args.resmonOutfile])
-    else:
-        resmon_process = None
-
     logging.basicConfig(level=logging.INFO)
 
-    client_ID, config = register(main_args, uuid)
-    logging.info(main_args)
+    client_ID, config = register(uuid)
+    config["result_dir"] = os.path.join(config["result_dir"], "client{}/".format(client_ID))
+    config["checkpoint_dir"] = os.path.join(config["checkpoint_dir"], "client{}/".format(client_ID))
     logging.info("client_ID = " + str(client_ID))
     logging.info("experiment = " + str(config['experiment']))
-    logging.info("dataset = " + str(config['auto_dataset']))
+    logging.info("dataset = " + str(config['dataset']))
     logging.info(config)
 
     # create the experiments dirs
-    create_dirs(config["result_dir"], config["checkpoint_dir"])
+    create_dirs(config['result_dir'], config['checkpoint_dir'])
     # save the config in a json file in result directory
     save_config(config)
 
@@ -100,6 +92,8 @@ if __name__ == '__main__':
     # torch.manual_seed(10)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    # device = init_training_device(client_ID - 1, args.client_num_per_round - 1, 4)
+
     dataset = CustomDataset(config)
     dataloader = DataLoader(dataset, batch_size=config["batch_size"], shuffle=bool(config["shuffle"]), num_workers=config["dataloader_num_workers"])
 
@@ -133,7 +127,7 @@ if __name__ == '__main__':
                                          backend="MQTT",
                                          bmon_process=bmon_process,
                                          resmon_process=resmon_process)
-
     client_manager.run()
 
     time.sleep(1000000)
+    os.environ['KMP_DUPLICATE_LIB_OK'] = 'False'
