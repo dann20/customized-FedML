@@ -11,8 +11,9 @@ class TransformerTrainer(ModelTrainer):
     def __init__(self, autoencoder_model, transformer_model, train_data, device, config):
         self.id = 0
         self.model = transformer_model
-        self.encoder = autoencoder_model.encoder
-        self.encoder.eval()
+        if autoencoder_model != None:
+            self.encoder = autoencoder_model.encoder
+            self.encoder.eval()
         self.train_data = train_data
         self.device = device
         self.config = config
