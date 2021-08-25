@@ -13,7 +13,7 @@ class FedAVGAggregator(object):
         self.worker_num = worker_num
         self.client_weights = client_weights
 
-        self.model_dict = dict() # transformer model
+        self.model_dict = dict() # transformer models dict
         if not self.client_weights:
             self.sample_num_dict = dict()
 
@@ -72,7 +72,7 @@ class FedAVGAggregator(object):
 
         # update the global model which is cached at the server side
         self.set_global_model_params(averaged_params)
-
+        self.trainer.save_aggregated_model()
         end_time = time.time()
         logging.info("-----DONE AGGREGATION-----")
         logging.info("aggregate time cost: %d" % (end_time - start_time))

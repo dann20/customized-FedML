@@ -90,6 +90,13 @@ class TransformerTrainer(ModelTrainer):
     def get_len_data(self):
         return len(self.train_data.dataset)
 
+    def save_aggregated_model(self):
+        """
+        Used after set_global_model_params() on server and after setting received model on clients
+        """
+        directory = self.config["aggregated_dir"]
+        torch.save(self.model.state_dict(), directory + f"aggregated_trans_r{self.round_idx}.pth")
+
     def _create_mask(self):
         mask = torch.ones(1, self.config["l_win"], self.config["l_win"])
         mask[:, self.config["pre_mask"]:self.config["post_mask"], :] = 0

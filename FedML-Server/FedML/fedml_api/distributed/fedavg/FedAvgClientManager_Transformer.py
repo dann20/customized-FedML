@@ -60,6 +60,7 @@ class FedAVGClientManager(ClientManager):
         client_index = msg_params.get(MyMessage.MSG_ARG_KEY_CLIENT_INDEX)
 
         self.trainer.set_model_params(global_model_params)
+        self.trainer.save_aggregated_model()
         self.round_idx += 1
         if self.round_idx < self.num_rounds:
             self.trainer.update_comm_round()
