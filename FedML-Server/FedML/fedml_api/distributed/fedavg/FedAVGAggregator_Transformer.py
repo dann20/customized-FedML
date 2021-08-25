@@ -8,11 +8,9 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../../FedML"
 
 class FedAVGAggregator(object):
 
-    def __init__(self, transformer_trainer, worker_num, config, client_weights=None):
+    def __init__(self, transformer_trainer, worker_num, client_weights=None):
         self.trainer = transformer_trainer
         self.worker_num = worker_num
-        self.config = config
-        self.num_comm_rounds = config["num_comm_rounds"]
         self.client_weights = client_weights
 
         self.model_dict = dict() # transformer model

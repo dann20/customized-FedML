@@ -3,6 +3,7 @@ import os
 import sys
 import subprocess
 import argparse
+from datetime import datetime
 
 # import torch
 
@@ -96,6 +97,10 @@ if __name__ == '__main__':
     if sys.platform == 'darwin':
         os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
+    dateTimeObj = datetime.now()
+    timestampStr = dateTimeObj.strftime("%d-%b-%Y-%H-%M-%S")
+    config['time'] = timestampStr
+
     logging.info(args)
     logging.info(config)
 
@@ -129,7 +134,6 @@ if __name__ == '__main__':
 
     aggregator = FedAVGAggregator(transformer_trainer=trainer,
                                   worker_num=args.num_client,
-                                  config=config,
                                   client_weights=None)
 
     size = args.num_client + 1

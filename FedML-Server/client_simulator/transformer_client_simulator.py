@@ -79,15 +79,16 @@ if __name__ == '__main__':
     client_ID, config = register(uuid)
     config["result_dir"] = os.path.join(config["result_dir"], "client{}/".format(client_ID))
     config["checkpoint_dir"] = os.path.join(config["checkpoint_dir"], "client{}/".format(client_ID))
+    config["auto_dataset"] = config["auto_dataset"] + "_" + str(client_ID) # each client will use a different file of dataset
     logging.info("client_ID = " + str(client_ID))
     logging.info("experiment = " + str(config['experiment']))
     logging.info("dataset = " + str(config['auto_dataset']))
-    logging.info(config)
 
     dateTimeObj = datetime.now()
-    timestampStr = dateTimeObj.strftime("%d-%b-%Y-%H-%M")
+    timestampStr = dateTimeObj.strftime("%d-%b-%Y-%H-%M-%S")
     config['time'] = timestampStr
     config['client_ID'] = client_ID
+    logging.info(config)
 
     # create the experiments dirs
     create_dirs(config['result_dir'], config['checkpoint_dir'])

@@ -90,12 +90,12 @@ if __name__ == '__main__':
     logging.info("client_ID = " + str(client_ID))
     logging.info("experiment = " + str(config['experiment']))
     logging.info("dataset = " + str(config['auto_dataset']))
-    logging.info(config)
 
     dateTimeObj = datetime.now()
-    timestampStr = dateTimeObj.strftime("%d-%b-%Y-%H-%M")
+    timestampStr = dateTimeObj.strftime("%d-%b-%Y-%H-%M-%S")
     config['time'] = timestampStr
     config['client_ID'] = client_ID
+    logging.info(config)
 
     # create the experiments dirs
     create_dirs(config["result_dir"], config["checkpoint_dir"])
