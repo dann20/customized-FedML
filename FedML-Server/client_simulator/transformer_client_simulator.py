@@ -124,9 +124,7 @@ if __name__ == '__main__':
                                          None,
                                          rank=client_ID,
                                          size=size,
-                                         backend="MQTT",
-                                         bmon_process=bmon_process,
-                                         resmon_process=resmon_process)
+                                         backend="MQTT")
     client_manager.run()
 
     time.sleep(1000000)
