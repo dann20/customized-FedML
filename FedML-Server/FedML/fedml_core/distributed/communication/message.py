@@ -1,6 +1,7 @@
 import json
 import sys
 import pickle
+import logging
 
 class Message(object):
 
@@ -69,12 +70,12 @@ class Message(object):
 
     def to_json(self):
         json_string = json.dumps(self.msg_params)
-        print("json string size = " + str(sys.getsizeof(json_string)))
+        logging.info("json string size = " + str(sys.getsizeof(json_string)))
         return json_string
 
     def to_byte_array(self):
         byteArr = pickle.dumps(self.msg_params)
-        print("byte array size = " + str(sys.getsizeof(byteArr)))
+        logging.info("byte array size = " + str(sys.getsizeof(byteArr)))
         return byteArr
 
     def get_content(self):

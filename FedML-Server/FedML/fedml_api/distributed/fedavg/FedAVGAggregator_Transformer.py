@@ -72,7 +72,9 @@ class FedAVGAggregator(object):
 
         # update the global model which is cached at the server side
         self.set_global_model_params(averaged_params)
+        logging.info("Set aggregated model to trainer.")
         self.trainer.save_aggregated_model()
+        logging.info("Saved aggregated model.")
         end_time = time.time()
         logging.info("-----DONE AGGREGATION-----")
         logging.info("aggregate time cost: %d" % (end_time - start_time))
