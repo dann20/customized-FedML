@@ -14,7 +14,7 @@ class FedAVGAggregator(object):
         self.client_weights = client_weights
 
         self.model_dict = dict() # transformer model
-        if self.client_weights:
+        if not self.client_weights:
             self.sample_num_dict = dict()
 
         self.flag_client_model_uploaded_dict = dict()
@@ -74,5 +74,6 @@ class FedAVGAggregator(object):
         self.set_global_model_params(averaged_params)
 
         end_time = time.time()
-        logging.info("DONE. aggregate time cost: %d" % (end_time - start_time))
+        logging.info("-----DONE AGGREGATION-----")
+        logging.info("aggregate time cost: %d" % (end_time - start_time))
         return averaged_params

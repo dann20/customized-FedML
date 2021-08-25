@@ -88,7 +88,7 @@ class TransformerTrainer(ModelTrainer):
         return self.config
 
     def get_len_data(self):
-        return len(self.train_data)
+        return len(self.train_data.dataset)
 
     def _create_mask(self):
         mask = torch.ones(1, self.config["l_win"], self.config["l_win"])
