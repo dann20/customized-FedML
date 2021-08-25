@@ -9,3 +9,6 @@ FedML-IoT/raspberry_pi/VAE-LSTM-related/experiments/
 FedML-Server/VAE-LSTM-related/datasets/NAB-known-anomaly/scada*
 FedML-Server/VAE-XAI-related/experiments/
 FedML-Server/client_simulator/*.txt
+FedML-Server/client_simulator/*.png
+FedML-Server/client_simulator/*.htm
+FedML-Server/client_simulator/*.csv

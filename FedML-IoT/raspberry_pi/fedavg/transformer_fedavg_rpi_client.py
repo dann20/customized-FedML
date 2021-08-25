@@ -92,7 +92,7 @@ if __name__ == '__main__':
     logging.info("dataset = " + str(config['auto_dataset']))
 
     dateTimeObj = datetime.now()
-    timestampStr = dateTimeObj.strftime("%d-%b-%Y-%H-%M-%S")
+    timestampStr = dateTimeObj.strftime("%d-%b-%Y-%H:%M:%S")
     config['time'] = timestampStr
     config['client_ID'] = client_ID
     logging.info(config)

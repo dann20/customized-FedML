@@ -98,7 +98,7 @@ if __name__ == '__main__':
         os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
     dateTimeObj = datetime.now()
-    timestampStr = dateTimeObj.strftime("%d-%b-%Y-%H-%M-%S")
+    timestampStr = dateTimeObj.strftime("%d-%b-%Y-%H:%M:%S")
     config['time'] = timestampStr
 
     logging.info(args)
