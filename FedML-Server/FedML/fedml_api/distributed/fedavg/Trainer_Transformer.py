@@ -95,7 +95,8 @@ class TransformerTrainer(ModelTrainer):
         Used after set_global_model_params() on server and after setting received model on clients
         """
         directory = self.config["aggregated_dir"]
-        torch.save(self.model.state_dict(), directory + f"aggregated_trans_r{self.round_idx}.pth")
+        self.config["last_aggregated_model"] = f"aggregated_trans_r{self.round_idx}.pth"
+        torch.save(self.model.state_dict(), directory + self.config["last_aggregated_model"])
 
     def _create_mask(self):
         mask = torch.ones(1, self.config["l_win"], self.config["l_win"])
