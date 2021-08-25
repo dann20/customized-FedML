@@ -11,13 +11,14 @@ try:
 except ImportError:
     from FedML.fedml_core.distributed.client.client_manager import ClientManager
     from FedML.fedml_core.distributed.communication.message import Message
+from FedML.fedml_api.distributed.fedavg.utils_Transformer import save_config
 from .message_define import MyMessage
 
 class FedAVGClientManager(ClientManager):
-    def __init__(self, config, trainer, comm=None, rank=0, size=0, backend="MPI", bmon_process=None, resmon_process=None):
-        super().__init__(config, comm, rank, size, backend)
+    def __init__(self, trainer, comm=None, rank=0, size=0, backend="MPI", bmon_process=None, resmon_process=None):
+        super().__init__(trainer.config, comm, rank, size, backend)
         self.trainer = trainer
-        self.num_rounds = config['num_comm_rounds']
+        self.num_rounds = trainer.config['num_comm_rounds']
         self.round_idx = 0
         if bmon_process:
             self.bmon_process = bmon_process
@@ -61,6 +62,7 @@ class FedAVGClientManager(ClientManager):
         self.trainer.set_model_params(global_model_params)
         self.round_idx += 1
         if self.round_idx < self.num_rounds:
+            self.trainer.update_comm_round()
             self.__train()
         if self.round_idx == self.num_rounds:
             self.finish()
@@ -75,6 +77,7 @@ class FedAVGClientManager(ClientManager):
     def __train(self):
         logging.info("#######TRANSFORMER TRAINING########### round_id = %d" % self.round_idx)
         self.trainer.train()
+        save_config(self.trainer.config)
         local_sample_num = self.trainer.get_len_data()
         weights = self.trainer.get_model_params()
         self.send_model_to_server(0, weights, local_sample_num)

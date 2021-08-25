@@ -21,6 +21,7 @@ class TransformerTrainer(ModelTrainer):
         self.epoch_loss = list()
         self.best_model = None
         self.mask = self._create_mask()
+        self.round_idx = 0
 
     def get_model_params(self):
         return self.model.state_dict()
@@ -57,11 +58,11 @@ class TransformerTrainer(ModelTrainer):
                                                                                          sum(self.epoch_loss) / len(self.epoch_loss)))
         if self.epoch_loss[-1] < self.min_loss:
             torch.save(self.model.state_dict(),
-                       self.config["checkpoint_dir"] + f"best_trans_{epoch}.pth")
+                       self.config["checkpoint_dir"] + f"best_trans_r{self.round_idx}_e{epoch}.pth")
             torch.save(opt.state_dict(),
-                       self.config["checkpoint_dir"] + f"optimizer_trans_{epoch}.pth")
+                       self.config["checkpoint_dir"] + f"optimizer_trans_r{self.round_idx}_e{epoch}.pth")
             self.min_loss = self.epoch_loss[-1]
-            self.best_model = f"best_trans_{epoch}.pth"
+            self.best_model = f"best_trans_r{self.round_idx}_e{epoch}.pth"
 
     def train(self):
         start = time.time()
@@ -74,11 +75,14 @@ class TransformerTrainer(ModelTrainer):
                              model_opt,
                              epoch)
         logging.info("-----COMPLETED TRAINING THE TRANSFORMER-----")
-        self.config["best_trans_model"] = self.best_model
-        self.config["trans_train_time"] = (time.time() - start) / 60
+        self.config["best_trans_model_round_" + str(self.round_idx)] = self.best_model
+        self.config["trans_train_time_round_" + str(self.round_idx)] = (time.time() - start) / 60
 
     def test(self, test_data, device, args):
         pass
+
+    def update_comm_round(self):
+        self.round_idx += 1
 
     def get_updated_config(self):
         return self.config

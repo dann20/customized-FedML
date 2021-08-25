@@ -3,6 +3,7 @@ import logging
 import os
 import sys
 import time
+from datetime import datetime
 
 import requests
 import torch
@@ -83,6 +84,11 @@ if __name__ == '__main__':
     logging.info("dataset = " + str(config['auto_dataset']))
     logging.info(config)
 
+    dateTimeObj = datetime.now()
+    timestampStr = dateTimeObj.strftime("%d-%b-%Y-%H-%M")
+    config['time'] = timestampStr
+    config['client_ID'] = client_ID
+
     # create the experiments dirs
     create_dirs(config['result_dir'], config['checkpoint_dir'])
     # save the config in a json file in result directory
@@ -105,6 +111,8 @@ if __name__ == '__main__':
                                              device=device,
                                              config=config)
     autoencoder_trainer.train()
+    config = autoencoder_trainer.get_updated_config()
+    save_config(config)
 
     transformer_model = create_transformer(N=config['num_stacks'],
                                            d_model=config['d_model'],
@@ -119,8 +127,7 @@ if __name__ == '__main__':
                                              config=config)
 
     size = config['num_client'] + 1
-    client_manager = FedAVGClientManager(config,
-                                         transformer_trainer,
+    client_manager = FedAVGClientManager(transformer_trainer,
                                          None,
                                          rank=client_ID,
                                          size=size,
