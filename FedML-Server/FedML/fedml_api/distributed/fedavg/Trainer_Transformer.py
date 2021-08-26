@@ -1,5 +1,8 @@
 import time
 import logging
+import os
+
+import pandas as pd
 
 import torch
 from torch import nn
@@ -53,8 +56,9 @@ class TransformerTrainer(ModelTrainer):
         if len(batch_loss) > 0:
             self.epoch_loss.append(sum(batch_loss)/len(batch_loss))
             logging.info('Trainer_ID {}. Local Training Epoch: {} \tTotal Loss: {:.6f}'.format(self.id,
-                                                                                         epoch,
-                                                                                         sum(self.epoch_loss) / len(self.epoch_loss)))
+                                                                                               epoch,
+                                                                                               self.epoch_loss[-1]))
+
         if self.epoch_loss[-1] < self.min_loss:
             torch.save(self.model.state_dict(),
                        self.config["checkpoint_dir"] + f"best_trans_r{round_idx}_e{epoch}.pth")
@@ -77,6 +81,13 @@ class TransformerTrainer(ModelTrainer):
         logging.info("-----COMPLETED TRAINING THE TRANSFORMER-----")
         self.config["best_trans_model_round_" + str(round_idx)] = self.best_model
         self.config["trans_train_time_round_" + str(round_idx)] = (time.time() - start) / 60
+
+        df_loss = pd.DataFrame([[round_idx+1, i+1, self.epoch_loss[i]] for i in range(len(self.epoch_loss))])
+        loss_file = config["result_dir"] + 'transformer_epoch_loss.csv'
+        df_loss.to_csv(loss_file,
+                       mode='a',
+                       index=False,
+                       header=False if os.path.exists(loss_file) else ['CommRound', 'LocalEpoch','Loss'])
 
     def test(self, test_data, device, args):
         pass

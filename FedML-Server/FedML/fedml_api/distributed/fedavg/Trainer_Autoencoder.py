@@ -1,6 +1,8 @@
 import time
 import logging
 
+import pandas as pd
+
 import torch
 from torch import nn
 from torch import optim
@@ -45,8 +47,9 @@ class AutoencoderTrainer(ModelTrainer):
         if len(batch_loss) > 0:
             self.epoch_loss.append(sum(batch_loss)/len(batch_loss))
             logging.info('Trainer_ID {}. Local Training Epoch: {} \tTotal Loss: {:.6f}'.format(self.id,
-                                                                                         epoch,
-                                                                                         sum(self.epoch_loss) / len(self.epoch_loss)))
+                                                                                               epoch,
+                                                                                               self.epoch_loss[-1]))
+
         if self.epoch_loss[-1] < self.min_loss:
             torch.save(self.model.state_dict(),
                        self.config["checkpoint_dir"] + f"best_autoencoder_{epoch}.pth")
@@ -70,6 +73,11 @@ class AutoencoderTrainer(ModelTrainer):
         logging.info("-----COMPLETED TRAINING THE AUTOENCODER-----")
         self.config["best_auto_model"] = self.best_model
         self.config["auto_train_time"] = (time.time() - start) / 60
+
+        df_loss = pd.DataFrame([[i+1, self.epoch_loss[i]] for i in range(len(self.epoch_loss))])
+        df_loss.to_csv(config["result_dir"] + 'autoencoder_epoch_loss.csv',
+                       index=False,
+                       header=['Epoch', 'Loss'])
 
     def test(self, test_data, device, args):
         pass
