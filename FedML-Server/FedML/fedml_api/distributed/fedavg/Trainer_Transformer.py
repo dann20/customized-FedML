@@ -81,16 +81,18 @@ class TransformerTrainer(ModelTrainer):
         logging.info("-----COMPLETED TRAINING THE TRANSFORMER-----")
         self.config["best_trans_model_round_" + str(round_idx)] = self.best_model
         self.config["trans_train_time_round_" + str(round_idx)] = (time.time() - start) / 60
+        self.save_loss(round_idx)
 
+    def test(self, test_data, device, args):
+        pass
+
+    def save_loss(self, round_idx):
         df_loss = pd.DataFrame([[round_idx+1, i+1, self.epoch_loss[i]] for i in range(len(self.epoch_loss))])
-        loss_file = config["result_dir"] + 'transformer_epoch_loss.csv'
+        loss_file = self.config["result_dir"] + 'transformer_epoch_loss.csv'
         df_loss.to_csv(loss_file,
                        mode='a',
                        index=False,
                        header=False if os.path.exists(loss_file) else ['CommRound', 'LocalEpoch','Loss'])
-
-    def test(self, test_data, device, args):
-        pass
 
     def get_updated_config(self):
         return self.config

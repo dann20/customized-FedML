@@ -73,14 +73,16 @@ class AutoencoderTrainer(ModelTrainer):
         logging.info("-----COMPLETED TRAINING THE AUTOENCODER-----")
         self.config["best_auto_model"] = self.best_model
         self.config["auto_train_time"] = (time.time() - start) / 60
-
-        df_loss = pd.DataFrame([[i+1, self.epoch_loss[i]] for i in range(len(self.epoch_loss))])
-        df_loss.to_csv(config["result_dir"] + 'autoencoder_epoch_loss.csv',
-                       index=False,
-                       header=['Epoch', 'Loss'])
+        self.save_loss()
 
     def test(self, test_data, device, args):
         pass
+
+    def save_loss(self):
+        df_loss = pd.DataFrame([[i+1, self.epoch_loss[i]] for i in range(len(self.epoch_loss))])
+        df_loss.to_csv(self.config["result_dir"] + 'autoencoder_epoch_loss.csv',
+                       index=False,
+                       header=['Epoch', 'Loss'])
 
     def get_updated_config(self):
         return self.config
