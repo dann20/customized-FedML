@@ -41,7 +41,7 @@ class FedAVGAggregator(object):
             self.flag_client_model_uploaded_dict[idx] = False
         return True
 
-    def aggregate(self):
+    def aggregate(self, round_idx):
         start_time = time.time()
         model_list = []
         training_num = 0
@@ -54,7 +54,7 @@ class FedAVGAggregator(object):
 
         logging.info("length of self.model_dict = " + str(len(self.model_dict)))
 
-        logging.info("-----START AGGREGATION-----")
+        logging.info(f"-----START AGGREGATION ROUND {round_idx}-----")
         (num0, averaged_params) = model_list[0]
         for k in averaged_params.keys():
             for i in range(0, len(model_list)):
@@ -73,7 +73,7 @@ class FedAVGAggregator(object):
         # update the global model which is cached at the server side
         self.set_global_model_params(averaged_params)
         logging.info("Set aggregated model to trainer.")
-        self.trainer.save_aggregated_model()
+        self.trainer.save_aggregated_model(round_idx)
         logging.info("Saved aggregated model.")
         end_time = time.time()
         logging.info("-----DONE AGGREGATION-----")

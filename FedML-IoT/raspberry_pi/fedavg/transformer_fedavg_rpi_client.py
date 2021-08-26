@@ -107,7 +107,10 @@ if __name__ == '__main__':
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     dataset = CustomDataset(config)
-    dataloader = DataLoader(dataset, batch_size=config["batch_size"], shuffle=bool(config["shuffle"]), num_workers=config["dataloader_num_workers"])
+    dataloader = DataLoader(dataset,
+                            batch_size=config["batch_size"],
+                            shuffle=bool(config["shuffle"]),
+                            num_workers=config["dataloader_num_workers"])
 
     autoencoder_model = create_autoencoder(in_seq_len=config['autoencoder_dims'],
                                            out_seq_len=config['l_win'],

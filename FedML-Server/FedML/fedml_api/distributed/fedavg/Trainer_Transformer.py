@@ -21,7 +21,6 @@ class TransformerTrainer(ModelTrainer):
         self.epoch_loss = list()
         self.best_model = None
         self.mask = self._create_mask()
-        self.round_idx = 0
 
     def get_model_params(self):
         return self.model.state_dict()
@@ -29,7 +28,7 @@ class TransformerTrainer(ModelTrainer):
     def set_model_params(self, model_parameters):
         self.model.load_state_dict(model_parameters)
 
-    def train_epoch(self, criterion, opt, epoch):
+    def train_epoch(self, criterion, opt, epoch, round_idx):
         self.model.train()
         self.model.to(self.device)
         encoder = self.encoder
@@ -58,13 +57,13 @@ class TransformerTrainer(ModelTrainer):
                                                                                          sum(self.epoch_loss) / len(self.epoch_loss)))
         if self.epoch_loss[-1] < self.min_loss:
             torch.save(self.model.state_dict(),
-                       self.config["checkpoint_dir"] + f"best_trans_r{self.round_idx}_e{epoch}.pth")
+                       self.config["checkpoint_dir"] + f"best_trans_r{round_idx}_e{epoch}.pth")
             torch.save(opt.state_dict(),
-                       self.config["checkpoint_dir"] + f"optimizer_trans_r{self.round_idx}_e{epoch}.pth")
+                       self.config["checkpoint_dir"] + f"optimizer_trans_r{round_idx}_e{epoch}.pth")
             self.min_loss = self.epoch_loss[-1]
-            self.best_model = f"best_trans_r{self.round_idx}_e{epoch}.pth"
+            self.best_model = f"best_trans_r{round_idx}_e{epoch}.pth"
 
-    def train(self):
+    def train(self, round_idx):
         start = time.time()
         logging.info("-----START TRAINING THE TRANSFORMER-----")
         self.model.float()
@@ -73,16 +72,14 @@ class TransformerTrainer(ModelTrainer):
         for epoch in range(self.config["trans_num_epoch"]):
             self.train_epoch(criterion,
                              model_opt,
-                             epoch)
+                             epoch,
+                             round_idx)
         logging.info("-----COMPLETED TRAINING THE TRANSFORMER-----")
-        self.config["best_trans_model_round_" + str(self.round_idx)] = self.best_model
-        self.config["trans_train_time_round_" + str(self.round_idx)] = (time.time() - start) / 60
+        self.config["best_trans_model_round_" + str(round_idx)] = self.best_model
+        self.config["trans_train_time_round_" + str(round_idx)] = (time.time() - start) / 60
 
     def test(self, test_data, device, args):
         pass
-
-    def update_comm_round(self):
-        self.round_idx += 1
 
     def get_updated_config(self):
         return self.config
@@ -90,12 +87,12 @@ class TransformerTrainer(ModelTrainer):
     def get_len_data(self):
         return len(self.train_data.dataset)
 
-    def save_aggregated_model(self):
+    def save_aggregated_model(self, round_idx):
         """
         Used after set_global_model_params() on server and after setting received model on clients
         """
         directory = self.config["aggregated_dir"]
-        self.config["last_aggregated_model"] = f"aggregated_trans_r{self.round_idx}.pth"
+        self.config["last_aggregated_model"] = f"aggregated_trans_r{round_idx}.pth"
         torch.save(self.model.state_dict(), directory + self.config["last_aggregated_model"])
 
     def _create_mask(self):

@@ -58,7 +58,7 @@ class FedAVGServerManager(ServerManager):
         b_all_received = self.aggregator.check_whether_all_receive()
         logging.info("b_all_received = " + str(b_all_received))
         if b_all_received:
-            global_model_params = self.aggregator.aggregate()
+            global_model_params = self.aggregator.aggregate(self.round_idx)
             client_indexes = [self.round_idx]*self.num_client
             logging.info('indexes of clients: ' + str(client_indexes))
 

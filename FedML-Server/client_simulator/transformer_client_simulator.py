@@ -103,7 +103,10 @@ if __name__ == '__main__':
     # device = init_training_device(client_ID - 1, args.client_num_per_round - 1, 4)
 
     dataset = CustomDataset(config)
-    dataloader = DataLoader(dataset, batch_size=config["batch_size"], shuffle=bool(config["shuffle"]), num_workers=config["dataloader_num_workers"])
+    dataloader = DataLoader(dataset,
+                            batch_size=config["batch_size"],
+                            shuffle=bool(config["shuffle"]),
+                            num_workers=config["dataloader_num_workers"])
 
     autoencoder_model = create_autoencoder(in_seq_len=config['autoencoder_dims'],
                                            out_seq_len=config['l_win'],

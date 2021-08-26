@@ -63,7 +63,6 @@ class FedAVGClientManager(ClientManager):
         self.trainer.save_aggregated_model()
         self.round_idx += 1
         if self.round_idx < self.num_rounds:
-            self.trainer.update_comm_round()
             self.__train()
             save_config(self.trainer.config)
         if self.round_idx == self.num_rounds:
@@ -79,7 +78,7 @@ class FedAVGClientManager(ClientManager):
 
     def __train(self):
         logging.info("#######TRANSFORMER TRAINING########### round_id = %d" % self.round_idx)
-        self.trainer.train()
+        self.trainer.train(self.round_idx)
         local_sample_num = self.trainer.get_len_data()
         logging.info(f'local_sample_num = {local_sample_num}')
         weights = self.trainer.get_model_params()
