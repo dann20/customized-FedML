@@ -29,6 +29,7 @@ class FedAVGServerManager(ServerManager):
 
     def finish(self):
         super().finish()
+        response = requests.get('http://localhost:5000/shutdown')
         sys.exit()
 
     def send_init_vae_msg(self):

@@ -77,6 +77,14 @@ def register_device():
                     "client_id": client_id,
                     "training_task_args": training_task_args})
 
+@app.route("/shutdown", methods=['GET'])
+def shutdown():
+    shutdown_func = request.environ.get('werkzeug.server.shutdown')
+    if shutdown_func is None:
+        raise RuntimeError('Not running werkzeug')
+    shutdown_func()
+    return "Shutting down..."
+
 def clean_subprocess(bmon_process, resmon_process, start_time):
     logging.info("Wait 10 seconds for server to end...")
     time.sleep(10)

@@ -79,6 +79,14 @@ def register_device():
                     "client_id": client_id,
                     "training_task_args": training_task_args})
 
+@app.route("/shutdown", methods=['GET'])
+def shutdown():
+    shutdown_func = request.environ.get('werkzeug.server.shutdown')
+    if shutdown_func is None:
+        raise RuntimeError('Not running werkzeug')
+    shutdown_func()
+    return "Shutting down..."
+
 def model_log(vae_trainer, lstm_model):
     print('----------- VAE MODEL ----------')
     vae_params = vae_trainer.get_vae_model_params()

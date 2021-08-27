@@ -1,6 +1,9 @@
 import logging
 import os
 import sys
+import time
+
+import requests
 
 from .message_define import MyMessage
 
@@ -26,6 +29,7 @@ class FedAVGServerManager(ServerManager):
 
     def finish(self):
         super().finish()
+        response = requests.get('http://localhost:5000/shutdown')
         sys.exit()
 
     def send_init_vae_msg(self):
