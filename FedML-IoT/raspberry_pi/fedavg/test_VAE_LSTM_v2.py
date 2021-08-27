@@ -33,7 +33,7 @@ from FedML.fedml_api.data_preprocessing.VAE_LSTM.data_loader import DataGenerato
 from FedML.fedml_api.model.VAE_LSTM.VAE_LSTM_Models import VAEmodel, lstmKerasModel
 from FedML.fedml_api.distributed.fedavg.VAE_Trainer import vaeTrainer
 
-from FedML.fedml_api.distributed.fedavg.utils_VAE_LSTM import process_config, create_dirs, get_args, save_config
+from FedML.fedml_api.distributed.fedavg.utils_VAE_LSTM import process_config, create_dirs
 
 # slice into rolling windows and rolling sequences
 def slice_rolling_windows_and_sequences(config, time_seq):

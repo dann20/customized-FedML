@@ -20,7 +20,7 @@ from FedML.fedml_api.model.transformer.transformer import create_transformer
 from FedML.fedml_api.distributed.fedavg.Trainer_Autoencoder import AutoencoderTrainer
 from FedML.fedml_api.distributed.fedavg.Trainer_Transformer import TransformerTrainer
 from FedML.fedml_api.data_preprocessing.Transformer.data_loader import CustomDataset
-from FedML.fedml_api.distributed.fedavg.utils_Transformer import process_config, create_dirs, get_args, save_config
+from FedML.fedml_api.distributed.fedavg.utils_Transformer import create_dirs, save_config
 
 from FedML.fedml_core.distributed.communication.observer import Observer
 

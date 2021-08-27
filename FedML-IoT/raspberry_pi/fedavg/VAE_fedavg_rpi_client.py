@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../")))
 from FedML.fedml_api.distributed.fedavg.FedAvgClientManager_VAE import FedAVGClientManager
 from FedML.fedml_api.model.VAE_XAI.VAE_Model import VAEmodel
 from FedML.fedml_api.data_preprocessing.VAE_XAI.data_loader import data_loader
-from FedML.fedml_api.distributed.fedavg.utils_VAE_LSTM import process_config_VAE, create_dirs, get_args, save_config
+from FedML.fedml_api.distributed.fedavg.utils_VAE_LSTM import create_dirs, save_config
 
 from FedML.fedml_core.distributed.communication.observer import Observer
 
