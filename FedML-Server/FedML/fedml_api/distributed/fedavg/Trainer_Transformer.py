@@ -82,6 +82,7 @@ class TransformerTrainer(ModelTrainer):
         self.config["best_trans_model_round_" + str(round_idx)] = self.best_model
         self.config["trans_train_time_round_" + str(round_idx)] = (time.time() - start) / 60
         self.save_loss(round_idx)
+        self.epoch_loss = list()
 
     def test(self, test_data, device, args):
         pass

@@ -23,7 +23,7 @@ class MqttCommManager(BaseCommunicationManager):
             self._client_id = client_id
         self.client_num = client_num
         # Construct a Client
-        self._client = mqtt.Client(client_id=str(self._client_id))
+        self._client = mqtt.Client(client_id=str(self._client_id), clean_session=False)
         self._client.on_connect = self._on_connect
         self._client.on_disconnect = self._on_disconnect
         self._client.on_message = self._on_message
