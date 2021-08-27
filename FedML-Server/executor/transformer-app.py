@@ -1,7 +1,9 @@
 import logging
 import os
 import sys
+import time
 import subprocess
+import atexit
 import argparse
 from datetime import datetime
 
@@ -75,10 +77,24 @@ def register_device():
                     "client_id": client_id,
                     "training_task_args": training_task_args})
 
+def clean_subprocess(bmon_process, resmon_process, start_time):
+    logging.info("Wait 10 seconds for server to end...")
+    time.sleep(10)
+    if bmon_process:
+        bmon_process.terminate()
+        logging.info("Terminated bmon.")
+    if resmon_process:
+        resmon_process.terminate()
+        logging.info("Terminated resmon.")
+    run_time = time.time() - start_time
+    logging.info("Total running time: {} sec = {} min".format(run_time, run_time/60))
+
 if __name__ == '__main__':
+    start_time = time.time()
+    datetime_obj = datetime.now()
     if args.bmonOutfile != 'None':
         bmon_command = "bmon -p wlp7s0 -r 1 -o 'format:fmt=$(attr:txrate:bytes) $(attr:rxrate:bytes)\n' > " + args.bmonOutfile
-        bmon_process = subprocess.Popen([bmon_command], shell=True)
+        bmon_process = subprocess.Popen(["exec " + bmon_command], shell=True)
     else:
         bmon_process = None
 
@@ -86,6 +102,8 @@ if __name__ == '__main__':
         resmon_process = subprocess.Popen(["resmon", "-o", args.resmonOutfile])
     else:
         resmon_process = None
+
+    atexit.register(clean_subprocess, bmon_process, resmon_process, start_time)
 
     logging.basicConfig(level=logging.DEBUG)
     # MQTT client connection
@@ -97,9 +115,8 @@ if __name__ == '__main__':
     if sys.platform == 'darwin':
         os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
-    dateTimeObj = datetime.now()
-    timestampStr = dateTimeObj.strftime("%d-%b-%Y-%H:%M:%S")
-    config['time'] = timestampStr
+    timestamp = datetime_obj.strftime("%d-%b-%Y-%H:%M:%S")
+    config['time'] = timestamp
 
     logging.info(args)
     logging.info(config)
@@ -141,9 +158,7 @@ if __name__ == '__main__':
                                          aggregator,
                                          rank=0,
                                          size=size,
-                                         backend="MQTT",
-                                         bmon_process=bmon_process,
-                                         resmon_process=resmon_process)
+                                         backend="MQTT")
     server_manager.run()
     server_manager.send_init_config()
 

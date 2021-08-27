@@ -2,6 +2,8 @@ import logging
 import os
 import sys
 import subprocess
+import atexit
+import time
 
 import tensorflow as tf
 import argparse
@@ -90,10 +92,23 @@ def model_log(vae_trainer, lstm_model):
     for i in range(len(lstm_params)):
         print('Shape of layer ' + str(i) + str(lstm_params[i].shape))
 
+def clean_subprocess(bmon_process, resmon_process, start_time):
+    logging.info("Wait 10 seconds for server to end...")
+    time.sleep(10)
+    if bmon_process:
+        bmon_process.terminate()
+        logging.info("Terminated bmon.")
+    if resmon_process:
+        resmon_process.terminate()
+        logging.info("Terminated resmon.")
+    run_time = time.time() - start_time
+    logging.info("Total running time: {} sec = {} min".format(run_time, run_time/60))
+
 if __name__ == '__main__':
+    start_time = time.time()
     if args.bmonOutfile != 'None':
         bmon_command = "bmon -p wlp7s0 -r 1 -o 'format:fmt=$(attr:txrate:bytes) $(attr:rxrate:bytes)\n' > " + args.bmonOutfile
-        bmon_process = subprocess.Popen([bmon_command], shell=True)
+        bmon_process = subprocess.Popen(["exec " + bmon_command], shell=True)
     else:
         bmon_process = None
 
@@ -101,6 +116,9 @@ if __name__ == '__main__':
         resmon_process = subprocess.Popen(["resmon", "-o", args.resmonOutfile])
     else:
         resmon_process = None
+
+    atexit.register(clean_subprocess, bmon_process, resmon_process, start_time)
+
     logging.basicConfig(level=logging.DEBUG)
     # MQTT client connection
     class Obs(Observer):
@@ -139,9 +157,7 @@ if __name__ == '__main__':
                                          aggregator,
                                          rank=0,
                                          size=size,
-                                         backend="MQTT",
-                                         bmon_process=bmon_process,
-                                         resmon_process=resmon_process)
+                                         backend="MQTT")
     # model_log(server_manager.aggregator.global_vae_trainer, server_manager.aggregator.global_lstm_model)
     server_manager.run()
     server_manager.send_init_config()

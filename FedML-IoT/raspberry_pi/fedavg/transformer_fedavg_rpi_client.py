@@ -5,6 +5,7 @@ import os
 import sys
 import time
 import subprocess
+import atexit
 from datetime import datetime
 
 import requests
@@ -63,18 +64,31 @@ def register(args, uuid):
 
     return client_ID, config
 
+def clean_subprocess(bmon_process, resmon_process, start_time):
+    logging.info("Wait 10 seconds for server to end...")
+    time.sleep(10)
+    if bmon_process:
+        bmon_process.terminate()
+        logging.info("Terminated bmon.")
+    if resmon_process:
+        resmon_process.terminate()
+        logging.info("Terminated resmon.")
+    logging.info("Total running time: ", (time.time() - start_time)/60, " min")
+
 """
 python mobile_client_simulator.py --client_uuid '0'
 python mobile_client_simulator.py --client_uuid '1'
 """
 if __name__ == '__main__':
+    start_time = time.time()
+    datetime_obj = datetime.now()
     parser = argparse.ArgumentParser()
     main_args = add_args(parser)
     uuid = main_args.client_uuid
 
     if main_args.bmonOutfile != 'None':
         bmon_command = "bmon -p wlan0 -r 1 -o 'format:fmt=$(attr:txrate:bytes) $(attr:rxrate:bytes)\n' > " + main_args.bmonOutfile
-        bmon_process = subprocess.Popen([bmon_command], shell=True)
+        bmon_process = subprocess.Popen(["exec " + bmon_command], shell=True)
     else:
         bmon_process = None
 
@@ -83,7 +97,9 @@ if __name__ == '__main__':
     else:
         resmon_process = None
 
-    logging.basicConfig(level=logging.INFO)
+    atexit.register(clean_subprocess, bmon_process, resmon_process, start_time)
+
+    logging.basicConfig(level=logging.DEBUG)
 
     client_ID, config = register(main_args, uuid)
     logging.info(main_args)
@@ -91,9 +107,8 @@ if __name__ == '__main__':
     logging.info("experiment = " + str(config['experiment']))
     logging.info("dataset = " + str(config['auto_dataset']))
 
-    dateTimeObj = datetime.now()
-    timestampStr = dateTimeObj.strftime("%d-%b-%Y-%H:%M:%S")
-    config['time'] = timestampStr
+    timestamp = datetime_obj.strftime("%d-%b-%Y-%H:%M:%S")
+    config['time'] = timestamp
     config['client_ID'] = client_ID
     logging.info(config)
 
@@ -140,9 +155,7 @@ if __name__ == '__main__':
                                          None,
                                          rank=client_ID,
                                          size=size,
-                                         backend="MQTT",
-                                         bmon_process=bmon_process,
-                                         resmon_process=resmon_process)
+                                         backend="MQTT")
 
     client_manager.run()
 

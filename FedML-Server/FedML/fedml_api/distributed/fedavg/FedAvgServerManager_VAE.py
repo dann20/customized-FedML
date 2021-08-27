@@ -14,27 +14,19 @@ except ImportError:
     from FedML.fedml_core.distributed.server.server_manager import ServerManager
 
 class FedAVGServerManager(ServerManager):
-    def __init__(self, args, aggregator, comm=None, rank=0, size=0, backend="MPI", bmon_process=None, resmon_process=None):
+    def __init__(self, args, aggregator, comm=None, rank=0, size=0, backend="MPI"):
         super().__init__(args, comm, rank, size, backend)
         self.aggregator = aggregator
         self.round_num = args['num_comm_rounds']
         self.round_idx = 0
         self.num_client = size - 1
-        if bmon_process:
-            self.bmon_process = bmon_process
-        if resmon_process:
-            self.resmon_process = resmon_process
 
     def run(self):
         super().run()
 
-    # def finish(self):
-    #     super().finish()
-    #     if self.bmon_process:
-    #         self.bmon_process.terminate()
-    #     if self.resmon_process:
-    #         self.resmon_process.terminate()
-    #     sys.exit()
+    def finish(self):
+        super().finish()
+        sys.exit()
 
     def send_init_vae_msg(self):
         logging.info('sending init VAE model...')

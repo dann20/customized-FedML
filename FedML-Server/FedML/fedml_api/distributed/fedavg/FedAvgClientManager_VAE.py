@@ -14,26 +14,18 @@ except ImportError:
 from .message_define import MyMessage
 
 class FedAVGClientManager(ClientManager):
-    def __init__(self, args, vae_model, comm=None, rank=0, size=0, backend="MPI", bmon_process=None, resmon_process=None):
+    def __init__(self, args, vae_model, comm=None, rank=0, size=0, backend="MPI"):
         super().__init__(args, comm, rank, size, backend) # now args is config_dict
         self.vae_model = vae_model
         self.num_rounds = args['num_comm_rounds']
         self.round_idx = 0
-        if bmon_process:
-            self.bmon_process = bmon_process
-        if resmon_process:
-            self.resmon_process = resmon_process
 
     def run(self):
         super().run()
 
-    # def finish(self):
-    #     super().finish()
-    #     if self.bmon_process:
-    #         self.bmon_process.terminate()
-    #     if self.resmon_process:
-    #         self.resmon_process.terminate()
-    #     sys.exit()
+    def finish(self):
+        super().finish()
+        sys.exit()
 
     def register_message_receive_handlers(self):
         self.register_message_receive_handler(MyMessage.MSG_TYPE_S2C_VAE_INIT_CONFIG,
