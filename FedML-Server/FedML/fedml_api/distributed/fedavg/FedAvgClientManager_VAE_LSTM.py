@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+import signal
 
 import tensorflow as tf
 
@@ -29,7 +30,7 @@ class FedAVGClientManager(ClientManager):
 
     def finish(self):
         super().finish()
-        sys.exit()
+        os.kill(os.getpid(), signal.SIGINT)
 
     def register_message_receive_handlers(self):
         self.register_message_receive_handler(MyMessage.MSG_TYPE_S2C_VAE_INIT_CONFIG,

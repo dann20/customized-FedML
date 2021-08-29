@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+import signal
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../..")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../../FedML")))
@@ -26,7 +27,7 @@ class FedAVGClientManager(ClientManager):
 
     def finish(self):
         super().finish()
-        sys.exit()
+        os.kill(os.getpid(), signal.SIGINT)
 
     def register_message_receive_handlers(self):
         self.register_message_receive_handler(MyMessage.MSG_TYPE_S2C_INIT_CONFIG,

@@ -1,6 +1,9 @@
 import logging
 import os
 import sys
+import signal
+
+import requests
 
 from .message_define import MyMessage
 
@@ -28,7 +31,7 @@ class FedAVGServerManager(ServerManager):
     def finish(self):
         super().finish()
         response = requests.get('http://localhost:5000/shutdown')
-        sys.exit()
+        os.kill(os.getpid(), signal.SIGINT)
 
     def send_init_config(self):
         logging.info('sending init config...')
