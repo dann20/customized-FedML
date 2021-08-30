@@ -113,7 +113,7 @@ if __name__ == '__main__':
 
     atexit.register(clean_subprocess, bmon_process, resmon_process, start_time)
 
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     # MQTT client connection
     class Obs(Observer):
         def receive_message(self, msg_type, msg_params) -> None:

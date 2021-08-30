@@ -12,3 +12,8 @@ FedML-Server/client_simulator/*.txt
 FedML-Server/client_simulator/*.png
 FedML-Server/client_simulator/*.htm
 FedML-Server/client_simulator/*.csv
+FedML-Server/Transformer-related/experiments/
+FedML-Server/Transformer-related/datasets/
+FedML-Server/Transformer-related/configs/
+FedML-Server/Transformer-related/utils/*.csv
+FedML-IoT/raspberry_pi/Transformer-related/
