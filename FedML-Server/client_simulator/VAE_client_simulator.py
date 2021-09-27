@@ -4,10 +4,7 @@ import os
 import sys
 import time
 
-import numpy as np
 import requests
-import tensorflow as tf
-import pandas as pd
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../")))
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152 VAE-LSTM
@@ -62,6 +59,8 @@ if __name__ == '__main__':
     client_ID, config = register(uuid)
     config["result_dir"] = os.path.join(config["result_dir"], "client{}/".format(client_ID))
     config["checkpoint_dir"] = os.path.join(config["checkpoint_dir"], "client{}/".format(client_ID))
+    config["dataset"] = config["dataset"] + "_" + str(client_ID)
+    logging.info("experiment = " + str(config["exp_name"]))
     logging.info("client_ID = " + str(client_ID))
     logging.info("dataset = " + str(config['dataset']))
     logging.info(config)
@@ -71,13 +70,12 @@ if __name__ == '__main__':
     # save the config in a txt file
     save_config(config)
 
-    if config["load_dir"] == "default":
-        normal_train_data, normal_test_data, _, _, _ = data_loader('../VAE-XAI-related/datasets/dataset_processed.csv')
-    else:
-        normal_train_data, normal_test_data, _, _, _ = data_loader(config["load_dir"])
+    normal_train_data, normal_val_data, test_data, test_labels, _ = data_loader(config)
 
     vae_model = VAEmodel(config, "Client{}".format(client_ID))
-    vae_model.load_train_data(normal_train_data, normal_test_data)
+    vae_model.load_train_data(normal_train_data, normal_val_data)
+    vae_model.load_test_data(test_data, test_labels)
+    vae_model.set_threshold(float(config["threshold"]))
 
     size = config['num_client'] + 1
     client_manager = FedAVGClientManager(config,

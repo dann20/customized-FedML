@@ -2,7 +2,8 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 
-def data_loader(data_dir):
+def data_loader(config):
+    data_dir = "../VAE-XAI-related/datasets/{}/{}.csv".format(config["data_dir"], config["dataset"])
     df = pd.read_csv(data_dir, header=0)
     df = df.dropna()
     # The last element contains the labels
@@ -12,7 +13,7 @@ def data_loader(data_dir):
     # The other data points are the electrocadriogram data
     data = df.iloc[:, 0:10]
     #Chia bo train bo test
-    train_data, test_data, train_labels, test_labels = train_test_split( data, labels, test_size=0.3, random_state=20)
+    train_data, test_data, train_labels, test_labels = train_test_split( data, labels, test_size=0.2, shuffle=False)
 
     scaler = MinMaxScaler()
     scaler.fit(train_data)

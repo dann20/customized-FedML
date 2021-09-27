@@ -1,4 +1,3 @@
-import os
 import tensorflow as tf
 from tensorflow.keras import backend as K
 from tensorflow.keras.losses import mse, binary_crossentropy
@@ -110,6 +109,10 @@ class VAEmodel:
         self.normal_train_data = train_data
         self.normal_val_data = val_data
 
+    def load_test_data(self, test_data, test_labels):
+        self.test_data = test_data
+        self.test_labels = test_labels
+
     def train(self):
         cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=self.checkpoint_path,
                                                           save_weights_only=True,
@@ -142,19 +145,22 @@ class VAEmodel:
     def set_threshold(self, threshold):
         self.threshold = threshold
 
-    def test(self, data, labels):
-        reconstructions = self.model.predict(data)
-        loss = mse(data, reconstructions)
+    def test(self):
+        reconstructions = self.model.predict(self.test_data)
+        error_vector = np.subtract(reconstructions, self.test_data)
+        error_vector = np.concatenate([error_vector, self.test_labels.to_numpy().reshape(-1, 1)], axis=1) # pandas dataframe to numpy arr
+        np.savetxt(self.result_dir + 'error_vector.csv', error_vector, delimiter=',')
+        loss = mse(self.test_data, reconstructions)
         self.plot_test_loss(loss)
         try:
             preds = tf.math.less(loss, self.threshold)
         except:
             print('Not set threshold.')
         print(preds)
-        print("Accuracy = {}".format(accuracy_score(labels, preds)))
-        print("Precision = {}".format(precision_score(labels, preds)))
-        print("Recall = {}".format(recall_score(labels, preds)))
-        print("F1_Score = {}".format(f1_score(labels, preds)))
+        print("Accuracy = {}".format(accuracy_score(self.test_labels, preds)))
+        print("Precision = {}".format(precision_score(self.test_labels, preds)))
+        print("Recall = {}".format(recall_score(self.test_labels, preds)))
+        print("F1_Score = {}".format(f1_score(self.test_labels, preds)))
 
     def save_model(self):
         self.model.save_weights(self.checkpoint_dir)

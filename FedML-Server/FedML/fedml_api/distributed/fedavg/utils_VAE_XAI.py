@@ -26,11 +26,8 @@ def process_config(json_file):
     config = get_config_from_json(json_file)
 
     # create directories to save experiment results and trained models
-    if config['load_dir'] == "default":
-        save_dir = "../VAE-XAI-related/experiments/{}/{}/batch-{}".format(
-            config['exp_name'], config['dataset'], config['batch_size'])
-    else:
-        save_dir = config['load_dir']
+    save_dir = "../VAE-XAI-related/experiments/{}/{}/batch-{}".format(
+        config['exp_name'], config['dataset'], config['batch_size'])
 
     config['result_dir'] = os.path.join(save_dir, "result/")
     config['checkpoint_dir'] = os.path.join(save_dir, "checkpoint/")

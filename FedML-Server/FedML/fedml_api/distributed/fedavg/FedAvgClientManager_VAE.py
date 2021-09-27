@@ -57,6 +57,7 @@ class FedAVGClientManager(ClientManager):
         if self.round_idx < self.num_rounds:
             self.__vae_train()
         elif self.round_idx == self.num_rounds:
+            self.__test()
             self.finish()
 
     def send_vae_model_to_server(self, receive_id, vae_model_params):
@@ -70,3 +71,8 @@ class FedAVGClientManager(ClientManager):
         self.vae_model.train()
         local_train_vars = self.vae_model.get_vae_model_params()
         self.send_vae_model_to_server(0, local_train_vars)
+
+    def __test(self):
+        logging.info("###### TESTING PRE-LOADED DATA ######")
+        self.vae_model.test()
+        logging.info("TESTING PHASE DONE.")

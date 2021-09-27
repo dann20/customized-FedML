@@ -3,14 +3,10 @@ import logging
 import os
 import sys
 import time
-import subprocess
 from IPython import embed
 
-import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import requests
-import tensorflow as tf
 import shap
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../")))
@@ -60,19 +56,19 @@ if __name__ == '__main__':
     client_ID, config = register(uuid)
     config["result_dir"] = os.path.join(config["result_dir"], "client{}/".format(client_ID))
     config["checkpoint_dir"] = os.path.join(config["checkpoint_dir"], "client{}/".format(client_ID))
+    config["dataset"] = config["dataset"] + "_" + str(client_ID)
+    logging.info("experiment = " + str(config["exp_name"]))
     logging.info("client_ID = " + str(client_ID))
     logging.info("dataset = " + str(config['dataset']))
     logging.info(config)
 
-    if config["load_dir"] == "default":
-        normal_train_data, _, test_data, test_labels, data = data_loader('../VAE-XAI-related/datasets/dataset_processed.csv')
-    else:
-        normal_train_data, _, test_data, test_labels, data = data_loader(config["load_dir"])
+    normal_train_data, _, test_data, test_labels, data = data_loader(config)
 
     vae_model = VAEmodel(config, "Client{}".format(client_ID))
     vae_model.load_model()
-    vae_model.set_threshold(0.15)
-    vae_model.test(test_data, test_labels)
+    vae_model.load_test_data(test_data, test_labels)
+    vae_model.set_threshold(float(config["threshold"]))
+    vae_model.test()
 
     train = pd.DataFrame(normal_train_data)
     test = pd.DataFrame(test_data)
