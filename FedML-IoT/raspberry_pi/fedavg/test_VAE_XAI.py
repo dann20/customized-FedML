@@ -14,8 +14,6 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../")))
 from FedML.fedml_api.model.VAE_XAI.VAE_Model import VAEmodel
 from FedML.fedml_api.data_preprocessing.VAE_XAI.data_loader import data_loader
 
-from FedML.fedml_core.distributed.communication.observer import Observer
-
 def add_args(parser):
     parser.add_argument('--server_ip',
                         type=str,
@@ -90,15 +88,13 @@ if __name__ == '__main__':
     logging.info("dataset = " + str(config['dataset']))
     logging.info(config)
 
-    if config["load_dir"] == "default":
-        normal_train_data, _, test_data, test_labels, data = data_loader('../VAE-XAI-related/datasets/dataset_processed.csv')
-    else:
-        normal_train_data, _, test_data, test_labels, data = data_loader(config["load_dir"])
+    normal_train_data, _, test_data, test_labels, data = data_loader(config)
 
     vae_model = VAEmodel(config, "Client{}".format(client_ID))
     vae_model.load_model()
-    vae_model.set_threshold(0.15)
-    vae_model.test(test_data, test_labels)
+    vae_model.load_test_data(test_data, test_labels)
+    vae_model.set_threshold(float(config["threshold"]))
+    vae_model.test()
 
     train = pd.DataFrame(normal_train_data)
     test = pd.DataFrame(test_data)

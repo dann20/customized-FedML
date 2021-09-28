@@ -4,7 +4,6 @@ import sys
 import time
 
 import numpy as np
-import tensorflow as tf
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../..")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../../FedML")))

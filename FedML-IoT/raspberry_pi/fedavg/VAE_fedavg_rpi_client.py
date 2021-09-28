@@ -15,8 +15,6 @@ from FedML.fedml_api.model.VAE_XAI.VAE_Model import VAEmodel
 from FedML.fedml_api.data_preprocessing.VAE_XAI.data_loader import data_loader
 from FedML.fedml_api.distributed.fedavg.utils_VAE_LSTM import create_dirs, save_config
 
-from FedML.fedml_core.distributed.communication.observer import Observer
-
 def add_args(parser):
     parser.add_argument('--server_ip',
                         type=str,
@@ -101,6 +99,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
     client_ID, config = register(main_args, uuid)
+    logging.info("experiment = " + str(config["exp_name"]))
     logging.info("client_ID = " + str(client_ID))
     logging.info("dataset = " + str(config['dataset']))
     logging.info(config)
@@ -110,13 +109,12 @@ if __name__ == '__main__':
     # save the config in a txt file
     save_config(config)
 
-    if config["load_dir"] == "default":
-        normal_train_data, normal_test_data, _, _, _ = data_loader('../VAE-XAI-related/datasets/dataset_processed.csv')
-    else:
-        normal_train_data, normal_test_data, _, _, _ = data_loader(config["load_dir"])
+    normal_train_data, normal_val_data, test_data, test_labels, _ = data_loader(config)
 
     vae_model = VAEmodel(config, "Client{}".format(client_ID))
-    vae_model.load_train_data(normal_train_data, normal_test_data)
+    vae_model.load_train_data(normal_train_data, normal_val_data)
+    vae_model.load_test_data(test_data, test_labels)
+    vae_model.set_threshold(float(config["threshold"]))
 
     size = config['num_client'] + 1
     client_manager = FedAVGClientManager(config,

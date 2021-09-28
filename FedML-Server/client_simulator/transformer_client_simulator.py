@@ -19,8 +19,6 @@ from FedML.fedml_api.distributed.fedavg.Trainer_Transformer import TransformerTr
 from FedML.fedml_api.data_preprocessing.Transformer.data_loader import CustomDataset
 from FedML.fedml_api.distributed.fedavg.utils_Transformer import create_dirs, save_config
 
-from FedML.fedml_core.distributed.communication.observer import Observer
-
 def add_args(parser):
     parser.add_argument('--client_uuid', type=str, default="0",
                         help='number of workers in a distributed cluster')

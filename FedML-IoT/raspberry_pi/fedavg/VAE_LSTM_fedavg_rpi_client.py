@@ -5,6 +5,7 @@ import os
 import sys
 import time
 import subprocess
+import atexit
 
 import requests
 import tensorflow as tf
@@ -19,8 +20,6 @@ from FedML.fedml_api.model.VAE_LSTM.VAE_LSTM_Models import VAEmodel, lstmKerasMo
 from FedML.fedml_api.distributed.fedavg.VAE_Trainer import vaeTrainer
 from FedML.fedml_api.data_preprocessing.VAE_LSTM.data_loader import DataGenerator
 from FedML.fedml_api.distributed.fedavg.utils_VAE_LSTM import create_dirs, save_config
-
-from FedML.fedml_core.distributed.communication.observer import Observer
 
 def add_args(parser):
     parser.add_argument('--server_ip',

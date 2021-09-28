@@ -11,28 +11,19 @@ with warnings.catch_warnings():
     fxn()
 
 import tensorflow as tf
-import tensorflow_probability as tfp
 import numpy as np
-import matplotlib.pylab as plt
-from matplotlib.pyplot import plot, ion, show, savefig, cla, figure
-import random
 import time
 import os
 import sys
 import subprocess
-import math
-from scipy.stats import norm
 
 tf.compat.v1.disable_eager_execution()
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../")))
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   # see issue #152
 os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
-import tensorflow as tf
-from FedML.fedml_api.data_preprocessing.VAE_LSTM.data_loader import DataGenerator
 from FedML.fedml_api.model.VAE_LSTM.VAE_LSTM_Models import VAEmodel, lstmKerasModel
 from FedML.fedml_api.distributed.fedavg.VAE_Trainer import vaeTrainer
-
 from FedML.fedml_api.distributed.fedavg.utils_VAE_LSTM import process_config, create_dirs
 
 # slice into rolling windows and rolling sequences
