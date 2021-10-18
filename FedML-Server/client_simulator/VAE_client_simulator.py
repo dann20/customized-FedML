@@ -73,7 +73,12 @@ if __name__ == '__main__':
     vae_model = VAEmodel(config, "Client{}".format(client_ID))
     vae_model.load_train_data(normal_train_data, normal_val_data)
     vae_model.load_test_data(test_data, test_labels)
-    vae_model.set_threshold(float(config["threshold"]))
+
+    if not config["multiple_thresholds"]:
+        vae_model.set_threshold(float(config["threshold"]))
+    else:
+        vae_model.set_threshold(float(config["list_threshold"][client_ID-1]))
+    logging.info("Set threshold = " + str(vae_model.threshold))
 
     size = config['num_client'] + 1
     client_manager = FedAVGClientManager(config,
@@ -81,7 +86,7 @@ if __name__ == '__main__':
                                          rank=client_ID,
                                          size=size,
                                          backend="MQTT")
-    # model_log(client_manager.vae_model)
+
     client_manager.run()
     # client_manager.start_training()
 

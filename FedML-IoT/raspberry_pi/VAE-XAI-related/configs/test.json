@@ -1,15 +1,15 @@
 {
-    "exp_name": "SCADA_1",
+    "exp_name": "TEST",
     "dataset": "data1",
     "data_dir": "data1",
-    "num_comm_rounds": 3,
+    "num_comm_rounds": 1,
 	"original_dim": 10,
 	"intermediate_dim": [8, 5],
 	"latent_dim": 2,
     "batch_size": 256,
-    "epochs": 100,
+    "epochs": 1,
     "learning_rate": 0.0015,
-    "threshold": 0.11,
     "multiple_thresholds": true,
-    "list_threshold": [0.11, 0.09, 0.09, 0.09]
+    "threshold": 0.385,
+    "list_threshold": [0.1, 0.2, 0.3, 0.4]
 }

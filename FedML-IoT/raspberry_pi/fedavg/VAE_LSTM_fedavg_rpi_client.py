@@ -83,7 +83,8 @@ def clean_subprocess(bmon_process, resmon_process, start_time):
     if resmon_process:
         resmon_process.terminate()
         logging.info("Terminated resmon.")
-    logging.info("Total running time: ", (time.time() - start_time)/60, " min")
+    run_time = time.time() - start_time
+    logging.info("Total running time: {} sec = {} min".format(run_time, run_time/60))
 
 """
 python mobile_client_simulator.py --client_uuid '0'

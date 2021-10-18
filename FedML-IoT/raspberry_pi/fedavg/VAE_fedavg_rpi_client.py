@@ -71,7 +71,8 @@ def clean_subprocess(bmon_process, resmon_process, start_time):
     if resmon_process:
         resmon_process.terminate()
         logging.info("Terminated resmon.")
-    logging.info("Total running time: ", (time.time() - start_time)/60, " min")
+    run_time = time.time() - start_time
+    logging.info("Total running time: {} sec = {} min".format(run_time, run_time/60))
 
 """
 python mobile_client_simulator.py --client_uuid '0'
@@ -96,9 +97,10 @@ if __name__ == '__main__':
 
     atexit.register(clean_subprocess, bmon_process, resmon_process, start_time)
 
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
 
     client_ID, config = register(main_args, uuid)
+    config["dataset"] = config["dataset"] + "_" + str(client_ID)
     logging.info("experiment = " + str(config["exp_name"]))
     logging.info("client_ID = " + str(client_ID))
     logging.info("dataset = " + str(config['dataset']))
@@ -114,7 +116,12 @@ if __name__ == '__main__':
     vae_model = VAEmodel(config, "Client{}".format(client_ID))
     vae_model.load_train_data(normal_train_data, normal_val_data)
     vae_model.load_test_data(test_data, test_labels)
-    vae_model.set_threshold(float(config["threshold"]))
+
+    if not config["multiple_thresholds"]:
+        vae_model.set_threshold(float(config["threshold"]))
+    else:
+        vae_model.set_threshold(float(config["list_threshold"][client_ID-1]))
+    logging.info("Set threshold = " + str(vae_model.threshold))
 
     size = config['num_client'] + 1
     client_manager = FedAVGClientManager(config,
