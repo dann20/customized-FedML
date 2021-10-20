@@ -3,6 +3,7 @@ from tensorflow.keras import backend as K
 from tensorflow.keras.losses import mse, binary_crossentropy
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 def sampling_z(args):
@@ -147,9 +148,10 @@ class VAEmodel:
 
     def test(self):
         reconstructions = self.model.predict(self.test_data)
-        error_vector = np.subtract(reconstructions, self.test_data)
-        error_vector = np.concatenate([error_vector, self.test_labels.to_numpy().reshape(-1, 1)], axis=1) # pandas dataframe to numpy arr
-        np.savetxt(self.result_dir + 'error_vector.csv', error_vector, delimiter=',')
+        self.error_vector = np.subtract(reconstructions, self.test_data)
+        self.error_vector = np.concatenate([self.error_vector, self.test_labels.to_numpy().reshape(-1, 1)], axis=1) # pandas dataframe to numpy arr
+        np.savetxt(self.result_dir + 'error_vector.csv', self.error_vector, delimiter=',')
+        self.error_vector = pd.DataFrame(self.error_vector)
         loss = mse(self.test_data, reconstructions)
         self.plot_test_loss(loss)
         try:

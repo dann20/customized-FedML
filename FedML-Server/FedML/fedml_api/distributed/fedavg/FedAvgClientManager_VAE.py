@@ -12,14 +12,17 @@ try:
 except ImportError:
     from FedML.fedml_core.distributed.client.client_manager import ClientManager
     from FedML.fedml_core.distributed.communication.message import Message
+
+from FedML.fedml_api.data_preprocessing.VAE_XAI.svdd_preprocess import process_data
 from .message_define import MyMessage
 
 class FedAVGClientManager(ClientManager):
-    def __init__(self, args, vae_model, comm=None, rank=0, size=0, backend="MPI"):
+    def __init__(self, args, vae_model, svdd, comm=None, rank=0, size=0, backend="MPI"):
         super().__init__(args, comm, rank, size, backend) # now args is config_dict
         self.vae_model = vae_model
         self.num_rounds = args['num_comm_rounds']
         self.round_idx = 0
+        self.svdd = svdd
 
     def run(self):
         super().run()
@@ -58,6 +61,7 @@ class FedAVGClientManager(ClientManager):
             self.__vae_train()
         elif self.round_idx == self.num_rounds:
             self.__test()
+            self.__svdd_train()
             self.finish()
 
     def send_vae_model_to_server(self, receive_id, vae_model_params):
@@ -76,3 +80,11 @@ class FedAVGClientManager(ClientManager):
         logging.info("###### TESTING PRE-LOADED DATA ######")
         self.vae_model.test()
         logging.info("TESTING PHASE DONE.")
+
+    def __svdd_train(self):
+        logging.info("###### STARTING SVDD PHASE ######")
+        train_data, train_label, test_data, test_label = process_data(self.vae_model.error_vector)
+        self.svdd.train(train_data, train_label)
+        distance, accuracy = self.svdd.test(test_data, test_label)
+        logging.info("SVDD distance: ", distance)
+        logging.info("SVDD accuracy: ", accuracy)

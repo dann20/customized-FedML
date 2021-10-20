@@ -14,6 +14,7 @@ from FedML.fedml_api.distributed.fedavg.FedAvgClientManager_VAE import FedAVGCli
 from FedML.fedml_api.model.VAE_XAI.VAE_Model import VAEmodel
 from FedML.fedml_api.data_preprocessing.VAE_XAI.data_loader import data_loader
 from FedML.fedml_api.distributed.fedavg.utils_VAE_LSTM import create_dirs, save_config
+from FedML.fedml_api.model.svdd.svdd import SVDD
 
 def add_args(parser):
     parser.add_argument('--server_ip',
@@ -117,6 +118,12 @@ if __name__ == '__main__':
     vae_model.load_train_data(normal_train_data, normal_val_data)
     vae_model.load_test_data(test_data, test_labels)
 
+    parameters = {"positive penalty": 0.9,
+                  "negative penalty": 0.8,
+                  "kernel": {"type": 'lapl', "width": 1/12},
+                  "option": {"display": 'on'}}
+    svdd = SVDD(parameters)
+
     if not config["multiple_thresholds"]:
         vae_model.set_threshold(float(config["threshold"]))
     else:
@@ -126,6 +133,7 @@ if __name__ == '__main__':
     size = config['num_client'] + 1
     client_manager = FedAVGClientManager(config,
                                          vae_model,
+                                         svdd,
                                          rank=client_ID,
                                          size=size,
                                          backend="MQTT")

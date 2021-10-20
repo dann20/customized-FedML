@@ -33,8 +33,8 @@ class FedAVGServerManager(ServerManager):
 
     def finish(self):
         super().finish()
-        response = requests.get('http://localhost:5000/shutdown')
         os.kill(os.getpid(), signal.SIGINT)
+        response = requests.get('http://localhost:5000/shutdown')
 
     def send_init_vae_msg(self):
         logging.info('sending init VAE model...')
