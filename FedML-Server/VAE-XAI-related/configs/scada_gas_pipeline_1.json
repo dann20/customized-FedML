@@ -1,9 +1,9 @@
 {
-    "exp_name": "SCADA_1",
-    "dataset": "data1",
-    "data_dir": "data1",
+    "exp_name": "SCADA_GAS_PIPELINE_1",
+    "dataset": "scada1",
+    "data_dir": "scada_gas_pipeline",
     "num_comm_rounds": 3,
-	"original_dim": 10,
+	"original_dim": 16,
 	"intermediate_dim": [8, 5],
 	"latent_dim": 2,
     "batch_size": 256,

@@ -67,18 +67,18 @@ if __name__ == '__main__':
     vae_model.set_threshold(float(config["threshold"]))
     vae_model.test()
 
-    train = pd.DataFrame(normal_train_data)
-    test = pd.DataFrame(test_data)
-    shap.initjs()
+    # train = pd.DataFrame(normal_train_data)
+    # test = pd.DataFrame(test_data)
+    # shap.initjs()
 
-    shap_explainer = shap.KernelExplainer(vae_model.model,train[0:100])
-    shap_values = shap_explainer.shap_values(test[0:100])
+    # shap_explainer = shap.KernelExplainer(vae_model.model,train[0:100])
+    # shap_values = shap_explainer.shap_values(test[0:100])
 
-    shap.force_plot(shap_explainer.expected_value[3], shap_values[3])
-    shap.force_plot(shap_explainer.expected_value[0], shap_values[6][0], data.iloc[6, :])
-    shap.force_plot(shap_explainer.expected_value[0], shap_values[3][0], data.iloc[3, :])
+    # shap.force_plot(shap_explainer.expected_value[3], shap_values[3])
+    # shap.force_plot(shap_explainer.expected_value[0], shap_values[6][0], data.iloc[6, :])
+    # shap.force_plot(shap_explainer.expected_value[0], shap_values[3][0], data.iloc[3, :])
 
-    embed()
+    # embed()
 
     # shap.force_plot(shap_explainer.expected_value[0], shap_values[6][0], data.iloc[6, :], show=False, matplotlib=True).savefig('shape2.png')
     # time.sleep(1000000)

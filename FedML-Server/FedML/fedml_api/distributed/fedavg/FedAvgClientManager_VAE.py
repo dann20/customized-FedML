@@ -14,6 +14,7 @@ except ImportError:
     from FedML.fedml_core.distributed.communication.message import Message
 
 from FedML.fedml_api.data_preprocessing.VAE_XAI.svdd_preprocess import process_data
+from FedML.fedml_api.model.svdd.visualize import Visualization as draw
 from .message_define import MyMessage
 
 class FedAVGClientManager(ClientManager):
@@ -86,5 +87,9 @@ class FedAVGClientManager(ClientManager):
         train_data, train_label, test_data, test_label = process_data(self.vae_model.error_vector)
         self.svdd.train(train_data, train_label)
         distance, accuracy = self.svdd.test(test_data, test_label)
-        logging.info("SVDD distance: ", distance)
-        logging.info("SVDD accuracy: ", accuracy)
+        logging.info("SVDD distance: ")
+        logging.info(distance)
+        logging.info("SVDD accuracy: ")
+        logging.info(accuracy)
+        draw.testResult(self.svdd, distance)
+        draw.testROC(test_label, distance)
