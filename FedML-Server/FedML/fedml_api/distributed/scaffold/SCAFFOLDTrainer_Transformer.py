@@ -20,7 +20,7 @@ class SCAFFOLDTransformerTrainer(ModelTrainer):
             self.encoder = autoencoder_model.encoder
             self.encoder.eval()
         self.train_data = train_data
-        self.num_train_samples = len(self.train_data.dataset)
+        self.num_train_samples = len(self.train_data.dataset) if self.id != 0 else None
         self.device = device
         self.config = config
         self.min_loss = float('inf')
@@ -36,6 +36,9 @@ class SCAFFOLDTransformerTrainer(ModelTrainer):
             self.server_controls = [torch.zeros_like(p.data) for p in self.model.parameters() if p.requires_grad]
             self.delta_model = [torch.zeros_like(p.data) for p in self.model.parameters() if p.requires_grad]
             self.delta_controls = [torch.zeros_like(p.data) for p in self.model.parameters() if p.requires_grad]
+
+    def set_model_params(self, model_parameters):
+        pass
 
     def get_model_params(self):
         if self.id == 0:

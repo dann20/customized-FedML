@@ -4,6 +4,7 @@ import sys
 import time
 import subprocess
 import atexit
+import json
 from datetime import datetime
 
 import torch
@@ -132,7 +133,7 @@ if __name__ == '__main__':
     config['time'] = timestamp
 
     logging.info(args)
-    logging.info(config)
+    logging.info(json.dumps(config, indent=4, separators=(',', ': ')))
 
     # create the experiments dirs
     create_dirs(config["result_dir"], config["checkpoint_dir"], config["server_model_dir"])
@@ -169,7 +170,8 @@ if __name__ == '__main__':
                                          dropout=config['dropout'])
 
     if config['algorithm'] == 'FedAvg':
-        trainer = FedAVGTransformerTrainer(autoencoder_model=None,
+        trainer = FedAVGTransformerTrainer(id = 0,
+                                           autoencoder_model=None,
                                            transformer_model=transformer,
                                            train_data=None,
                                            device=None,

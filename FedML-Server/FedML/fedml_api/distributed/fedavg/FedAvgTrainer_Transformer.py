@@ -11,8 +11,8 @@ from torch import optim
 from FedML.fedml_core.trainer.model_trainer import ModelTrainer
 
 class FedAVGTransformerTrainer(ModelTrainer):
-    def __init__(self, autoencoder_model, transformer_model, train_data, device, config):
-        self.id = 0
+    def __init__(self, id, autoencoder_model, transformer_model, train_data, device, config):
+        self.id = id    # id = 0 denotes server, denotes clients otherwise
         self.model = transformer_model
         if autoencoder_model != None:
             self.encoder = autoencoder_model.encoder

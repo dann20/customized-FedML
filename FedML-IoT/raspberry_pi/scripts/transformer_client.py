@@ -119,7 +119,7 @@ if __name__ == '__main__':
     timestamp = datetime_obj.strftime("%d-%b-%Y-%H:%M:%S")
     config['time'] = timestamp
     config['client_ID'] = client_ID
-    logging.info(config)
+    logging.info(json.dumps(config, indent=4, separators=(',', ': ')))
 
     # create the experiments dirs
     create_dirs(config["result_dir"], config["checkpoint_dir"], config["aggregated_dir"])
@@ -167,7 +167,8 @@ if __name__ == '__main__':
                                                dropout=config['dropout'])
 
     if config["algorithm"] == 'FedAvg':
-        transformer_trainer = FedAVGTransformerTrainer(autoencoder_model=autoencoder_trainer.model,
+        transformer_trainer = FedAVGTransformerTrainer(id = args.client_ID,
+                                                       autoencoder_model=autoencoder_trainer.model,
                                                        transformer_model=transformer_model,
                                                        train_data=dataloader,
                                                        device=device,
