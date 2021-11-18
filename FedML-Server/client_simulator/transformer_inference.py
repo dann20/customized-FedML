@@ -46,7 +46,7 @@ def load_model(config):
                                      h=config["num_heads"],
                                      dropout=config["dropout"])
     transformer_model.load_state_dict(torch.load(
-        config["aggregated_dir"] + config["last_aggregated_model"]))
+        config["server_model_dir"] + config["last_aggregated_server_model"]))
     transformer_model.float()
     transformer_model.eval()
 

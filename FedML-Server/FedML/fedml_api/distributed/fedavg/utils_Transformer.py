@@ -30,7 +30,7 @@ def process_config(json_file):
     else:
         save_dir = config["load_dir"]
     config["summary_dir"] = os.path.join(save_dir, "summary/")
-    config["aggregated_dir"] = os.path.join(save_dir, "aggregated_models/")
+    config["server_model_dir"] = os.path.join(save_dir, "server_models/")
     config["result_dir"] = os.path.join(save_dir, "result/")
     config["checkpoint_dir"] = os.path.join(save_dir, "checkpoints/")
     return config

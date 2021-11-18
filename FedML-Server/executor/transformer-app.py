@@ -6,15 +6,21 @@ import subprocess
 import atexit
 from datetime import datetime
 
-# import torch
+import torch
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../")))
 
-from FedML.fedml_api.distributed.fedavg.FedAvgServerManager_Transformer import FedAVGServerManager
+from FedML.fedml_api.distributed.fedavg.FedAvgTrainer_Transformer import FedAVGTransformerTrainer
 from FedML.fedml_api.distributed.fedavg.FedAVGAggregator_Transformer import FedAVGAggregator
+from FedML.fedml_api.distributed.fedavg.FedAvgServerManager_Transformer import FedAVGServerManager
+
+from FedML.fedml_api.distributed.scaffold.SCAFFOLDTrainer_Transformer import SCAFFOLDTransformerTrainer
+from FedML.fedml_api.distributed.scaffold.SCAFFOLDAggregator_Transformer import SCAFFOLDAggregator
+from FedML.fedml_api.distributed.scaffold.SCAFFOLDServerManager_Transformer import SCAFFOLDServerManager
+
 from FedML.fedml_api.model.transformer.transformer import create_transformer
-from FedML.fedml_api.distributed.fedavg.Trainer_Transformer import TransformerTrainer
+
 from FedML.fedml_api.distributed.fedavg.utils_Transformer import process_config, create_dirs, get_args, save_config
 from FedML.fedml_iot import cfg
 
@@ -129,7 +135,7 @@ if __name__ == '__main__':
     logging.info(config)
 
     # create the experiments dirs
-    create_dirs(config["result_dir"], config["checkpoint_dir"], config["aggregated_dir"])
+    create_dirs(config["result_dir"], config["checkpoint_dir"], config["server_model_dir"])
     # save the config in a json file in result directory
     save_config(config)
 
@@ -140,8 +146,10 @@ if __name__ == '__main__':
     #     config=args # needs attention
     # )
 
+    size = args.num_client + 1
+
     # Set the random seed. torch.manual_seed determines the initial weight
-    # torch.manual_seed(10)
+    torch.manual_seed(10)
 
     transformer = create_transformer(N=config['num_stacks'],
                                      d_model=config['d_model'],
@@ -150,22 +158,35 @@ if __name__ == '__main__':
                                      h=config['num_heads'],
                                      dropout=config['dropout'])
 
-    trainer = TransformerTrainer(autoencoder_model=None,
-                                 transformer_model=transformer,
-                                 train_data=None,
-                                 device=None,
-                                 config=config)
+    if config['algorithm'] == 'FedAvg':
+        trainer = FedAVGTransformerTrainer(autoencoder_model=None,
+                                           transformer_model=transformer,
+                                           train_data=None,
+                                           device=None,
+                                           config=config)
+        aggregator = FedAVGAggregator(transformer_trainer=trainer,
+                                      worker_num=args.num_client,
+                                      client_weights=None)
+        server_manager = FedAVGServerManager(config,
+                                             aggregator,
+                                             rank=0,
+                                             size=size,
+                                             backend="MQTT")
+    elif config['algorithm'] == 'SCAFFOLD':
+        trainer = SCAFFOLDTransformerTrainer(id = 0,
+                                             autoencoder_model=None,
+                                             transformer_model=transformer,
+                                             train_data=None,
+                                             device=None,
+                                             config=config)
+        aggregator = SCAFFOLDAggregator(transformer_trainer=trainer,
+                                        num_clients=args.num_client)
+        server_manager = SCAFFOLDServerManager(config,
+                                               aggregator,
+                                               rank=0,
+                                               size=size,
+                                               backend="MQTT")
 
-    aggregator = FedAVGAggregator(transformer_trainer=trainer,
-                                  worker_num=args.num_client,
-                                  client_weights=None)
-
-    size = args.num_client + 1
-    server_manager = FedAVGServerManager(config,
-                                         aggregator,
-                                         rank=0,
-                                         size=size,
-                                         backend="MQTT")
     server_manager.run()
     server_manager.send_init_config()
 

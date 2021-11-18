@@ -10,7 +10,7 @@ from torch import optim
 
 from FedML.fedml_core.trainer.model_trainer import ModelTrainer
 
-class TransformerTrainer(ModelTrainer):
+class FedAVGTransformerTrainer(ModelTrainer):
     def __init__(self, autoencoder_model, transformer_model, train_data, device, config):
         self.id = 0
         self.model = transformer_model
@@ -105,9 +105,9 @@ class TransformerTrainer(ModelTrainer):
         """
         Used after set_global_model_params() on server and after setting received model on clients
         """
-        directory = self.config["aggregated_dir"]
-        self.config["last_aggregated_model"] = f"aggregated_trans_r{round_idx}.pth"
-        torch.save(self.model.state_dict(), directory + self.config["last_aggregated_model"])
+        directory = self.config["server_model_dir"]
+        self.config["last_aggregated_server_model"] = f"aggregated_transformer_r{round_idx}.pth"
+        torch.save(self.model.state_dict(), directory + self.config["last_aggregated_server_model"])
 
     def _create_mask(self):
         mask = torch.ones(1, self.config["l_win"], self.config["l_win"])
