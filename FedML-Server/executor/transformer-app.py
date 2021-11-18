@@ -19,7 +19,7 @@ from FedML.fedml_api.distributed.scaffold.SCAFFOLDTrainer_Transformer import SCA
 from FedML.fedml_api.distributed.scaffold.SCAFFOLDAggregator_Transformer import SCAFFOLDAggregator
 from FedML.fedml_api.distributed.scaffold.SCAFFOLDServerManager_Transformer import SCAFFOLDServerManager
 
-from FedML.fedml_api.model.transformer.transformer import create_transformer
+from FedML.fedml_api.model.transformer.transformer import create_transformer, create_fnet_hybrid
 
 from FedML.fedml_api.distributed.fedavg.utils_Transformer import process_config, create_dirs, get_args, save_config
 from FedML.fedml_iot import cfg
@@ -151,12 +151,22 @@ if __name__ == '__main__':
     # Set the random seed. torch.manual_seed determines the initial weight
     torch.manual_seed(10)
 
-    transformer = create_transformer(N=config['num_stacks'],
-                                     d_model=config['d_model'],
-                                     l_win=config['l_win'],
-                                     d_ff=config['d_ff'],
-                                     h=config['num_heads'],
-                                     dropout=config['dropout'])
+    if config['model'] == 'transformer':
+        transformer = create_transformer(N=config['num_stacks'],
+                                         d_model=config['d_model'],
+                                         l_win=config['l_win'],
+                                         device=None,
+                                         d_ff=config['d_ff'],
+                                         h=config['num_heads'],
+                                         dropout=config['dropout'])
+    elif config['model'] == 'fnet_hybrid':
+        transformer = create_fnet_hybrid(N=config['num_stacks'],
+                                         d_model=config['d_model'],
+                                         l_win=config['l_win'],
+                                         device=None,
+                                         d_ff=config['d_ff'],
+                                         h=config['num_heads'],
+                                         dropout=config['dropout'])
 
     if config['algorithm'] == 'FedAvg':
         trainer = FedAVGTransformerTrainer(autoencoder_model=None,
