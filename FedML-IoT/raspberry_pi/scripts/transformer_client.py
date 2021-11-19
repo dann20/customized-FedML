@@ -122,7 +122,7 @@ if __name__ == '__main__':
     logging.info(json.dumps(config, indent=4, separators=(',', ': ')))
 
     # create the experiments dirs
-    create_dirs(config["result_dir"], config["checkpoint_dir"], config["aggregated_dir"])
+    create_dirs(config["result_dir"], config["checkpoint_dir"])
     # save the config in a json file in result directory
     save_config(config)
 
@@ -167,7 +167,7 @@ if __name__ == '__main__':
                                                dropout=config['dropout'])
 
     if config["algorithm"] == 'FedAvg':
-        transformer_trainer = FedAVGTransformerTrainer(id = args.client_ID,
+        transformer_trainer = FedAVGTransformerTrainer(id = client_ID,
                                                        autoencoder_model=autoencoder_trainer.model,
                                                        transformer_model=transformer_model,
                                                        train_data=dataloader,
@@ -180,7 +180,7 @@ if __name__ == '__main__':
                                              size=size,
                                              backend="MQTT")
     elif config["algorithm"] == 'SCAFFOLD':
-        transformer_trainer = SCAFFOLDTransformerTrainer(id = args.client_ID,
+        transformer_trainer = SCAFFOLDTransformerTrainer(id = client_ID,
                                                          autoencoder_model=autoencoder_trainer.model,
                                                          transformer_model=transformer_model,
                                                          train_data=dataloader,

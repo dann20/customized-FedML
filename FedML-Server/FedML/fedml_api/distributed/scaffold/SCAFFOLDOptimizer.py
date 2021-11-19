@@ -2,8 +2,8 @@ from torch.optim import Optimizer
 
 class SCAFFOLDOptimizer(Optimizer):
     def __init__(self, params, lr, weight_decay):
-        super().__init__(params, defaults)
         defaults = dict(lr=lr, weight_decay=weight_decay)
+        super().__init__(params, defaults)
         pass
 
     def step(self, server_controls, client_controls, closure=None):

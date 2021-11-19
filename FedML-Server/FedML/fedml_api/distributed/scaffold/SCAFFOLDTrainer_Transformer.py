@@ -118,7 +118,6 @@ class SCAFFOLDTransformerTrainer(ModelTrainer):
         start = time.time()
         logging.info("-----START TRAINING THE TRANSFORMER-----")
         self.model.float()
-        model_opt = optim.Adam(self.model.parameters())
         model_opt = SCAFFOLDOptimizer(self.model.parameters(), lr=self.config['lr'], weight_decay=self.config['L'])
         criterion = nn.MSELoss()
         for epoch in range(self.config["trans_num_epoch"]):

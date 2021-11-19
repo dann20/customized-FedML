@@ -43,23 +43,14 @@ class SCAFFOLDAggregator(object):
 
     def aggregate(self, round_idx):
         start_time = time.time()
-        model_list = []
-        training_num = 0
-
-        for idx in range(self.num_clients):
-            model_list.append((self.sample_num_dict[idx], self.model_dict[idx]))
-            if not self.client_weights:
-                training_num += self.sample_num_dict[idx]
-
-        logging.info("length of self.model_dict = " + str(len(self.model_dict)))
 
         logging.info(f"-----START SCAFFOLD AGGREGATION ROUND {round_idx}-----")
-        for param, control, delta_control, delta_model in zip(self.trainer.model.parameters(),
+        for param, control, delta_control_idx, delta_model_idx in zip(self.trainer.model.parameters(),
                                                               self.trainer.server_controls,
-                                                              self.delta_controls_dict,
-                                                              self.delta_model_dict):
-            param.data = param.data + self.trainer.config['server_learning_rate'] * delta_model.data / self.num_clients # (originally) num_of_selected_users
-            control.data = control.data + delta_control.data / self.num_clients
+                                                              self.delta_controls_dict.keys(),
+                                                              self.delta_model_dict.keys()):
+            param.data = param.data + self.trainer.config['server_learning_rate'] * self.delta_model_dict[delta_model_idx].data / self.num_clients # (originally) num_of_selected_users
+            control.data = control.data + self.delta_controls_dict[delta_control_idx].data / self.num_clients
 
         end_time = time.time()
         logging.info("-----DONE SCAFFOLD AGGREGATION-----")
