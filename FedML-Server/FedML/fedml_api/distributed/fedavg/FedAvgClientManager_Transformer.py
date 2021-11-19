@@ -54,12 +54,10 @@ class FedAVGClientManager(ClientManager):
 
         self.trainer.set_model_params(global_model_params)
         self.trainer.save_aggregated_model(self.round_idx)
+        self.__train()
+        save_config(self.trainer.config)
         self.round_idx += 1
-        if self.round_idx < self.num_rounds:
-            self.__train()
-            save_config(self.trainer.config)
-        if self.round_idx == self.num_rounds:
-            save_config(self.trainer.config)
+        if self.round_idx == self.num_rounds - 1:
             self.finish()
 
     def send_model_to_server(self, receive_id, weights, local_sample_num):

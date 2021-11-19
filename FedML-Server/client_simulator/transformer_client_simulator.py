@@ -24,6 +24,7 @@ from FedML.fedml_api.data_preprocessing.Transformer.data_loader import CustomDat
 from FedML.fedml_api.model.autoencoder.autoencoder import create_autoencoder
 from FedML.fedml_api.model.transformer.transformer import create_transformer, create_fnet_hybrid
 
+from FedML.fedml_iot.cfg import APP_HOST
 from FedML.fedml_api.distributed.fedavg.utils_Transformer import create_dirs, save_config
 
 def add_args(parser):
@@ -34,7 +35,7 @@ def add_args(parser):
 
 def register(uuid):
     str_device_UUID = uuid
-    URL = "http://127.0.0.1:5000/api/register"
+    URL = "http://" + APP_HOST + ":5000/api/register"
 
     # defining a params dict for the parameters to be sent to the API
     PARAMS = {'device_id': str_device_UUID}

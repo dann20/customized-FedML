@@ -58,12 +58,10 @@ class SCAFFOLDClientManager(ClientManager):
 
         self.trainer.set_server_model_params(global_model_params)
         self.trainer.set_server_control_variates(server_control_variates)
+        self.__train()
+        save_config(self.trainer.config)
         self.round_idx += 1
-        if self.round_idx < self.num_rounds:
-            self.__train()
-            save_config(self.trainer.config)
-        if self.round_idx == self.num_rounds:
-            save_config(self.trainer.config)
+        if self.round_idx == self.num_rounds - 1:
             self.finish()
 
     def send_delta_to_server(self, receive_id, delta_model, delta_controls, local_sample_num):

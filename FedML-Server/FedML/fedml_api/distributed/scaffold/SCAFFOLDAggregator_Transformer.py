@@ -45,12 +45,13 @@ class SCAFFOLDAggregator(object):
         start_time = time.time()
 
         logging.info(f"-----START SCAFFOLD AGGREGATION ROUND {round_idx}-----")
-        for param, control, delta_control_idx, delta_model_idx in zip(self.trainer.model.parameters(),
-                                                              self.trainer.server_controls,
-                                                              self.delta_controls_dict.keys(),
-                                                              self.delta_model_dict.keys()):
-            param.data = param.data + self.trainer.config['server_learning_rate'] * self.delta_model_dict[delta_model_idx].data / self.num_clients # (originally) num_of_selected_users
-            control.data = control.data + self.delta_controls_dict[delta_control_idx].data / self.num_clients
+        for client in self.delta_controls_dict.keys():
+            for param, control, delta_control, delta_model in zip(self.trainer.model.parameters(),
+                                                                  self.trainer.server_controls,
+                                                                  self.delta_controls_dict[client],
+                                                                  self.delta_model_dict[client]):
+                param.data = param.data + self.trainer.config['server_learning_rate'] * delta_model.data / self.num_clients # (originally) num_of_selected_users
+                control.data = control.data + delta_control.data / self.num_clients
 
         end_time = time.time()
         logging.info("-----DONE SCAFFOLD AGGREGATION-----")
@@ -59,4 +60,4 @@ class SCAFFOLDAggregator(object):
         self.trainer.save_aggregated_model(round_idx)
         logging.info("Saved aggregated model.")
 
-        return self.trainer.get_server_model_params(), self.trainer.get_server_control_variates()
+        return self.trainer.get_model_params(), self.trainer.get_server_control_variates()

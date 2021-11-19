@@ -60,11 +60,12 @@ class FedAVGServerManager(ServerManager):
 
             # start the next round
             self.round_idx += 1
-            logging.info("size = %d" % self.size)
-            for receiver_id in range(1, self.size):
-                self.send_message_sync_model_to_client(receiver_id, global_model_params,
-                                                       client_indexes[receiver_id - 1])
-            if self.round_idx == self.num_rounds:
+            if self.round_idx < self.num_rounds:
+                logging.info("size = %d" % self.size)
+                for receiver_id in range(1, self.size):
+                    self.send_message_sync_model_to_client(receiver_id, global_model_params,
+                                                           client_indexes[receiver_id - 1])
+            elif self.round_idx == self.num_rounds:
                 self.finish()
                 return
 
