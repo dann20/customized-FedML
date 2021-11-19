@@ -8,7 +8,6 @@ from torch.autograd import Variable
 from torch.nn.modules.normalization import LayerNorm
 """ This code is a slightly modified version of The Annotated Transformer."""
 
-
 class TransformerModel(nn.Module):
     def __init__(self, encoder, src_embed, linear):
         super().__init__()
@@ -79,11 +78,15 @@ class TransformerEncoderLayer(nn.Module):
         return self.sublayer[1](x, self.feed_forward)
 
 
-def attention(query, key, value, mask=None, dropout=0.0):
+def attention(query, key, value, device, mask=None, dropout=0.0):
     """Compute the Scaled Dot-Product Attention"""
+    query = query.to(device)
+    key = query.to(device)
+    value = query.to(device)
     d_k = query.size(-1)
     scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(d_k)
     if mask is not None:
+        mask = mask.to(device)
         scores = scores.masked_fill(mask == 0, -1e9)
     p_attn = F.softmax(scores, dim=-1)
     p_attn = F.dropout(p_attn, p=dropout)
@@ -91,9 +94,9 @@ def attention(query, key, value, mask=None, dropout=0.0):
 
 
 class MultiHeadAttention(nn.Module):
-    def __init__(self, h, d_model, dropout=0.1):
+    def __init__(self, h, d_model, device, dropout=0.1):
         """
-        Take in model size and number of heads.
+        Takes in model size and number of heads.
         """
         super().__init__()
         assert d_model % h == 0
@@ -102,6 +105,7 @@ class MultiHeadAttention(nn.Module):
         self.p = dropout
         self.linears = clones(nn.Linear(d_model, d_model), 4)
         self.attn = None
+        self.device = device
 
     def forward(self, query, key, value, mask=None):
         if mask is not None:
@@ -112,7 +116,7 @@ class MultiHeadAttention(nn.Module):
         query, key, value = [l(x).view(nbatches, -1, self.h, self.d_k).transpose(1, 2)
                              for l, x in zip(self.linears, (query, key, value))]
         # 2) Apply attention on all the projected vectors in batch
-        x, self.attn = attention(query, key, value, mask=mask, dropout=self.p)
+        x, self.attn = attention(query, key, value, self.device, mask=mask, dropout=self.p)
         # 3) "Concat" using a view and apply a final linear
         x = x.transpose(1, 2).contiguous().view(
             nbatches, -1, self.h * self.d_k)
@@ -134,7 +138,7 @@ class PositionwiseFeedForward(nn.Module):
 
 
 class PositionalEncoding(nn.Module):
-    """ Implement the PE function. """
+    """ Implements the PE function. """
 
     def __init__(self, d_model, dropout, max_len=5000):
         super().__init__()
@@ -155,11 +159,70 @@ class PositionalEncoding(nn.Module):
         return self.dropout(x)
 
 
-def create_transformer(N, d_model, l_win, d_ff=0, h=8, dropout=0.1):
+class FNetHybridModel(nn.Module):
+    def __init__(self, trans, src_embed, linear, fnet):
+        super().__init__()
+        self.trans = trans
+        self.src_embed = src_embed
+        self.linear = linear
+        self.fnet = fnet
+
+    def forward(self, src, src_mask):
+        output = F.relu(self.linear(self.fnet(
+            self.trans(self.src_embed(src), src_mask))))
+        return output
+
+
+class FNetEncoder(nn.Module):
+    "Core Fnet is a stack of N layers"
+
+    def __init__(self, layer, N):
+        super().__init__()
+        self.layers = clones(layer, N)
+        self.norm = LayerNorm(layer.size)
+
+    def forward(self, x):
+        "Pass the input through each layer in turn"
+        for layer in self.layers:
+            x = layer(x)
+        return self.norm(x)
+
+
+
+class FNetEncoderLayer(nn.Module):
+    """
+    Encoder is made up of a Fourier Mixing Layer and a FF Layer
+    """
+
+    def __init__(self, size, fft, feed_forward, dropout):
+        super().__init__()
+        self.fft = fft
+        self.feed_forward = feed_forward
+        self.sublayer = clones(SublayerConnection(size, dropout), 2)
+        self.size = size
+
+    def forward(self, x):
+        x = self.sublayer[0](x, lambda x: self.fft(x, x, x))
+        return self.sublayer[1](x, self.feed_forward)
+
+
+class FourierFFTLayer(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, query, key, value):
+        assert query is key
+        assert key is value
+
+        x = query
+        return torch.real(torch.fft.fft(torch.fft.fft(x, dim=-1), dim=-2))
+
+
+def create_transformer(N, d_model, l_win, device, d_ff=0, h=8, dropout=0.1):
     if (d_ff == 0):
         d_ff = d_model * 4
     c = copy.deepcopy
-    attn = MultiHeadAttention(h, d_model, dropout)
+    attn = MultiHeadAttention(h, d_model, device, dropout)
     ff = PositionwiseFeedForward(d_model, d_ff, dropout)
     position = PositionalEncoding(d_model, dropout, l_win)
     final_linear = nn.Linear(d_model, d_model)
@@ -168,6 +231,29 @@ def create_transformer(N, d_model, l_win, d_ff=0, h=8, dropout=0.1):
             d_model, c(attn), c(ff), dropout), N),
         nn.Sequential(position),
         final_linear
+    )
+
+    for p in model.parameters():
+        if p.dim() > 1:
+            nn.init.xavier_uniform_(p)
+    return model
+
+
+def create_fnet_hybrid(N, d_model, l_win, device, d_ff=0, h=8, dropout=0.1):
+    if (d_ff == 0):
+        d_ff = d_model * 4
+    c = copy.deepcopy
+    attn = MultiHeadAttention(h, d_model, device, dropout)
+    ff = PositionwiseFeedForward(d_model, d_ff, dropout)
+    position = PositionalEncoding(d_model, dropout, l_win)
+    final_linear = nn.Linear(d_model, d_model)
+    fft = FourierFFTLayer()
+    model = FNetHybridModel(
+        TransformerEncoder(TransformerEncoderLayer(
+            d_model, c(attn), c(ff), dropout), 1),
+        nn.Sequential(position),
+        final_linear,
+        FNetEncoder(FNetEncoderLayer(d_model, c(fft), c(ff), dropout), N - 1)
     )
 
     for p in model.parameters():

@@ -15,9 +15,10 @@ except ImportError:
 from FedML.fedml_api.distributed.fedavg.utils_Transformer import save_config
 from .message_define import MyMessage
 
-class FedAVGClientManager(ClientManager):
+class SCAFFOLDClientManager(ClientManager):
     def __init__(self, trainer, comm=None, rank=0, size=0, backend="MPI"):
         super().__init__(trainer.config, comm, rank, size, backend)
+        self.id = trainer.id
         self.trainer = trainer
         self.num_rounds = trainer.config['num_comm_rounds']
         self.round_idx = 0
@@ -37,10 +38,12 @@ class FedAVGClientManager(ClientManager):
 
     def handle_message_init(self, msg_params):
         global_model_params = msg_params.get(MyMessage.MSG_ARG_KEY_MODEL_PARAMS)
+        server_control_variates = msg_params.get(MyMessage.MSG_ARG_KEY_CONTROL_VARIATES)
         client_index = msg_params.get(MyMessage.MSG_ARG_KEY_CLIENT_INDEX)
         logging.info('received init config')
 
-        self.trainer.set_model_params(global_model_params)
+        self.trainer.set_server_model_params(global_model_params)
+        self.trainer.set_server_control_variates(server_control_variates)
         self.start_training()
 
     def start_training(self):
@@ -50,19 +53,21 @@ class FedAVGClientManager(ClientManager):
     def handle_message_receive_model_from_server(self, msg_params):
         logging.info("handle_message_receive_model_from_server.")
         global_model_params = msg_params.get(MyMessage.MSG_ARG_KEY_MODEL_PARAMS)
+        server_control_variates = msg_params.get(MyMessage.MSG_ARG_KEY_CONTROL_VARIATES)
         client_index = msg_params.get(MyMessage.MSG_ARG_KEY_CLIENT_INDEX)
 
-        self.trainer.set_model_params(global_model_params)
-        self.trainer.save_aggregated_model(self.round_idx)
+        self.trainer.set_server_model_params(global_model_params)
+        self.trainer.set_server_control_variates(server_control_variates)
         self.__train()
         save_config(self.trainer.config)
         self.round_idx += 1
         if self.round_idx == self.num_rounds - 1:
             self.finish()
 
-    def send_model_to_server(self, receive_id, weights, local_sample_num):
+    def send_delta_to_server(self, receive_id, delta_model, delta_controls, local_sample_num):
         message = Message(MyMessage.MSG_TYPE_C2S_SEND_MODEL_TO_SERVER, self.get_sender_id(), receive_id)
-        message.add_params(MyMessage.MSG_ARG_KEY_MODEL_PARAMS, weights)
+        message.add_params(MyMessage.MSG_ARG_KEY_DELTA_MODEL_PARAMS, delta_model)
+        message.add_params(MyMessage.MSG_ARG_KEY_DELTA_CONTROL_VARIATES, delta_controls)
         message.add_params(MyMessage.MSG_ARG_KEY_NUM_SAMPLES, local_sample_num)
         self.send_message(message)
         logging.info('sent transformer model')
@@ -70,7 +75,8 @@ class FedAVGClientManager(ClientManager):
     def __train(self):
         logging.info("#######TRANSFORMER TRAINING########### round_id = %d" % self.round_idx)
         self.trainer.train(self.round_idx)
-        local_sample_num = self.trainer.get_len_data()
-        logging.info(f'local_sample_num = {local_sample_num}')
-        weights = self.trainer.get_model_params()
-        self.send_model_to_server(0, weights, local_sample_num)
+        local_sample_num = self.trainer.num_train_samples
+        logging.info(f'Client {self.id}. local_sample_num = {local_sample_num}')
+        delta_model = self.trainer.get_delta_model_params()
+        delta_controls = self.trainer.get_delta_control_variates()
+        self.send_delta_to_server(0, delta_model, delta_controls, local_sample_num)

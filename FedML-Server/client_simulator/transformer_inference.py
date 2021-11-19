@@ -3,6 +3,7 @@ import os
 import sys
 import math
 import time
+import json
 
 import torch
 from torch.utils.data.dataloader import DataLoader
@@ -10,14 +11,20 @@ from torch.utils.data.dataloader import DataLoader
 import numpy as np
 from scipy.stats import norm
 from sklearn import metrics
+from numba import jit
+from numba.np.ufunc import parallel
 import matplotlib.pyplot as plt
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../")))
 
 from FedML.fedml_api.model.autoencoder.autoencoder import create_autoencoder
-from FedML.fedml_api.model.transformer.transformer import create_transformer
+from FedML.fedml_api.model.transformer.transformer import create_transformer, create_fnet_hybrid
 from FedML.fedml_api.data_preprocessing.Transformer.data_loader import CustomDataset
-from FedML.fedml_api.distributed.fedavg.utils_Transformer import save_config, get_config_from_json
+from FedML.fedml_api.distributed.fedavg.utils_Transformer import save_config, get_config_from_json, process_config
+
+torch.manual_seed(10)
+np.random.seed(0)
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 def add_args(parser):
     """
@@ -27,26 +34,41 @@ def add_args(parser):
                         metavar="C",
                         default="None",
                         help="The Configuration file")
+    parser.add_argument('--client_uuid',
+                        type=str,
+                        default="None",
+                        help='number of workers in a distributed cluster')
     args = parser.parse_args()
     return args
 
 def load_model(config):
     autoencoder_model = create_autoencoder(in_seq_len=config["autoencoder_dims"],
-                                               out_seq_len=config["l_win"],
-                                               d_model=config["d_model"])
+                                           out_seq_len=config["l_win"],
+                                           d_model=config["d_model"])
     autoencoder_model.load_state_dict(torch.load(
         config["checkpoint_dir"] + config["best_auto_model"]))
     autoencoder_model.float()
     autoencoder_model.eval()
 
-    transformer_model = create_transformer(N=config["num_stacks"],
-                                     d_model=config["d_model"],
-                                     l_win=config["l_win"],
-                                     d_ff=config["d_ff"],
-                                     h=config["num_heads"],
-                                     dropout=config["dropout"])
+    if config['model'] == 'transformer':
+        transformer_model = create_transformer(N=config["num_stacks"],
+                                               d_model=config["d_model"],
+                                               l_win=config["l_win"],
+                                               device=device,
+                                               d_ff=config["d_ff"],
+                                               h=config["num_heads"],
+                                               dropout=config["dropout"])
+    elif config['model'] == 'fnet_hybrid':
+        transformer_model = create_fnet_hybrid(N=config["num_stacks"],
+                                               d_model=config["d_model"],
+                                               l_win=config["l_win"],
+                                               device=device,
+                                               d_ff=config["d_ff"],
+                                               h=config["num_heads"],
+                                               dropout=config["dropout"])
+
     transformer_model.load_state_dict(torch.load(
-        config["aggregated_dir"] + config["last_aggregated_model"]))
+        config["checkpoint_dir"] + config[f"best_trans_model_round_{config['num_comm_rounds'] - 1}"]))
     transformer_model.float()
     transformer_model.eval()
 
@@ -56,8 +78,8 @@ def create_labels(idx_anomaly_test, n_test, config):
     anomaly_index = []
     test_labels = np.zeros(n_test)
     for i in range(len(idx_anomaly_test)):
-        idx_start = idx_anomaly_test[i] - (config["l_win"] + 1)
-        idx_end = idx_anomaly_test[i] + (config["l_win"] + 1)
+        idx_start = idx_anomaly_test[i] - config["l_win"] + 1
+        idx_end = idx_anomaly_test[i] + 1
         if idx_start < 0:
             idx_start = 0
         if idx_end > n_test:
@@ -75,6 +97,7 @@ def return_anomaly_idx_by_threshold(test_anomaly_metric, threshold):
 
     return list(idx_error)
 
+@jit(parallel=True)
 def augment_detected_idx(idx_detected_anomaly, anomaly_index):
     n_anomaly = len(anomaly_index)
     idx_detected_anomaly_extended = list(idx_detected_anomaly)
@@ -83,9 +106,9 @@ def augment_detected_idx(idx_detected_anomaly, anomaly_index):
         for j in idx_detected_anomaly:
             if j in anomaly_index[i]:
                 in_original_detection = set(idx_detected_anomaly_extended)
-                currect_anomaly_win = set(anomaly_index[i])
+                current_anomaly_win = set(anomaly_index[i])
                 idx_detected_anomaly_extended = idx_detected_anomaly_extended + \
-                    list(currect_anomaly_win - in_original_detection)
+                    list(current_anomaly_win - in_original_detection)
                 # print(j)
                 break
     return list(np.sort(idx_detected_anomaly_extended))
@@ -139,7 +162,7 @@ def KQp(data, q):
         b = (((i-1)/n)-p)/h
         TP = (norm.cdf(a)-norm.cdf(b))*data2[i-1]  # normcdf thu trong matlab
         KQ = KQ+TP
-    #KQp = KQ;
+    # KQp = KQ;
     return KQ
 
 def plot_roc_curve(fpr_aug, recall_aug, config, n_threshold=20):
@@ -155,9 +178,10 @@ def plot_roc_curve(fpr_aug, recall_aug, config, n_threshold=20):
     plt.ylim([0.0, 1.05])
     plt.xlabel("False Positive Rate")
     plt.ylabel("True Positive Rate")
-    plt.title(f"Augmented ROC of client{config['client_ID']} - {config['experiment']}")
+    plt.title("Augmented Receiver operating characteristic of " +
+              config["auto_dataset"])
     plt.legend(loc="lower right")
-    plt.savefig(config["result_dir"] + config["experiment"] + "_augmentedroc_client" + config["client_ID"] + ".png", dpi=300)
+    plt.savefig(config["result_dir"] + "augmentedroc.pdf")
     return auc
 
 def select_threshold(recon_loss, anomaly_index, test_labels, config, n_threshold=20):
@@ -200,20 +224,34 @@ def select_threshold(recon_loss, anomaly_index, test_labels, config, n_threshold
                                                                     recall_aug[idx_best_threshold]))
     return best_thres, auc
 
-def select_KQp_threshold(threshold, recon_loss):
-    q_list = [0.99, 0.9, 0.1]
-    temp = math.inf
+def select_KQp_threshold(recon_loss, anomaly_index, test_labels, config):
+    q_list = [0.99, 0.9, 0.1, 0.01]
+    n_threshold = len(q_list)
+    precision_aug = np.zeros(n_threshold)
+    recall_aug = np.zeros(n_threshold)
+    F1_aug = np.zeros(n_threshold)
+    fpr_aug = np.zeros(n_threshold)
     q_best = 0
-    closest_thres = 0
-    for q in q_list:
+    for i in range(n_threshold):
+        q = q_list[i]
+        print("Testing with q = {}".format(q))
         temp_thres = KQp(recon_loss, q)
-        #print(temp_thres,abs(temp_thres - threshold))
-        if abs(temp_thres - threshold) < temp:
-            temp = abs(temp_thres - threshold)
-            q_best = q
-            KQp_thres = temp_thres
-    print("Closest KQp threshold is {} at q = {}".format(KQp_thres, q_best))
-    return KQp_thres, q_best
+        idx_detection = return_anomaly_idx_by_threshold(recon_loss, temp_thres)
+        idx_detection_augmented = augment_detected_idx(
+            idx_detection, anomaly_index)
+        precision_aug[i], recall_aug[i], F1_aug[i], fpr_aug[i], _, _, _ = compute_precision_and_recall(idx_detection_augmented, test_labels)
+        print("At this threshold, precision is {}, recall is {}, F1 is {}".format(precision_aug[i],
+                                                                        recall_aug[i],
+                                                                        F1_aug[i]))
+
+    print("Best F1 score is {}".format(max(F1_aug)))
+    idx_best_q = np.argmax(F1_aug)
+    q_best = q_list[idx_best_q]
+    print("Best q is {}".format(q_list[idx_best_q]))
+    print("At this threshold, precision is {}, recall is {}".format(precision_aug[idx_best_q],
+                                                                    recall_aug[idx_best_q]))
+    # auc = plot_roc_curve(fpr_aug, recall_aug, config)
+    return q_best, precision_aug[idx_best_q], recall_aug[idx_best_q], F1_aug[idx_best_q]
 
 def create_mask(config):
     mask = torch.ones(1, config["l_win"], config["l_win"])
@@ -223,11 +261,27 @@ def create_mask(config):
         "-inf")).masked_fill(mask == 1, float(0))
     return mask
 
+@torch.no_grad()
 def main():
     parser = argparse.ArgumentParser()
-    args = add_args(parser)
-    config = get_config_from_json(args.config)
-    print(config)
+    try:
+        args = add_args(parser)
+        config = process_config(args.config)
+    except:
+        print("Missing or invalid arguments")
+
+    # if model was trained by simulated clients, specify client_uuid to change result_dir
+    if args.client_uuid != 'None':
+        config["result_dir"] = os.path.join(config["result_dir"], "client{}/".format(int(args.client_uuid)+1))
+    filename = config["result_dir"] + \
+        "training_config_lwin_{}_autodims_{}.json".format(
+            config["l_win"], config["autoencoder_dims"])
+
+    try:
+        config = get_config_from_json(filename)
+        print(json.dumps(config, indent=4, separators=(',', ': ')))
+    except:
+        print('No config found in result_dir.')
 
     dataset = CustomDataset(config, train=False)
     dataloader = DataLoader(dataset,
@@ -236,6 +290,8 @@ def main():
                             num_workers=config["dataloader_num_workers"])
 
     encoder, transformer = load_model(config)
+    encoder.to(device)
+    transformer.to(device)
     mask = create_mask(config)
     loss = torch.nn.MSELoss()
     n_test = len(dataset)
@@ -244,8 +300,10 @@ def main():
 
     start = time.time()
     for i, batch in enumerate(dataloader):
-        src = encoder(batch["input"].float())
-        trg = encoder(batch["target"].float())
+        src = batch["input"].float().to(device)
+        src = encoder(src)
+        trg = batch["target"].float().to(device)
+        trg = encoder(trg)
         out = transformer(src, src_mask=mask)
         for j in range(config["batch_size"]):
             try:
@@ -260,20 +318,23 @@ def main():
                                                config)
 
     # Now select a threshold
-    threshold, auc = select_threshold(recon_loss,
-                                      anomaly_index,
-                                      test_labels,
-                                      config)
-    config["AUC"] = auc
+    # threshold, auc = select_threshold(recon_loss,
+    #                                   anomaly_index,
+    #                                   test_labels,
+    #                                   config)
+    # config["AUC"] = auc
 
-    KQp_thres, q_best = select_KQp_threshold(threshold, recon_loss)
-    config["q_best"] = q_best
-    idx_detection = return_anomaly_idx_by_threshold(recon_loss, KQp_thres)
-    # print(idx_detection)
-    idx_detection_augmented = augment_detected_idx(idx_detection, anomaly_index)
-    # print(idx_detection_augmented)
-    precision, recall, F1, _, n_TP, n_FP, n_FN = compute_precision_and_recall(idx_detection_augmented,
-                                                                              test_labels)
+    # KQp_thres, q_best = select_KQp_threshold(threshold, recon_loss)
+    # config["q_best"] = q_best
+    # idx_detection = return_anomaly_idx_by_threshold(recon_loss, KQp_thres)
+    # # print(idx_detection)
+    # idx_detection_augmented = augment_detected_idx(idx_detection, anomaly_index)
+    # # print(idx_detection_augmented)
+    # precision, recall, F1, _, n_TP, n_FP, n_FN = compute_precision_and_recall(idx_detection_augmented,
+                                                                              # test_labels)
+
+    q_best, precision, recall, F1 = select_KQp_threshold(recon_loss, anomaly_index, test_labels, config)
+    config['q_best'] = q_best
     config["precision"] = precision
     config["recall"] = recall
     config["F1"] = F1
@@ -283,9 +344,9 @@ def main():
     print("Precision: {}".format(precision))
     print("Recall: {}".format(recall))
     print("F1: {}".format(F1))
-    print("TP: {}".format(n_TP))
-    print("FP: {}".format(n_FP))
-    print("FN: {}".format(n_FN))
+    # print("TP: {}".format(n_TP))
+    # print("FP: {}".format(n_FP))
+    # print("FN: {}".format(n_FN))
 
 if __name__ == '__main__':
     main()

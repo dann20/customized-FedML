@@ -72,8 +72,8 @@ class Autoencoder(nn.Module):
 
 
 def create_autoencoder(in_seq_len, out_seq_len, d_model, dropout=0.1):
-    encoder = Encoder(in_seq_len=in_seq_len, out_seq_len=out_seq_len, d_model=d_model, dropout=dropout)
-    decoder = Decoder(in_seq_len=in_seq_len, out_seq_len=out_seq_len, d_model=d_model, dropout=dropout)
+    encoder = Encoder(in_seq_len, out_seq_len, d_model, dropout)
+    decoder = Decoder(in_seq_len, out_seq_len, d_model, dropout)
     model = Autoencoder(encoder, decoder)
     for p in model.parameters():
         if p.dim() > 1:
