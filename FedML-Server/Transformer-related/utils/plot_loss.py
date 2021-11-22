@@ -17,10 +17,17 @@ def get_args():
                            metavar='config',
                            default='None',
                            help='Init Configuration file')
+    argparser.add_argument('-a', '--all',
+                           action='store_true',
+                           help='Get results from all clients')
     argparser.add_argument('-n', '--num-client',
                            type=int,
                            default=4,
                            help='The number of clients participating in Federated Learning')
+    argparser.add_argument('-i', '--client-id',
+                           type=int,
+                           nargs="+",
+                           help='IDs of clients from whom you want to get results')
     args = argparser.parse_args()
     return args
 
@@ -63,7 +70,11 @@ def main():
     config = process_config(args.config)
     config['result_dir'] = config['result_dir'].replace("Transformer-related/", "") # Used with relative path
     print(config)
-    client_dirs = [config['result_dir'] + f"client{i+1}/" for i in range(args.num_client)]
+    if args.all:
+        client_dirs = [config['result_dir'] + f"client{i+1}/" for i in range(args.num_client)]
+    else:
+        client_dirs = [config['result_dir'] + f"client{i+1}/" for i in args.client_id]
+    print(client_dirs)
     df_auto = [pd.read_csv(client_dirs[i] + 'autoencoder_epoch_loss.csv') for i in range(len(client_dirs))]
     plot_autoencoder(df_auto, config)
     plt.clf()
