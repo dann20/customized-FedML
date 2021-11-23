@@ -27,17 +27,14 @@ np.random.seed(0)
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 def add_args(parser):
-    """
-    Input config is the config generated after training phase, in clients' result_dir
-    """
     parser.add_argument("-c", "--config",
                         metavar="C",
                         default="None",
-                        help="The Configuration file")
-    parser.add_argument('--client_uuid',
-                        type=str,
-                        default="None",
-                        help='number of workers in a distributed cluster')
+                        help="initial configuration file")
+    parser.add_argument('-id', '--client-id',
+                        type=int,
+                        default=-1,
+                        help='client_uuid, starting at index = 0')
     args = parser.parse_args()
     return args
 
@@ -270,9 +267,9 @@ def main():
     except:
         print("Missing or invalid arguments")
 
-    # if model was trained by simulated clients, specify client_uuid (starting index = 0) to change result_dir
-    if args.client_uuid != 'None':
-        config["result_dir"] = os.path.join(config["result_dir"], "client{}/".format(int(args.client_uuid)+1))
+    # if model was trained by simulated clients, specify client_id (starting index = 0) to change result_dir
+    if args.client_id != -1:
+        config["result_dir"] = os.path.join(config["result_dir"], "client{}/".format(args.client_id+1))
     filename = config["result_dir"] + \
         "training_config_lwin_{}_autodims_{}.json".format(
             config["l_win"], config["autoencoder_dims"])

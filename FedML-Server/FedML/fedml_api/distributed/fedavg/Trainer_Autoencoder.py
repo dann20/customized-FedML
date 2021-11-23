@@ -52,11 +52,11 @@ class AutoencoderTrainer(ModelTrainer):
 
         if self.epoch_loss[-1] < self.min_loss:
             torch.save(self.model.state_dict(),
-                       self.config["checkpoint_dir"] + f"best_autoencoder_{epoch}.pth")
+                       self.config["checkpoint_dir"] + f"best_autoencoder_{epoch}.pt")
             torch.save(opt.state_dict(),
-                       self.config["checkpoint_dir"] + f"optimizer_autoencoder_{epoch}.pth")
+                       self.config["checkpoint_dir"] + f"optimizer_autoencoder_{epoch}.pt")
             self.min_loss = self.epoch_loss[-1]
-            self.best_model = f"best_autoencoder_{epoch}.pth"
+            self.best_model = f"best_autoencoder_{epoch}.pt"
 
     def train(self):
         start = time.time()

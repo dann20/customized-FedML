@@ -65,7 +65,7 @@ class FedAVGTransformerTrainer(ModelTrainer):
             torch.save(opt.state_dict(),
                        self.config["checkpoint_dir"] + f"optimizer_trans_r{round_idx}_e{epoch}.pt")
             self.min_loss = self.epoch_loss[-1]
-            self.best_model = f"best_trans_r{round_idx}_e{epoch}.pth"
+            self.best_model = f"best_trans_r{round_idx}_e{epoch}.pt"
 
     def train(self, round_idx):
         start = time.time()

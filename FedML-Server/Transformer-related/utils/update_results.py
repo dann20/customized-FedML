@@ -14,12 +14,14 @@ def main():
     except Exception as ex:
         print(ex)
 
-    col_lst = ["experiment", "time", "auto_dataset", "client_ID",
-               "algorithm", "model", "lr", "d_model", "d_ff",
-               "batch_size", "num_stacks", "post_mask", "pre_mask",
-               "num_heads", "dropout", "shuffle", "num_client",
-               "server_learning_rate", "L", "dataloader_num_workers",
-               "autoencoder_dims", "l_win", "auto_num_epoch", "trans_num_epoch", "num_comm_rounds",
+    col_lst = ["experiment", "time", "auto_dataset",
+               "num_client", "client_ID",
+               "algorithm", "model", "d_model", "d_ff",
+               "num_stacks", "num_heads", "dropout", "shuffle",
+               "autoencoder_dims", "l_win", "pre_mask", "post_mask",
+               "batch_size", "lr", "server_learning_rate",
+               "L", "dataloader_num_workers",
+               "auto_num_epoch", "num_comm_rounds", "trans_num_epoch",
                "q_best", "precision", "recall", "F1", "inference_time"]
 
     config = process_config(args.config)

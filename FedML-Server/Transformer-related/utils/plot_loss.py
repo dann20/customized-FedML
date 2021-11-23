@@ -24,10 +24,10 @@ def get_args():
                            type=int,
                            default=4,
                            help='The number of clients participating in Federated Learning')
-    argparser.add_argument('-i', '--client-id',
+    argparser.add_argument('-id', '--client-id',
                            type=int,
                            nargs="+",
-                           help='IDs of clients from whom you want to get results')
+                           help='IDs of clients from whom you want to get results, starting at index = 0')
     args = argparser.parse_args()
     return args
 
