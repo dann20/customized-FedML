@@ -171,7 +171,7 @@ class SCAFFOLDTransformerTrainer(ModelTrainer):
     def save_aggregated_model(self, round_idx):
         if self.id == 0:
             directory = self.config["server_model_dir"]
-            self.config["last_aggregated_server_model"] = f"aggregated_transformer_r{round_idx}.pth"
+            self.config["last_aggregated_server_model"] = f"aggregated_transformer_r{round_idx}.pt"
             torch.save(self.model.state_dict(), directory + self.config["last_aggregated_server_model"])
         else:
             raise Exception('Method save_aggregated_model() is supposed to be used on server after SCAFFOLD aggregation.')

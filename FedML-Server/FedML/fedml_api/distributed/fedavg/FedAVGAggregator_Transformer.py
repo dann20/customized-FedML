@@ -54,7 +54,7 @@ class FedAVGAggregator(object):
 
         logging.info("length of self.model_dict = " + str(len(self.model_dict)))
 
-        logging.info(f"-----START AGGREGATION ROUND {round_idx}-----")
+        logging.info(f"-----START FEDAVG AGGREGATION ROUND {round_idx}-----")
         (num0, averaged_params) = model_list[0]
         for k in averaged_params.keys():
             for i in range(0, len(model_list)):
@@ -70,12 +70,13 @@ class FedAVGAggregator(object):
                 else:
                     averaged_params[k] += local_model_params[k] * w
 
-        # update the global model which is cached at the server side
+        end_time = time.time()
+        logging.info("-----DONE FEDAVG AGGREGATION-----")
+        logging.info("aggregate time cost: %d" % (end_time - start_time))
+
         self.set_global_model_params(averaged_params)
         logging.info("Set aggregated model to trainer.")
         self.trainer.save_aggregated_model(round_idx)
         logging.info("Saved aggregated model.")
-        end_time = time.time()
-        logging.info("-----DONE AGGREGATION-----")
-        logging.info("aggregate time cost: %d" % (end_time - start_time))
+
         return averaged_params

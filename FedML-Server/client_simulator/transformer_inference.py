@@ -270,7 +270,7 @@ def main():
     except:
         print("Missing or invalid arguments")
 
-    # if model was trained by simulated clients, specify client_uuid to change result_dir
+    # if model was trained by simulated clients, specify client_uuid (starting index = 0) to change result_dir
     if args.client_uuid != 'None':
         config["result_dir"] = os.path.join(config["result_dir"], "client{}/".format(int(args.client_uuid)+1))
     filename = config["result_dir"] + \

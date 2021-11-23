@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 import signal
+import time
 
 import requests
 
@@ -30,6 +31,7 @@ class SCAFFOLDServerManager(ServerManager):
 
     def finish(self):
         super().finish()
+        time.sleep(10)
         response = requests.get('http://localhost:5000/shutdown')
         os.kill(os.getpid(), signal.SIGINT)
 
@@ -58,12 +60,13 @@ class SCAFFOLDServerManager(ServerManager):
         logging.info("b_all_received = " + str(b_all_received))
         if b_all_received:
             server_model, server_controls = self.aggregator.aggregate(self.round_idx)
-            client_indexes = [self.round_idx]*self.num_client
-            logging.info('indexes of clients: ' + str(client_indexes))
 
             # start the next round
             self.round_idx += 1
             if self.round_idx < self.num_rounds:
+                logging.info(f"-----START COMM ROUND {self.round_idx}-----")
+                client_indexes = [self.round_idx]*self.num_client
+                logging.info('indexes of clients: ' + str(client_indexes))
                 logging.info("size = %d" % self.size)
                 for receiver_id in range(1, self.size):
                     self.send_message_sync_model_to_client(receiver_id, server_model,

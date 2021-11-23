@@ -46,6 +46,7 @@ class FedAVGClientManager(ClientManager):
     def start_training(self):
         self.round_idx = 0
         self.__train()
+        self.__save_and_check()
 
     def handle_message_receive_model_from_server(self, msg_params):
         logging.info("handle_message_receive_model_from_server.")
@@ -53,12 +54,8 @@ class FedAVGClientManager(ClientManager):
         client_index = msg_params.get(MyMessage.MSG_ARG_KEY_CLIENT_INDEX)
 
         self.trainer.set_model_params(global_model_params)
-        self.trainer.save_aggregated_model(self.round_idx)
         self.__train()
-        save_config(self.trainer.config)
-        self.round_idx += 1
-        if self.round_idx == self.num_rounds - 1:
-            self.finish()
+        self.__save_and_check()
 
     def send_model_to_server(self, receive_id, weights, local_sample_num):
         message = Message(MyMessage.MSG_TYPE_C2S_SEND_MODEL_TO_SERVER, self.get_sender_id(), receive_id)
@@ -74,3 +71,9 @@ class FedAVGClientManager(ClientManager):
         logging.info(f'local_sample_num = {local_sample_num}')
         weights = self.trainer.get_model_params()
         self.send_model_to_server(0, weights, local_sample_num)
+
+    def __save_and_check(self):
+        save_config(self.trainer.config)
+        self.round_idx += 1
+        if self.round_idx == self.num_rounds:
+            self.finish()

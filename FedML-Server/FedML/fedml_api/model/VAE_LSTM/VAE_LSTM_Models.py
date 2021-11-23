@@ -181,16 +181,13 @@ class lstmKerasModel:
             print("No LSTM model loaded.")
 
     def train(self, lstm_model, cp_callback):
-        print('checkpoint 1')
         config = self.config
-        print('checkpoint 2')
         lstm_model.fit(self.x_train, self.y_train,
                        validation_data=(self.x_test, self.y_test),
                        batch_size=config['batch_size_lstm'],
                        epochs=config['lstm_epochs_per_comm_round'],
                        callbacks=[cp_callback],
                        verbose=1)
-        print('checkpoint 3')
 
     def plot_reconstructed_lt_seq(self, idx_test, model_vae, sess, data, lstm_embedding_test):
         config = self.config

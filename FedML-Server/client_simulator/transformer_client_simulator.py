@@ -97,7 +97,7 @@ if __name__ == '__main__':
     logging.info(json.dumps(config, indent=4, separators=(',', ': ')))
 
     # create the experiments dirs
-    create_dirs(config['result_dir'], config['checkpoint_dir'])
+    create_dirs(config['result_dir'], config['checkpoint_dir'], config['server_model_dir'])
     # save the config in a json file in result directory
     save_config(config)
 

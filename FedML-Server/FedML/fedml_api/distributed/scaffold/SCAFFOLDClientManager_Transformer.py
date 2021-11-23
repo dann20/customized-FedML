@@ -49,6 +49,7 @@ class SCAFFOLDClientManager(ClientManager):
     def start_training(self):
         self.round_idx = 0
         self.__train()
+        self.__save_and_check()
 
     def handle_message_receive_model_from_server(self, msg_params):
         logging.info("handle_message_receive_model_from_server.")
@@ -59,10 +60,7 @@ class SCAFFOLDClientManager(ClientManager):
         self.trainer.set_server_model_params(global_model_params)
         self.trainer.set_server_control_variates(server_control_variates)
         self.__train()
-        save_config(self.trainer.config)
-        self.round_idx += 1
-        if self.round_idx == self.num_rounds - 1:
-            self.finish()
+        self.__save_and_check()
 
     def send_delta_to_server(self, receive_id, delta_model, delta_controls, local_sample_num):
         message = Message(MyMessage.MSG_TYPE_C2S_SEND_MODEL_TO_SERVER, self.get_sender_id(), receive_id)
@@ -80,3 +78,9 @@ class SCAFFOLDClientManager(ClientManager):
         delta_model = self.trainer.get_delta_model_params()
         delta_controls = self.trainer.get_delta_control_variates()
         self.send_delta_to_server(0, delta_model, delta_controls, local_sample_num)
+
+    def __save_and_check(self):
+        save_config(self.trainer.config)
+        self.round_idx += 1
+        if self.round_idx == self.num_rounds:
+            self.finish()

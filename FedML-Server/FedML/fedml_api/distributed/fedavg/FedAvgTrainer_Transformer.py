@@ -61,9 +61,9 @@ class FedAVGTransformerTrainer(ModelTrainer):
 
         if self.epoch_loss[-1] < self.min_loss:
             torch.save(self.model.state_dict(),
-                       self.config["checkpoint_dir"] + f"best_trans_r{round_idx}_e{epoch}.pth")
+                       self.config["checkpoint_dir"] + f"best_trans_r{round_idx}_e{epoch}.pt")
             torch.save(opt.state_dict(),
-                       self.config["checkpoint_dir"] + f"optimizer_trans_r{round_idx}_e{epoch}.pth")
+                       self.config["checkpoint_dir"] + f"optimizer_trans_r{round_idx}_e{epoch}.pt")
             self.min_loss = self.epoch_loss[-1]
             self.best_model = f"best_trans_r{round_idx}_e{epoch}.pth"
 
@@ -102,12 +102,12 @@ class FedAVGTransformerTrainer(ModelTrainer):
         return len(self.train_data.dataset)
 
     def save_aggregated_model(self, round_idx):
-        """
-        Used after set_global_model_params() on server and after setting received model on clients
-        """
-        directory = self.config["server_model_dir"]
-        self.config["last_aggregated_server_model"] = f"aggregated_transformer_r{round_idx}.pth"
-        torch.save(self.model.state_dict(), directory + self.config["last_aggregated_server_model"])
+        if self.id == 0:
+            directory = self.config["server_model_dir"]
+            self.config["last_aggregated_server_model"] = f"aggregated_transformer_r{round_idx}.pt"
+            torch.save(self.model.state_dict(), directory + self.config["last_aggregated_server_model"])
+        else:
+            raise Exception('Method save_aggregated_model() is supposed to be used on server after FedAvg aggregation')
 
     def _create_mask(self):
         mask = torch.ones(1, self.config["l_win"], self.config["l_win"])
