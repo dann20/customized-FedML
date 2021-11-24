@@ -29,13 +29,13 @@ class SCAFFOLDTransformerTrainer(ModelTrainer):
         self.mask = self._create_mask()
 
         if self.id == 0:
-            self.server_controls = [torch.zeros_like(p.data) for p in self.model.parameters() if p.requires_grad]
+            self.server_controls = [torch.zeros_like(p.data, device=self.device) for p in self.model.parameters() if p.requires_grad]
         else:
-            self.server_model = [torch.zeros_like(p.data) for p in self.model.parameters() if p.requires_grad]
-            self.controls = [torch.zeros_like(p.data) for p in self.model.parameters() if p.requires_grad]
-            self.server_controls = [torch.zeros_like(p.data) for p in self.model.parameters() if p.requires_grad]
-            self.delta_model = [torch.zeros_like(p.data) for p in self.model.parameters() if p.requires_grad]
-            self.delta_controls = [torch.zeros_like(p.data) for p in self.model.parameters() if p.requires_grad]
+            self.server_model = [torch.zeros_like(p.data, device=self.device) for p in self.model.parameters() if p.requires_grad]
+            self.controls = [torch.zeros_like(p.data, device=self.device) for p in self.model.parameters() if p.requires_grad]
+            self.server_controls = [torch.zeros_like(p.data, device=self.device) for p in self.model.parameters() if p.requires_grad]
+            self.delta_model = [torch.zeros_like(p.data, device=self.device) for p in self.model.parameters() if p.requires_grad]
+            self.delta_controls = [torch.zeros_like(p.data, device=self.device) for p in self.model.parameters() if p.requires_grad]
 
     def set_model_params(self, model_parameters):
         pass
@@ -55,41 +55,38 @@ class SCAFFOLDTransformerTrainer(ModelTrainer):
     def set_server_model_params(self, server_model_parameters):
         if self.id != 0:
             for model_params, new_model_params in zip(self.server_model, server_model_parameters):
-                model_params.data = new_model_params.data
+                model_params.data = new_model_params.data.to(self.device)
         else:
             raise Exception('Method set_server_model_params is supposed to be used by clients.')
 
     def set_server_control_variates(self, server_controls):
         if self.id != 0:
             for control, new_control in zip(self.server_controls, server_controls):
-                control.data = new_control.data
+                control.data = new_control.data.to(self.device)
         else:
             raise Exception('Method set_server_control_variates is supposed to be used by clients.')
 
     def get_delta_model_params(self):
         if self.id != 0:
-            return self.delta_model
+            return [data.to("cpu") for data in self.delta_model]
         else:
             raise Exception('Method get_delta_model_params is supposed to be used by clients.')
 
     def get_delta_control_variates(self):
         if self.id != 0:
-            return self.delta_controls
+            return [data.to("cpu") for data in self.delta_controls]
         else:
             raise Exception('Method get_delta_control_variates is supposed to be used by clients.')
 
     def train_epoch(self, criterion, opt, epoch, round_idx):
-        self.model.train()
-        self.model.to(self.device)
         encoder = self.encoder
-        encoder.to(self.device)
         batch_loss = list()
         for i, batch in enumerate(self.train_data):
             src = batch["input"].float()
-            src.to(self.device)
+            src = src.to(self.device)
             src = encoder(src)
             trg = batch["target"].float()
-            trg.to(self.device)
+            trg = trg.to(self.device)
             trg = encoder(trg)
             out = self.model(src, src_mask=self.mask)
 
@@ -115,9 +112,11 @@ class SCAFFOLDTransformerTrainer(ModelTrainer):
             self.best_model = f"best_trans_r{round_idx}_e{epoch}.pt"
 
     def train(self, round_idx):
+        self.model.train()
+        self.model.to(self.device)
+        self.encoder.to(self.device)
         start = time.time()
         logging.info("-----START TRAINING THE TRANSFORMER-----")
-        self.model.float()
         model_opt = SCAFFOLDOptimizer(self.model.parameters(), lr=self.config['lr'], weight_decay=self.config['L'])
         criterion = nn.MSELoss()
         for epoch in range(self.config["trans_num_epoch"]):
@@ -131,7 +130,7 @@ class SCAFFOLDTransformerTrainer(ModelTrainer):
             delta.data = local.data.detach() - server.data.detach()
 
         # get client new controls
-        new_controls = [torch.zeros_like(p.data) for p in self.model.parameters() if p.requires_grad]
+        new_controls = [torch.zeros_like(p.data, device=self.device) for p in self.model.parameters() if p.requires_grad]
         opt = 2
         if opt == 1:
             pass

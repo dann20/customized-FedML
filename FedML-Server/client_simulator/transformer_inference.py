@@ -25,6 +25,9 @@ from FedML.fedml_api.distributed.fedavg.utils_Transformer import save_config, ge
 torch.manual_seed(10)
 np.random.seed(0)
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+if device.type == "cuda" and not torch.cuda.is_initialized():
+    torch.cuda.init()
+
 
 def add_args(parser):
     parser.add_argument("-c", "--config",

@@ -107,6 +107,9 @@ if __name__ == '__main__':
     torch.manual_seed(10)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    if device.type == "cuda" and not torch.cuda.is_initialized():
+        torch.cuda.init()
+
     # device = init_training_device(client_ID - 1, args.client_num_per_round - 1, 4)
 
     dataset = CustomDataset(config)
@@ -118,6 +121,7 @@ if __name__ == '__main__':
     autoencoder_model = create_autoencoder(in_seq_len=config['autoencoder_dims'],
                                            out_seq_len=config['l_win'],
                                            d_model=config['d_model'])
+    autoencoder_model.float()
     autoencoder_trainer = AutoencoderTrainer(autoencoder_model=autoencoder_model,
                                              train_data=dataloader,
                                              device=device,
@@ -142,6 +146,7 @@ if __name__ == '__main__':
                                                d_ff=config['d_ff'],
                                                h=config['num_heads'],
                                                dropout=config['dropout'])
+    transformer_model.float()
 
     if config["algorithm"] == 'FedAvg':
         transformer_trainer = FedAVGTransformerTrainer(id = client_ID,

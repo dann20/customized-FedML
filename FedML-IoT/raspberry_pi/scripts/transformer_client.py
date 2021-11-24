@@ -129,6 +129,9 @@ if __name__ == '__main__':
     torch.manual_seed(10)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    if device.type == "cuda" and not torch.cuda.is_initialized():
+        torch.cuda.init()
+
     dataset = CustomDataset(config)
     dataloader = DataLoader(dataset,
                             batch_size=config["batch_size"],

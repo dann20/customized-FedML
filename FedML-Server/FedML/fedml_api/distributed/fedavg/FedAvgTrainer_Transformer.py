@@ -39,10 +39,10 @@ class FedAVGTransformerTrainer(ModelTrainer):
         batch_loss = list()
         for i, batch in enumerate(self.train_data):
             src = batch["input"].float()
-            src.to(self.device)
+            src = src.to(self.device)
             src = encoder(src)
             trg = batch["target"].float()
-            trg.to(self.device)
+            trg = trg.to(self.device)
             trg = encoder(trg)
             out = self.model(src, src_mask=self.mask)
 

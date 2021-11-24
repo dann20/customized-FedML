@@ -27,14 +27,12 @@ class AutoencoderTrainer(ModelTrainer):
         self.model.load_state_dict(model_parameters)
 
     def train_epoch(self, criterion, opt, epoch):
-        self.model.train()
-        self.model.to(self.device)
         batch_loss = list()
         for i, batch in enumerate(self.train_data):
             src = batch["input"].float()
-            src.to(self.device)
+            src = src.to(self.device)
             trg = batch["target"].float()
-            trg.to(self.device)
+            trg = trg.to(self.device)
             out = self.model(src)
 
             opt.zero_grad()
@@ -59,9 +57,10 @@ class AutoencoderTrainer(ModelTrainer):
             self.best_model = f"best_autoencoder_{epoch}.pt"
 
     def train(self):
+        self.model.train()
+        self.model.to(self.device)
         start = time.time()
         logging.info("-----START TRAINING THE AUTOENCODER-----")
-        self.model.float()
         model_opt = optim.Adam(self.model.parameters())
         criterion = nn.MSELoss()
         for epoch in range(self.config["auto_num_epoch"]):
