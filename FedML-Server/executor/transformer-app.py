@@ -174,6 +174,7 @@ if __name__ == '__main__':
                                            autoencoder_model=None,
                                            transformer_model=transformer,
                                            train_data=None,
+                                           val_data=None,
                                            device=None,
                                            config=config)
         aggregator = FedAVGAggregator(transformer_trainer=trainer,
@@ -189,6 +190,7 @@ if __name__ == '__main__':
                                              autoencoder_model=None,
                                              transformer_model=transformer,
                                              train_data=None,
+                                             val_data=None,
                                              device=None,
                                              config=config)
         aggregator = SCAFFOLDAggregator(transformer_trainer=trainer,

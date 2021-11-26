@@ -57,7 +57,8 @@ class SCAFFOLDAggregator(object):
         logging.info("-----DONE SCAFFOLD AGGREGATION-----")
         logging.info("aggregate time cost: %d" % (end_time - start_time))
 
-        self.trainer.save_aggregated_model(round_idx)
-        logging.info("Saved aggregated model.")
+        if round_idx == self.trainer.config['num_comm_rounds'] - 1:
+            self.trainer.save_aggregated_model(round_idx)
+            logging.info("Saved last aggregated model.")
 
         return self.trainer.get_model_params(), self.trainer.get_server_control_variates()

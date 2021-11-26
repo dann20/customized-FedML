@@ -132,17 +132,24 @@ if __name__ == '__main__':
     if device.type == "cuda" and not torch.cuda.is_initialized():
         torch.cuda.init()
 
-    dataset = CustomDataset(config)
-    dataloader = DataLoader(dataset,
-                            batch_size=config["batch_size"],
-                            shuffle=bool(config["shuffle"]),
-                            num_workers=config["dataloader_num_workers"])
+    train_set = CustomDataset(config, mode='train')
+    train_dataloader = DataLoader(train_set,
+                                  batch_size=config["batch_size"],
+                                  shuffle=bool(config["shuffle"]),
+                                  num_workers=config["dataloader_num_workers"])
+
+    val_set = CustomDataset(config, mode='validate')
+    val_dataloader = DataLoader(val_set,
+                                batch_size=config["batch_size"],
+                                shuffle=bool(config["shuffle"]),
+                                num_workers=config["dataloader_num_workers"])
 
     autoencoder_model = create_autoencoder(in_seq_len=config['autoencoder_dims'],
                                            out_seq_len=config['l_win'],
                                            d_model=config['d_model'])
     autoencoder_trainer = AutoencoderTrainer(autoencoder_model=autoencoder_model,
-                                             train_data=dataloader,
+                                             train_data=train_dataloader,
+                                             val_data=val_dataloader,
                                              device=device,
                                              config=config)
     autoencoder_trainer.train()
@@ -170,7 +177,8 @@ if __name__ == '__main__':
         transformer_trainer = FedAVGTransformerTrainer(id = client_ID,
                                                        autoencoder_model=autoencoder_trainer.model,
                                                        transformer_model=transformer_model,
-                                                       train_data=dataloader,
+                                                       train_data=train_dataloader,
+                                                       val_data=val_dataloader,
                                                        device=device,
                                                        config=config)
 
@@ -183,7 +191,8 @@ if __name__ == '__main__':
         transformer_trainer = SCAFFOLDTransformerTrainer(id = client_ID,
                                                          autoencoder_model=autoencoder_trainer.model,
                                                          transformer_model=transformer_model,
-                                                         train_data=dataloader,
+                                                         train_data=train_dataloader,
+                                                         val_data=val_dataloader,
                                                          device=device,
                                                          config=config)
         client_manager = SCAFFOLDClientManager(transformer_trainer,

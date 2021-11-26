@@ -46,7 +46,7 @@ def load_model(config):
                                            out_seq_len=config["l_win"],
                                            d_model=config["d_model"])
     autoencoder_model.load_state_dict(torch.load(
-        config["checkpoint_dir"] + config["best_auto_model"]))
+        config["checkpoint_dir"] + "autoencoder_model.pt"))
     autoencoder_model.float()
     autoencoder_model.eval()
 
@@ -68,7 +68,7 @@ def load_model(config):
                                                dropout=config["dropout"])
 
     transformer_model.load_state_dict(torch.load(
-        config["checkpoint_dir"] + config[f"best_trans_model_round_{config['num_comm_rounds'] - 1}"]))
+        config["checkpoint_dir"] + "transformer_model.pt"))
     transformer_model.float()
     transformer_model.eval()
 
@@ -225,7 +225,7 @@ def select_threshold(recon_loss, anomaly_index, test_labels, config, n_threshold
     return best_thres, auc
 
 def select_KQp_threshold(recon_loss, anomaly_index, test_labels, config):
-    q_list = [0.99, 0.9, 0.1, 0.01]
+    q_list = [0.99, 0.9, 0.1, 0.02, 0.01, 0.0095]
     n_threshold = len(q_list)
     precision_aug = np.zeros(n_threshold)
     recall_aug = np.zeros(n_threshold)
@@ -283,7 +283,7 @@ def main():
     except:
         print('No config found in result_dir.')
 
-    dataset = CustomDataset(config, train=False)
+    dataset = CustomDataset(config, mode='test')
     dataloader = DataLoader(dataset,
                             batch_size=config["batch_size"],
                             shuffle=bool(config["shuffle"]),
