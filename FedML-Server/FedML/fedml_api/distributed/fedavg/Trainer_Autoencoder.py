@@ -3,6 +3,7 @@ import time
 import logging
 
 import pandas as pd
+from matplotlib import pyplot as plt
 
 import torch
 from torch import nn
@@ -48,6 +49,21 @@ class AutoencoderTrainer(ModelTrainer):
             opt.step()
             train_loss += loss.item()
 
+        train_loss = train_loss / len(self.train_data)
+        self.train_loss_list.append(train_loss)
+
+        logging.info('Trainer_ID {}. Local Training Epoch: {} \tTrain Loss: {:.6f}'.format(self.id, epoch, train_loss))
+
+        if self.val_data == None:
+            if train_loss < self.min_loss:
+                self.min_loss = train_loss
+                self.best_model = self.model.state_dict()
+                self.best_optimizer = opt.state_dict()
+                self.best_epoch = epoch
+        else:
+            self.validate_epoch(criterion)
+
+    def validate_epoch(self, criterion):
         val_loss = 0.0
         self.model.eval()
         with torch.no_grad():
@@ -61,12 +77,8 @@ class AutoencoderTrainer(ModelTrainer):
                 loss = criterion(out, trg)
                 val_loss += loss.item()
 
-        train_loss = train_loss / len(self.train_data)
-        self.train_loss_list.append(train_loss)
         val_loss = val_loss / len(self.val_data)
         self.val_loss_list.append(val_loss)
-
-        logging.info('Trainer_ID {}. Local Training Epoch: {} \tTrain Loss: {:.6f}'.format(self.id, epoch, train_loss))
         logging.info('Trainer_ID {}. Local Training Epoch: {} \tValidation Loss: {:.6f}'.format(self.id, epoch, val_loss))
 
         if val_loss < self.min_loss:
@@ -91,8 +103,8 @@ class AutoencoderTrainer(ModelTrainer):
         logging.info("-----COMPLETED TRAINING THE AUTOENCODER-----")
         self.config["auto_train_time"] = (time.time() - start) / 60
 
-        torch.save(self.best_model, config["checkpoint_dir"] + "autoencoder_model.pt")
-        torch.save(self.best_optimizer, config["checkpoint_dir"] + "autoencoder_opt.pt")
+        torch.save(self.best_model, self.config["checkpoint_dir"] + "autoencoder_model.pt")
+        torch.save(self.best_optimizer, self.config["checkpoint_dir"] + "autoencoder_opt.pt")
         self.config["best_auto_epoch"] = self.best_epoch
         self.save_loss()
         self.client_plot_loss()
@@ -101,20 +113,29 @@ class AutoencoderTrainer(ModelTrainer):
         pass
 
     def save_loss(self):
-        df_loss = pd.DataFrame([[i+1, self.train_loss_list[i], self.val_loss_list[i]] for i in range(len(self.train_loss_list))])
-        df_loss.to_csv(self.config["result_dir"] + 'autoencoder_epoch_loss.csv',
-                       index=False,
-                       header=['Epoch', 'TrainingLoss', 'ValidationLoss'])
+        if self.val_data != None:
+            df_loss = pd.DataFrame([[i+1, self.train_loss_list[i], self.val_loss_list[i]] for i in range(len(self.train_loss_list))])
+            df_loss.to_csv(self.config["result_dir"] + 'autoencoder_epoch_loss.csv',
+                           index=False,
+                           header=['Epoch', 'TrainingLoss', 'ValidationLoss'])
+        else:
+            df_loss = pd.DataFrame([[i+1, self.train_loss_list[i]] for i in range(len(self.train_loss_list))])
+            df_loss.to_csv(self.config["result_dir"] + 'autoencoder_epoch_loss.csv',
+                           index=False,
+                           header=['Epoch', 'TrainingLoss'])
 
     def client_plot_loss(self):
-        epochs = range(1, config["auto_num_epoch"] + 1)
+        epochs = range(1, self.config["auto_num_epoch"] + 1)
         plt.plot(epochs, self.train_loss_list, 'g', label='Training loss')
-        plt.plot(epochs, self.val_loss_list, 'b', label='Validation loss')
-        plt.title('{}. ID {}: Training and Validation Loss'.format("AUTOENCODER", self.id))
+        if self.val_data != None:
+            plt.plot(epochs, self.val_loss_list, 'b', label='Validation loss')
+            plt.title('{}. ID {}: Training and Validation Loss'.format("AUTOENCODER", self.id))
+        else:
+            plt.title('{}. ID {}: Training Loss'.format("AUTOENCODER", self.id))
         plt.xlabel('Local Epoch')
         plt.ylabel('Loss')
         plt.legend()
-        plt.savefig(os.path.join(config["result_dir"], "autoencoder_loss.png"), dpi=300)
+        plt.savefig(os.path.join(self.config["result_dir"], "autoencoder_loss.png"), dpi=300)
         plt.close()
 
     def get_updated_config(self):

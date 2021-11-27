@@ -4,6 +4,7 @@ import os
 import math
 
 import pandas as pd
+from matplotlib import pyplot as plt
 
 import torch
 from torch import nn
@@ -101,6 +102,22 @@ class SCAFFOLDTransformerTrainer(ModelTrainer):
             opt.step(self.server_controls, self.controls)
             train_loss += loss.item()
 
+        train_loss = train_loss / len(self.train_data)
+        self.train_loss_list.append(train_loss)
+
+        logging.info('Trainer_ID {}. Local Training Epoch: {} \tTrain Loss: {:.6f}'.format(self.id, epoch, train_loss))
+
+        if self.val_data == None:
+            if train_loss < self.min_loss:
+                self.min_loss = train_loss
+                self.best_model = self.model.state_dict()
+                self.best_optimizer = opt.state_dict()
+                self.best_comm_round = round_idx + 1
+                self.best_epoch_in_round = epoch
+        else:
+            self.validate_epoch(criterion)
+
+    def validate_epoch(self, criterion):
         val_loss = 0.0
         self.model.eval()
         with torch.no_grad():
@@ -116,12 +133,8 @@ class SCAFFOLDTransformerTrainer(ModelTrainer):
                 loss = criterion(out, trg)
                 train_loss += loss.item()
 
-        train_loss = train_loss / len(self.train_data)
-        self.train_loss_list.append(train_loss)
         val_loss = val_loss / len(self.val_data)
         self.val_loss_list.append(val_loss)
-
-        logging.info('Trainer_ID {}. Local Training Epoch: {} \tTrain Loss: {:.6f}'.format(self.id, epoch, train_loss))
         logging.info('Trainer_ID {}. Local Training Epoch: {} \tValidation Loss: {:.6f}'.format(self.id, epoch, val_loss))
 
         if val_loss < self.min_loss:
@@ -171,8 +184,8 @@ class SCAFFOLDTransformerTrainer(ModelTrainer):
         logging.info("-----COMPLETED TRAINING THE TRANSFORMER-----")
         self.config["trans_train_time_round_" + str(round_idx)] = (time.time() - start) / 60
 
-        torch.save(self.best_model, config["checkpoint_dir"] + "transformer_model.pt")
-        torch.save(self.best_optimizer, config["checkpoint_dir"] + "transformer_opt.pt")
+        torch.save(self.best_model, self.config["checkpoint_dir"] + "transformer_model.pt")
+        torch.save(self.best_optimizer, self.config["checkpoint_dir"] + "transformer_opt.pt")
         self.config["best_trans_model"] = {"CommRound": self.best_comm_round, "Epoch": self.best_epoch_in_round}
         self.save_loss(round_idx)
         self.train_loss_list = list()
@@ -182,28 +195,38 @@ class SCAFFOLDTransformerTrainer(ModelTrainer):
         pass
 
     def save_loss(self, round_idx):
-        df_loss = pd.DataFrame([[round_idx+1, epoch+1, self.train_loss_list[epoch], self.val_loss_list[epoch]] for epoch in range(len(self.train_loss_list))])
         loss_file = self.config["result_dir"] + 'transformer_epoch_loss.csv'
-        df_loss.to_csv(loss_file,
-                       mode='a',
-                       index=False,
-                       header=False if os.path.exists(loss_file) else ['CommRound', 'LocalEpoch','TrainingLoss','ValidationLoss'])
+        if self.val_data != None:
+            df_loss = pd.DataFrame([[round_idx+1, epoch+1, self.train_loss_list[epoch], self.val_loss_list[epoch]] for epoch in range(len(self.train_loss_list))])
+            df_loss.to_csv(loss_file,
+                           mode='a',
+                           index=False,
+                           header=False if os.path.exists(loss_file) else ['CommRound', 'LocalEpoch','TrainingLoss','ValidationLoss'])
+        else:
+            df_loss = pd.DataFrame([[round_idx+1, epoch+1, self.train_loss_list[epoch]] for epoch in range(len(self.train_loss_list))])
+            df_loss.to_csv(loss_file,
+                           mode='a',
+                           index=False,
+                           header=False if os.path.exists(loss_file) else ['CommRound', 'LocalEpoch','TrainingLoss'])
 
     def client_plot_loss(self):
         loss_file = self.config["result_dir"] + 'transformer_epoch_loss.csv'
+        model_type = "TRANSFORMER" if self.config['model'] == 'transformer' else 'FNET_HYBRID'
         df_loss = pd.read_csv(loss_file)
         df_plot = df_loss[df_loss['LocalEpoch'] == self.config['trans_num_epoch']] # select last local epoch loss to plot
         rounds = df_plot.loc[:,'CommRound']
         train_loss = df_plot.loc[:, 'TrainingLoss']
-        val_loss = df_plot.loc[:, 'ValidationLoss']
         plt.plot(rounds, train_loss, 'g', label='Training loss')
-        plt.plot(rounds, val_loss, 'b', label='Validation loss')
-        model_type = "TRANSFORMER" if self.config['model'] == 'transformer' else 'FNET_HYBRID'
-        plt.title('{}. ID {}: Training and Validation Loss'.format(model_type, self.id))
+        if self.val_data != None:
+            val_loss = df_plot.loc[:, 'ValidationLoss']
+            plt.plot(rounds, val_loss, 'b', label='Validation loss')
+            plt.title('{}. ID {}: Training and Validation Loss'.format(model_type, self.id))
+        else:
+            plt.title('{}. ID {}: Training Loss'.format(model_type, self.id))
         plt.xlabel('Communication Round')
         plt.ylabel('Loss')
         plt.legend()
-        plt.savefig(os.path.join(config["result_dir"], config['model'] + "_loss.png"), dpi=300)
+        plt.savefig(os.path.join(self.config["result_dir"], self.config['model'] + "_loss.png"), dpi=300)
         plt.close()
 
     def get_total_training_time(self, num_comm_rounds):

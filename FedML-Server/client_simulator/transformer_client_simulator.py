@@ -119,10 +119,15 @@ if __name__ == '__main__':
                                   num_workers=config["dataloader_num_workers"])
 
     val_set = CustomDataset(config, mode='validate')
-    val_dataloader = DataLoader(val_set,
-                                batch_size=config["batch_size"],
-                                shuffle=bool(config["shuffle"]),
-                                num_workers=config["dataloader_num_workers"])
+    if len(val_set) > 0:
+        val_dataloader = DataLoader(val_set,
+                                    batch_size=config["batch_size"],
+                                    shuffle=bool(config["shuffle"]),
+                                    num_workers=config["dataloader_num_workers"])
+        config['validation'] = True
+    else:
+        val_dataloader = None
+        config['validation'] = False
 
     autoencoder_model = create_autoencoder(in_seq_len=config['autoencoder_dims'],
                                            out_seq_len=config['l_win'],

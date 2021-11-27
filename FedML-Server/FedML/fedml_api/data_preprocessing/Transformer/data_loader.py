@@ -36,14 +36,19 @@ class CustomDataset(Dataset):
                 data = np.expand_dims(self.data['training'], -1)
             else:
                 data = self.data['training']
-            data = data[:int(data.shape[0] * 0.9), :]
+            if int(data.shape[0] * 0.1) > self.config['autoencoder_dims']:
+                data = data[:int(data.shape[0] * 0.9), :]
             logging.info("TRAINING DATA SHAPE: {}".format(data.shape))
         elif self.mode == 'validate':
             if len(self.data['training'].shape) == 1:
                 data = np.expand_dims(self.data['training'], -1)
             else:
                 data = self.data['training']
-            data = data[int(data.shape[0] * 0.9):, :]
+            if int(data.shape[0] * 0.1) > self.config['autoencoder_dims']:
+                data = data[int(data.shape[0] * 0.9):, :]
+            else:
+                self.rolling_windows = np.zeros((0,0,0))
+                return
             logging.info("VALIDATION DATA SHAPE: {}".format(data.shape))
         else:
             if len(self.data['test'].shape) == 1:
