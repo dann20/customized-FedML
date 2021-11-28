@@ -12,8 +12,8 @@ from torch import optim
 from FedML.fedml_core.trainer.model_trainer import ModelTrainer
 
 class AutoencoderTrainer(ModelTrainer):
-    def __init__(self, autoencoder_model, train_data, val_data, device, config):
-        self.id = 0
+    def __init__(self, id, autoencoder_model, train_data, val_data, device, config):
+        self.id = id
         self.model = autoencoder_model
         self.train_data = train_data
         self.val_data = val_data
@@ -61,9 +61,9 @@ class AutoencoderTrainer(ModelTrainer):
                 self.best_optimizer = opt.state_dict()
                 self.best_epoch = epoch
         else:
-            self.validate_epoch(criterion)
+            self.validate_epoch(criterion, opt, epoch)
 
-    def validate_epoch(self, criterion):
+    def validate_epoch(self, criterion, opt, epoch):
         val_loss = 0.0
         self.model.eval()
         with torch.no_grad():

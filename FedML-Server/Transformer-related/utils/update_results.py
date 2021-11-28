@@ -15,13 +15,14 @@ def main():
         print(ex)
 
     col_lst = ["experiment", "time", "auto_dataset",
-               "num_client", "client_ID",
+               "validation", "num_client", "client_ID",
                "algorithm", "model", "d_model", "d_ff",
                "num_stacks", "num_heads", "dropout", "shuffle",
                "autoencoder_dims", "l_win", "pre_mask", "post_mask",
                "batch_size", "lr", "server_learning_rate",
                "L", "dataloader_num_workers",
                "auto_num_epoch", "num_comm_rounds", "trans_num_epoch",
+               "auto_train_time", "total_trans_train_time",
                "q_best", "precision", "recall", "F1", "inference_time"]
 
     config = process_config(args.config)
@@ -35,7 +36,7 @@ def main():
     result_file = "training_config_lwin_{}_autodims_{}.json".format(config["l_win"], config["autoencoder_dims"])
     result_dicts = [get_config_from_json(client_dirs[i] + result_file) for i in range(len(client_dirs))]
     df = pd.DataFrame(result_dicts)
-    df = df[col_lst]
+    df = df.reindex(columns=col_lst)
     outfile = 'inference_results.csv'
     df.to_csv(outfile,
               mode='a',

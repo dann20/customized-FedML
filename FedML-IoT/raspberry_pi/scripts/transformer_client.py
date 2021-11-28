@@ -152,7 +152,8 @@ if __name__ == '__main__':
     autoencoder_model = create_autoencoder(in_seq_len=config['autoencoder_dims'],
                                            out_seq_len=config['l_win'],
                                            d_model=config['d_model'])
-    autoencoder_trainer = AutoencoderTrainer(autoencoder_model=autoencoder_model,
+    autoencoder_trainer = AutoencoderTrainer(id = client_ID,
+                                             autoencoder_model=autoencoder_model,
                                              train_data=train_dataloader,
                                              val_data=val_dataloader,
                                              device=device,

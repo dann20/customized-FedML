@@ -68,9 +68,9 @@ class FedAVGTransformerTrainer(ModelTrainer):
                 self.best_comm_round = round_idx + 1
                 self.best_epoch_in_round = epoch
         else:
-            self.validate_epoch(criterion)
+            self.validate_epoch(criterion, opt, epoch, round_idx)
 
-    def validate_epoch(self, criterion):
+    def validate_epoch(self, criterion, opt, epoch, round_idx):
         val_loss = 0.0
         self.model.eval()
         with torch.no_grad():
