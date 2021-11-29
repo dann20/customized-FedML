@@ -76,4 +76,7 @@ class FedAVGClientManager(ClientManager):
         save_config(self.trainer.config)
         self.round_idx += 1
         if self.round_idx == self.num_rounds:
+            self.trainer.client_plot_loss()
+            self.trainer.get_total_training_time(self.num_rounds)
+            save_config(self.trainer.config)
             self.finish()

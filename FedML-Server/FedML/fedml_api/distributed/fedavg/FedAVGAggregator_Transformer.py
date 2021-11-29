@@ -76,7 +76,8 @@ class FedAVGAggregator(object):
 
         self.set_global_model_params(averaged_params)
         logging.info("Set aggregated model to trainer.")
-        self.trainer.save_aggregated_model(round_idx)
-        logging.info("Saved aggregated model.")
+        if round_idx == self.trainer.config['num_comm_rounds'] - 1:
+            self.trainer.save_aggregated_model(round_idx)
+            logging.info("Saved last aggregated model.")
 
         return averaged_params
