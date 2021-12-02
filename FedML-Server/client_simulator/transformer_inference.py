@@ -147,9 +147,9 @@ def compute_precision_and_recall(idx_detected_anomaly, test_labels):
         F1 = 0
     else:
         F1 = 2 * (precision * recall)/(precision + recall)
-    fpr = n_FP/(n_FP + n_TN)
+    accuracy = (n_TP + n_TN) / (n_TP + n_FN + n_FP + n_TN)
 
-    return precision, recall, F1, fpr, n_TP, n_FP, n_FN
+    return precision, recall, F1, accuracy, n_TP, n_FP, n_FN
 
 def KQp(data, q):
     data2 = np.sort(data)  # sap xep tang dan
@@ -230,7 +230,7 @@ def select_KQp_threshold(recon_loss, anomaly_index, test_labels, config):
     precision_aug = np.zeros(n_threshold)
     recall_aug = np.zeros(n_threshold)
     F1_aug = np.zeros(n_threshold)
-    fpr_aug = np.zeros(n_threshold)
+    acc_aug = np.zeros(n_threshold)
     q_best = 0
     for i in range(n_threshold):
         q = q_list[i]
@@ -239,19 +239,23 @@ def select_KQp_threshold(recon_loss, anomaly_index, test_labels, config):
         idx_detection = return_anomaly_idx_by_threshold(recon_loss, temp_thres)
         idx_detection_augmented = augment_detected_idx(
             idx_detection, anomaly_index)
-        precision_aug[i], recall_aug[i], F1_aug[i], fpr_aug[i], _, _, _ = compute_precision_and_recall(idx_detection_augmented, test_labels)
-        print("At this threshold, precision is {}, recall is {}, F1 is {}".format(precision_aug[i],
-                                                                        recall_aug[i],
-                                                                        F1_aug[i]))
+        precision_aug[i], recall_aug[i], F1_aug[i], acc_aug[i], _, _, _ = compute_precision_and_recall(idx_detection_augmented, test_labels)
+        print("At this threshold, accuracy is {}, precision is {}, recall is {}, F1 is {}".format(acc_aug[i],
+                                                                                                  precision_aug[i],
+                                                                                                  recall_aug[i],
+                                                                                                  F1_aug[i]))
+
 
     print("Best F1 score is {}".format(max(F1_aug)))
     idx_best_q = np.argmax(F1_aug)
     q_best = q_list[idx_best_q]
     print("Best q is {}".format(q_list[idx_best_q]))
-    print("At this threshold, precision is {}, recall is {}".format(precision_aug[idx_best_q],
-                                                                    recall_aug[idx_best_q]))
+    print("At this threshold, accuracy is {}, precision is {}, recall is {}".format(acc_aug[idx_best_q],
+                                                                                    precision_aug[idx_best_q],
+                                                                                    recall_aug[idx_best_q]))
+
     # auc = plot_roc_curve(fpr_aug, recall_aug, config)
-    return q_best, precision_aug[idx_best_q], recall_aug[idx_best_q], F1_aug[idx_best_q]
+    return q_best, acc_aug[idx_best_q], precision_aug[idx_best_q], recall_aug[idx_best_q], F1_aug[idx_best_q]
 
 def create_mask(config):
     mask = torch.ones(1, config["l_win"], config["l_win"])
@@ -333,14 +337,16 @@ def main():
     # precision, recall, F1, _, n_TP, n_FP, n_FN = compute_precision_and_recall(idx_detection_augmented,
                                                                               # test_labels)
 
-    q_best, precision, recall, F1 = select_KQp_threshold(recon_loss, anomaly_index, test_labels, config)
+    q_best, accuracy, precision, recall, F1 = select_KQp_threshold(recon_loss, anomaly_index, test_labels, config)
     config['q_best'] = q_best
+    config['accuracy'] = accuracy
     config["precision"] = precision
     config["recall"] = recall
     config["F1"] = F1
     config["inference_time"] = (time.time() - start) / 60
     save_config(config)
     print("\nPR evaluation using KQE:")
+    print("Accuracy: {}".format(accuracy))
     print("Precision: {}".format(precision))
     print("Recall: {}".format(recall))
     print("F1: {}".format(F1))

@@ -23,7 +23,7 @@ def main():
                "L", "dataloader_num_workers",
                "auto_num_epoch", "num_comm_rounds", "trans_num_epoch",
                "auto_train_time", "total_trans_train_time",
-               "q_best", "precision", "recall", "F1", "inference_time"]
+               "q_best", "accuracy", "precision", "recall", "F1", "inference_time"]
 
     config = process_config(args.config)
     config['result_dir'] = config['result_dir'].replace("Transformer-related/", "") # Used with relative path
