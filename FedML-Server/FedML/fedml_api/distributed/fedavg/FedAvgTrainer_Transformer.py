@@ -31,9 +31,11 @@ class FedAVGTransformerTrainer(ModelTrainer):
         self.mask = self._create_mask()
 
     def get_model_params(self):
-        return self.model.state_dict()
+        return {k: v.cpu() for k,v in self.model.state_dict().items()} if self.device != None else self.model.state_dict()
 
     def set_model_params(self, model_parameters):
+        if self.device != None:
+            model_parameters = {k: v.to(self.device) for k,v in model_parameters.items()}
         self.model.load_state_dict(model_parameters)
 
     def train_epoch(self, criterion, opt, epoch, round_idx):
