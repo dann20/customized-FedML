@@ -1,6 +1,7 @@
 import time
 import logging
 import os
+import sys
 import math
 
 import pandas as pd
@@ -8,7 +9,6 @@ from matplotlib import pyplot as plt
 
 import torch
 from torch import nn
-from torch import optim
 
 from FedML.fedml_core.trainer.model_trainer import ModelTrainer
 from FedML.fedml_api.distributed.scaffold.SCAFFOLDOptimizer import SCAFFOLDOptimizer
@@ -17,7 +17,7 @@ class SCAFFOLDTransformerTrainer(ModelTrainer):
     def __init__(self, id, autoencoder_model, transformer_model, train_data, val_data, device, config):
         self.id = id    # id = 0 denotes server, denotes clients otherwise
         self.model = transformer_model
-        if autoencoder_model != None:
+        if autoencoder_model is not None:
             self.encoder = autoencoder_model.encoder
             self.encoder.eval()
         self.train_data = train_data
@@ -49,39 +49,45 @@ class SCAFFOLDTransformerTrainer(ModelTrainer):
         if self.id == 0:
             return [p.data for p in self.model.parameters() if p.requires_grad]
         else:
-            raise Exception('Method get_model_params is supposed to be used by server.')
+            logging.error('Method get_model_params is supposed to be used by server.')
+            sys.exit(1)
 
     def get_server_control_variates(self):
         if self.id == 0:
             return self.server_controls
         else:
-            raise Exception('Method get_server_control_variates is supposed to be used by server.')
+            logging.error('Method get_server_control_variates is supposed to be used by server.')
+            sys.exit(1)
 
     def set_server_model_params(self, server_model_parameters):
         if self.id != 0:
             for model_params, new_model_params in zip(self.server_model, server_model_parameters):
                 model_params.data = new_model_params.data.to(self.device)
         else:
-            raise Exception('Method set_server_model_params is supposed to be used by clients.')
+            logging.error('Method set_server_model_params is supposed to be used by clients.')
+            sys.exit(1)
 
     def set_server_control_variates(self, server_controls):
         if self.id != 0:
             for control, new_control in zip(self.server_controls, server_controls):
                 control.data = new_control.data.to(self.device)
         else:
-            raise Exception('Method set_server_control_variates is supposed to be used by clients.')
+            logging.error('Method set_server_control_variates is supposed to be used by clients.')
+            sys.exit(1)
 
     def get_delta_model_params(self):
         if self.id != 0:
             return [data.to("cpu") for data in self.delta_model]
         else:
-            raise Exception('Method get_delta_model_params is supposed to be used by clients.')
+            logging.error('Method get_delta_model_params is supposed to be used by clients.')
+            sys.exit(1)
 
     def get_delta_control_variates(self):
         if self.id != 0:
             return [data.to("cpu") for data in self.delta_controls]
         else:
-            raise Exception('Method get_delta_control_variates is supposed to be used by clients.')
+            logging.error('Method get_delta_control_variates is supposed to be used by clients.')
+            sys.exit(1)
 
     def train_epoch(self, criterion, opt, epoch, round_idx):
         train_loss = 0.0
@@ -107,7 +113,7 @@ class SCAFFOLDTransformerTrainer(ModelTrainer):
 
         logging.info('Trainer_ID {}. Local Training Epoch: {} \tTrain Loss: {:.6f}'.format(self.id, epoch, train_loss))
 
-        if self.val_data == None:
+        if self.val_data is None:
             if train_loss < self.min_loss:
                 self.min_loss = train_loss
                 self.best_model = self.model.state_dict()
@@ -148,7 +154,7 @@ class SCAFFOLDTransformerTrainer(ModelTrainer):
         self.model.to(self.device)
         self.encoder.to(self.device)
 
-        start = time.time()
+        start = time.perf_counter()
         logging.info("-----START TRAINING THE TRANSFORMER-----")
         model_opt = SCAFFOLDOptimizer(self.model.parameters(), lr=self.config['lr'], weight_decay=self.config['L'])
         criterion = nn.MSELoss()
@@ -182,7 +188,7 @@ class SCAFFOLDTransformerTrainer(ModelTrainer):
             control.data = new_control.data
 
         logging.info("-----COMPLETED TRAINING THE TRANSFORMER-----")
-        self.config["trans_train_time_round_" + str(round_idx)] = (time.time() - start) / 60
+        self.config["trans_train_time_round_" + str(round_idx)] = (time.perf_counter() - start) / 60
 
         torch.save(self.best_model, self.config["checkpoint_dir"] + "transformer_model.pt")
         torch.save(self.best_optimizer, self.config["checkpoint_dir"] + "transformer_opt.pt")
@@ -196,7 +202,7 @@ class SCAFFOLDTransformerTrainer(ModelTrainer):
 
     def save_loss(self, round_idx):
         loss_file = self.config["result_dir"] + 'transformer_epoch_loss.csv'
-        if self.val_data != None:
+        if self.val_data is not None:
             df_loss = pd.DataFrame([[round_idx+1, epoch+1, self.train_loss_list[epoch], self.val_loss_list[epoch]] for epoch in range(len(self.train_loss_list))])
             df_loss.to_csv(loss_file,
                            mode='a',
@@ -217,7 +223,7 @@ class SCAFFOLDTransformerTrainer(ModelTrainer):
         rounds = df_plot.loc[:,'CommRound']
         train_loss = df_plot.loc[:, 'TrainingLoss']
         plt.plot(rounds, train_loss, 'g', label='Training loss')
-        if self.val_data != None:
+        if self.val_data is not None:
             val_loss = df_plot.loc[:, 'ValidationLoss']
             plt.plot(rounds, val_loss, 'b', label='Validation loss')
             plt.title('{}. ID {}: Training and Validation Loss'.format(model_type, self.id))
@@ -243,7 +249,8 @@ class SCAFFOLDTransformerTrainer(ModelTrainer):
             self.config["last_aggregated_server_model"] = f"aggregated_transformer_r{round_idx}.pt"
             torch.save(self.model.state_dict(), directory + self.config["last_aggregated_server_model"])
         else:
-            raise Exception('Method save_aggregated_model() is supposed to be used on server after SCAFFOLD aggregation.')
+            logging.error('Method save_aggregated_model() is supposed to be used on server after SCAFFOLD aggregation.')
+            sys.exit(1)
 
     def _create_mask(self):
         mask = torch.ones(1, self.config["l_win"], self.config["l_win"])

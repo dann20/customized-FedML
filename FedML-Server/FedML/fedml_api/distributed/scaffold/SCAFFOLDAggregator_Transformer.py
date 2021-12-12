@@ -1,10 +1,5 @@
 import logging
-import os
-import sys
 import time
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../..")))
-sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../../FedML")))
 
 class SCAFFOLDAggregator(object):
 
@@ -42,10 +37,10 @@ class SCAFFOLDAggregator(object):
         return True
 
     def aggregate(self, round_idx):
-        start_time = time.time()
+        start_time = time.perf_counter()
 
         logging.info(f"-----START SCAFFOLD AGGREGATION ROUND {round_idx}-----")
-        for client in self.delta_controls_dict.keys():
+        for client in self.delta_controls_dict:
             for param, control, delta_control, delta_model in zip(self.trainer.model.parameters(),
                                                                   self.trainer.server_controls,
                                                                   self.delta_controls_dict[client],
@@ -53,7 +48,7 @@ class SCAFFOLDAggregator(object):
                 param.data = param.data + self.trainer.config['server_learning_rate'] * delta_model.data / self.num_clients # (originally) num_of_selected_users
                 control.data = control.data + delta_control.data / self.num_clients
 
-        end_time = time.time()
+        end_time = time.perf_counter()
         logging.info("-----DONE SCAFFOLD AGGREGATION-----")
         logging.info("aggregate time cost: %d" % (end_time - start_time))
 

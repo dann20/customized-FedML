@@ -10,6 +10,7 @@ import sys
 import time
 import subprocess
 import atexit
+import json
 from datetime import datetime
 
 import requests
@@ -78,7 +79,7 @@ def clean_subprocess(bmon_process, resmon_process, start_time):
     if resmon_process:
         resmon_process.terminate()
         logging.info("Terminated resmon.")
-    run_time = time.time() - start_time
+    run_time = time.perf_counter() - start_time
     logging.info("Total running time: {} sec = {} min".format(run_time, run_time/60))
 
 """
@@ -86,7 +87,7 @@ python mobile_client_simulator.py --client_uuid '0'
 python mobile_client_simulator.py --client_uuid '1'
 """
 if __name__ == '__main__':
-    start_time = time.time()
+    start_time = time.perf_counter()
     datetime_obj = datetime.now()
     parser = argparse.ArgumentParser()
     main_args = add_args(parser)
@@ -105,7 +106,8 @@ if __name__ == '__main__':
 
     atexit.register(clean_subprocess, bmon_process, resmon_process, start_time)
 
-    logging.basicConfig(level=logging.DEBUG)
+    fmt = '[%(levelname)s] %(asctime)s - %(message)s'
+    logging.basicConfig(level=logging.INFO, format = fmt)
 
     client_ID, config = register(main_args, uuid)
     logging.info(main_args)
@@ -178,6 +180,9 @@ if __name__ == '__main__':
                                                d_ff=config['d_ff'],
                                                h=config['num_heads'],
                                                dropout=config['dropout'])
+    else:
+        logging.error("No valid model type specified in config file.")
+        sys.exit(1)
 
     if config["algorithm"] == 'FedAvg':
         transformer_trainer = FedAVGTransformerTrainer(id = client_ID,
@@ -206,6 +211,9 @@ if __name__ == '__main__':
                                                rank=client_ID,
                                                size=size,
                                                backend="MQTT")
+    else:
+        logging.error("No valid algorithm specified in config file.")
+        sys.exit(1)
 
     client_manager.run()
 

@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import logging
 
@@ -15,7 +16,7 @@ class FedAVGTransformerTrainer(ModelTrainer):
     def __init__(self, id, autoencoder_model, transformer_model, train_data, val_data, device, config):
         self.id = id    # id = 0 denotes server, denotes clients otherwise
         self.model = transformer_model
-        if autoencoder_model != None:
+        if autoencoder_model is not None:
             self.encoder = autoencoder_model.encoder
             self.encoder.eval()
         self.train_data = train_data
@@ -31,10 +32,10 @@ class FedAVGTransformerTrainer(ModelTrainer):
         self.mask = self._create_mask()
 
     def get_model_params(self):
-        return {k: v.cpu() for k,v in self.model.state_dict().items()} if self.device != None else self.model.state_dict()
+        return {k: v.cpu() for k,v in self.model.state_dict().items()} if self.device is not None else self.model.state_dict()
 
     def set_model_params(self, model_parameters):
-        if self.device != None:
+        if self.device is not None:
             model_parameters = {k: v.to(self.device) for k,v in model_parameters.items()}
         self.model.load_state_dict(model_parameters)
 
@@ -62,7 +63,7 @@ class FedAVGTransformerTrainer(ModelTrainer):
 
         logging.info('Trainer_ID {}. Local Training Epoch: {} \tTrain Loss: {:.6f}'.format(self.id, epoch, train_loss))
 
-        if self.val_data == None:
+        if self.val_data is None:
             if train_loss < self.min_loss:
                 self.min_loss = train_loss
                 self.best_model = self.model.state_dict()
@@ -103,7 +104,7 @@ class FedAVGTransformerTrainer(ModelTrainer):
         self.model.to(self.device)
         self.encoder.to(self.device)
 
-        start = time.time()
+        start = time.perf_counter()
         logging.info("-----START TRAINING THE TRANSFORMER-----")
         self.model.float()
         model_opt = optim.Adam(self.model.parameters())
@@ -115,7 +116,7 @@ class FedAVGTransformerTrainer(ModelTrainer):
                              epoch,
                              round_idx)
         logging.info("-----COMPLETED TRAINING THE TRANSFORMER-----")
-        self.config["trans_train_time_round_" + str(round_idx)] = (time.time() - start) / 60
+        self.config["trans_train_time_round_" + str(round_idx)] = (time.perf_counter() - start) / 60
 
         torch.save(self.best_model, self.config["checkpoint_dir"] + "transformer_model.pt")
         torch.save(self.best_optimizer, self.config["checkpoint_dir"] + "transformer_opt.pt")
@@ -129,7 +130,7 @@ class FedAVGTransformerTrainer(ModelTrainer):
 
     def save_loss(self, round_idx):
         loss_file = self.config["result_dir"] + 'transformer_epoch_loss.csv'
-        if self.val_data != None:
+        if self.val_data is not None:
             df_loss = pd.DataFrame([[round_idx+1, epoch+1, self.train_loss_list[epoch], self.val_loss_list[epoch]] for epoch in range(len(self.train_loss_list))])
             df_loss.to_csv(loss_file,
                            mode='a',
@@ -150,7 +151,7 @@ class FedAVGTransformerTrainer(ModelTrainer):
         rounds = df_plot.loc[:,'CommRound']
         train_loss = df_plot.loc[:, 'TrainingLoss']
         plt.plot(rounds, train_loss, 'g', label='Training loss')
-        if self.val_data != None:
+        if self.val_data is not None:
             val_loss = df_plot.loc[:, 'ValidationLoss']
             plt.plot(rounds, val_loss, 'b', label='Validation loss')
             plt.title('{}. ID {}: Training and Validation Loss'.format(model_type, self.id))
@@ -179,7 +180,8 @@ class FedAVGTransformerTrainer(ModelTrainer):
             self.config["last_aggregated_server_model"] = f"aggregated_transformer_r{round_idx}.pt"
             torch.save(self.model.state_dict(), directory + self.config["last_aggregated_server_model"])
         else:
-            raise Exception('Method save_aggregated_model() is supposed to be used on server after FedAvg aggregation')
+            logging.error('Method save_aggregated_model() is supposed to be used on server after FedAvg aggregation')
+            sys.exit(1)
 
     def _create_mask(self):
         mask = torch.ones(1, self.config["l_win"], self.config["l_win"])

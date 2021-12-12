@@ -80,7 +80,8 @@ if __name__ == '__main__':
     main_args = add_args(parser)
     uuid = main_args.client_uuid
 
-    logging.basicConfig(level=logging.INFO)
+    fmt = '[%(levelname)s] %(asctime)s - %(message)s'
+    logging.basicConfig(level=logging.INFO, format = fmt)
 
     client_ID, config = register(uuid)
     config["result_dir"] = os.path.join(config["result_dir"], "client{}/".format(client_ID))
@@ -159,6 +160,10 @@ if __name__ == '__main__':
                                                d_ff=config['d_ff'],
                                                h=config['num_heads'],
                                                dropout=config['dropout'])
+    else:
+        logging.error("No valid model type specified in config file.")
+        sys.exit(1)
+
     transformer_model.float()
 
     if config["algorithm"] == 'FedAvg':
@@ -188,6 +193,9 @@ if __name__ == '__main__':
                                                rank=client_ID,
                                                size=size,
                                                backend="MQTT")
+    else:
+        logging.error("No valid algorithm specified in config file.")
+        sys.exit(1)
 
     client_manager.run()
 

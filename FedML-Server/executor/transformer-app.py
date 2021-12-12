@@ -10,7 +10,6 @@ from datetime import datetime
 import torch
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../")))
-sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../")))
 
 from FedML.fedml_api.distributed.fedavg.FedAvgTrainer_Transformer import FedAVGTransformerTrainer
 from FedML.fedml_api.distributed.fedavg.FedAVGAggregator_Transformer import FedAVGAggregator
@@ -36,9 +35,10 @@ app.config['MOBILE_PREPROCESSED_DATASETS'] = './preprocessed_dataset/'
 try:
     args = get_args()
     config = process_config(args.config)
-except:
-    print("missing or invalid arguments")
-    exit(0)
+except Exception as ex:
+    logging.error(ex)
+    logging.error("Missing or invalid arguments")
+    sys.exit(1)
 
 device_id_to_client_id_dict = dict()
 
@@ -100,11 +100,11 @@ def clean_subprocess(bmon_process, resmon_process, start_time):
     if resmon_process:
         resmon_process.terminate()
         logging.info("Terminated resmon.")
-    run_time = time.time() - start_time
+    run_time = time.perf_counter() - start_time
     logging.info("Total running time: {} sec = {} min".format(run_time, run_time/60))
 
 if __name__ == '__main__':
-    start_time = time.time()
+    start_time = time.perf_counter()
     datetime_obj = datetime.now()
     if args.bmonOutfile != 'None':
         bmon_command = "bmon -p wlp7s0 -r 1 -o 'format:fmt=$(attr:txrate:bytes) $(attr:rxrate:bytes)\n' > " + args.bmonOutfile
@@ -119,7 +119,9 @@ if __name__ == '__main__':
 
     atexit.register(clean_subprocess, bmon_process, resmon_process, start_time)
 
-    logging.basicConfig(level=logging.INFO)
+    fmt = '[%(levelname)s] %(asctime)s - %(message)s'
+    logging.basicConfig(level=logging.INFO, format = fmt)
+
     # MQTT client connection
     class Obs(Observer):
         def receive_message(self, msg_type, msg_params) -> None:
@@ -168,6 +170,9 @@ if __name__ == '__main__':
                                          d_ff=config['d_ff'],
                                          h=config['num_heads'],
                                          dropout=config['dropout'])
+    else:
+        logging.error("No valid model type specified in config file.")
+        sys.exit(1)
 
     if config['algorithm'] == 'FedAvg':
         trainer = FedAVGTransformerTrainer(id = 0,
@@ -200,6 +205,9 @@ if __name__ == '__main__':
                                                rank=0,
                                                size=size,
                                                backend="MQTT")
+    else:
+        logging.error("No valid algorithm specified in config file.")
+        sys.exit(1)
 
     server_manager.run()
     server_manager.send_init_config()
