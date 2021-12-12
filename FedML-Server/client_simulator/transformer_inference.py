@@ -4,6 +4,7 @@ import sys
 import math
 import time
 import json
+import logging
 
 import torch
 from torch.utils.data.dataloader import DataLoader
@@ -66,6 +67,9 @@ def load_model(config):
                                                d_ff=config["d_ff"],
                                                h=config["num_heads"],
                                                dropout=config["dropout"])
+    else:
+        logging.error("No valid model type specified in config file.")
+        sys.exit(1)
 
     transformer_model.load_state_dict(torch.load(
         config["checkpoint_dir"] + "transformer_model.pt"))
@@ -102,14 +106,14 @@ def augment_detected_idx(idx_detected_anomaly, anomaly_index):
     n_anomaly = len(anomaly_index)
     idx_detected_anomaly_extended = list(idx_detected_anomaly)
     for i in range(n_anomaly):
-        # print(idx_detected_anomaly)
+        # logging.info(idx_detected_anomaly)
         for j in idx_detected_anomaly:
             if j in anomaly_index[i]:
                 in_original_detection = set(idx_detected_anomaly_extended)
                 current_anomaly_win = set(anomaly_index[i])
                 idx_detected_anomaly_extended = idx_detected_anomaly_extended + \
                     list(current_anomaly_win - in_original_detection)
-                # print(j)
+                # logging.info(j)
                 break
     return list(np.sort(idx_detected_anomaly_extended))
 
@@ -169,7 +173,7 @@ def plot_roc_curve(fpr_aug, recall_aug, config, n_threshold=20):
     tpr = np.insert(recall_aug, [0, n_threshold], [0, 1])
     fpr = np.insert(fpr_aug, [0, n_threshold], [0, 1])
     auc = metrics.auc(fpr, tpr)
-    print("AUC =", auc)
+    logging.info("AUC =", auc)
     lw = 2
     plt.plot(fpr, tpr, color="darkorange", lw=lw,
              label="ROC curve (area = %0.4f)" % auc)
@@ -201,7 +205,7 @@ def select_threshold(recon_loss, anomaly_index, test_labels, config, n_threshold
     threshold_list = np.flip(threshold_list)
 
     for threshold in threshold_list:
-        # print(threshold_list[i])
+        # logging.info(threshold_list[i])
         idx_detection = return_anomaly_idx_by_threshold(recon_loss, threshold)
         # augment the detection using the ground truth labels
         # a method to discount the factor one anomaly appears in multiple consecutive windows
@@ -211,16 +215,16 @@ def select_threshold(recon_loss, anomaly_index, test_labels, config, n_threshold
         precision_aug[i], recall_aug[i], F1_aug[i], fpr_aug[i], _, _, _ = compute_precision_and_recall(idx_detection_augmented,
                                                                                                        test_labels)
         i = i + 1
-        #print(precision, recall, F1)
+        #logging.info(precision, recall, F1)
 
     auc = plot_roc_curve(fpr_aug, recall_aug, config)
 
-    print("\nAugmented detection:")
-    print("Best F1 score is {}".format(np.amax(F1_aug)))
+    logging.info("\nAugmented detection:")
+    logging.info("Best F1 score is {}".format(np.amax(F1_aug)))
     idx_best_threshold = np.squeeze(np.argwhere(F1_aug == np.amax(F1_aug)))
-    print("Best threshold is {}".format(threshold_list[idx_best_threshold]))
+    logging.info("Best threshold is {}".format(threshold_list[idx_best_threshold]))
     best_thres = np.min(threshold_list[idx_best_threshold])
-    print("At this threshold, precision is {}, recall is {}".format(precision_aug[idx_best_threshold],
+    logging.info("At this threshold, precision is {}, recall is {}".format(precision_aug[idx_best_threshold],
                                                                     recall_aug[idx_best_threshold]))
     return best_thres, auc
 
@@ -234,23 +238,23 @@ def select_KQp_threshold(recon_loss, anomaly_index, test_labels, config):
     q_best = 0
     for i in range(n_threshold):
         q = q_list[i]
-        print("Testing with q = {}".format(q))
+        logging.info("Testing with q = {}".format(q))
         temp_thres = KQp(recon_loss, q)
         idx_detection = return_anomaly_idx_by_threshold(recon_loss, temp_thres)
         idx_detection_augmented = augment_detected_idx(
             idx_detection, anomaly_index)
         precision_aug[i], recall_aug[i], F1_aug[i], acc_aug[i], _, _, _ = compute_precision_and_recall(idx_detection_augmented, test_labels)
-        print("At this threshold, accuracy is {}, precision is {}, recall is {}, F1 is {}".format(acc_aug[i],
+        logging.info("At this threshold, accuracy is {}, precision is {}, recall is {}, F1 is {}".format(acc_aug[i],
                                                                                                   precision_aug[i],
                                                                                                   recall_aug[i],
                                                                                                   F1_aug[i]))
 
 
-    print("Best F1 score is {}".format(max(F1_aug)))
+    logging.info("Best F1 score is {}".format(max(F1_aug)))
     idx_best_q = np.argmax(F1_aug)
     q_best = q_list[idx_best_q]
-    print("Best q is {}".format(q_list[idx_best_q]))
-    print("At this threshold, accuracy is {}, precision is {}, recall is {}".format(acc_aug[idx_best_q],
+    logging.info("Best q is {}".format(q_list[idx_best_q]))
+    logging.info("At this threshold, accuracy is {}, precision is {}, recall is {}".format(acc_aug[idx_best_q],
                                                                                     precision_aug[idx_best_q],
                                                                                     recall_aug[idx_best_q]))
 
@@ -271,21 +275,27 @@ def main():
     try:
         args = add_args(parser)
         config = process_config(args.config)
-    except:
-        print("Missing or invalid arguments")
+    except Exception as ex:
+        logging.error(ex)
+        logging.error("Missing or invalid arguments")
+        sys.exit(1)
+
+    fmt = '[%(levelname)s] %(asctime)s - %(message)s'
+    logging.basicConfig(level=logging.INFO, format = fmt)
 
     # if model was trained by simulated clients, specify client_id (starting index = 0) to change result_dir
     if args.client_id != -1:
-        config["result_dir"] = os.path.join(config["result_dir"], "client{}/".format(args.client_id+1))
+        config["result_dir"] = os.path.join(config["result_dir"], "client{}/".format(args.client_id + 1))
     filename = config["result_dir"] + \
         "training_config_lwin_{}_autodims_{}.json".format(
             config["l_win"], config["autoencoder_dims"])
 
     try:
         config = get_config_from_json(filename)
-        print(json.dumps(config, indent=4, separators=(',', ': ')))
-    except:
-        print('No config found in result_dir.')
+        logging.info(json.dumps(config, indent=4, separators=(',', ': ')))
+    except Exception as ex:
+        logging.error(ex)
+        logging.error('No config found in result_dir.')
 
     dataset = CustomDataset(config, mode='test')
     dataloader = DataLoader(dataset,
@@ -299,10 +309,10 @@ def main():
     mask = create_mask(config)
     loss = torch.nn.MSELoss()
     n_test = len(dataset)
-    print(f"n_test = {n_test}")
+    logging.info(f"n_test = {n_test}")
     recon_loss = np.zeros(n_test)
 
-    start = time.time()
+    start = time.perf_counter()
     for i, batch in enumerate(dataloader):
         src = batch["input"].float().to(device)
         src = encoder(src)
@@ -331,9 +341,9 @@ def main():
     # KQp_thres, q_best = select_KQp_threshold(threshold, recon_loss)
     # config["q_best"] = q_best
     # idx_detection = return_anomaly_idx_by_threshold(recon_loss, KQp_thres)
-    # # print(idx_detection)
+    # # logging.info(idx_detection)
     # idx_detection_augmented = augment_detected_idx(idx_detection, anomaly_index)
-    # # print(idx_detection_augmented)
+    # # logging.info(idx_detection_augmented)
     # precision, recall, F1, _, n_TP, n_FP, n_FN = compute_precision_and_recall(idx_detection_augmented,
                                                                               # test_labels)
 
@@ -343,16 +353,16 @@ def main():
     config["precision"] = precision
     config["recall"] = recall
     config["F1"] = F1
-    config["inference_time"] = (time.time() - start) / 60
+    config["inference_time"] = (time.perf_counter() - start) / 60
     save_config(config)
-    print("\nPR evaluation using KQE:")
-    print("Accuracy: {}".format(accuracy))
-    print("Precision: {}".format(precision))
-    print("Recall: {}".format(recall))
-    print("F1: {}".format(F1))
-    # print("TP: {}".format(n_TP))
-    # print("FP: {}".format(n_FP))
-    # print("FN: {}".format(n_FN))
+    logging.info("PR evaluation using KQE:")
+    logging.info("Accuracy: {}".format(accuracy))
+    logging.info("Precision: {}".format(precision))
+    logging.info("Recall: {}".format(recall))
+    logging.info("F1: {}".format(F1))
+    # logging.info("TP: {}".format(n_TP))
+    # logging.info("FP: {}".format(n_FP))
+    # logging.info("FN: {}".format(n_FN))
 
 if __name__ == '__main__':
     main()

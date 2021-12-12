@@ -54,7 +54,7 @@ class AutoencoderTrainer(ModelTrainer):
 
         logging.info('Trainer_ID {}. Local Training Epoch: {} \tTrain Loss: {:.6f}'.format(self.id, epoch, train_loss))
 
-        if self.val_data == None:
+        if self.val_data is None:
             if train_loss < self.min_loss:
                 self.min_loss = train_loss
                 self.best_model = self.model.state_dict()
@@ -90,7 +90,7 @@ class AutoencoderTrainer(ModelTrainer):
     def train(self):
         self.model.to(self.device)
 
-        start = time.time()
+        start = time.perf_counter()
         logging.info("-----START TRAINING THE AUTOENCODER-----")
         model_opt = optim.Adam(self.model.parameters())
         criterion = nn.MSELoss()
@@ -101,7 +101,7 @@ class AutoencoderTrainer(ModelTrainer):
                              epoch)
             logging.info(f"Done local epoch {epoch}.")
         logging.info("-----COMPLETED TRAINING THE AUTOENCODER-----")
-        self.config["auto_train_time"] = (time.time() - start) / 60
+        self.config["auto_train_time"] = (time.perf_counter() - start) / 60
 
         torch.save(self.best_model, self.config["checkpoint_dir"] + "autoencoder_model.pt")
         torch.save(self.best_optimizer, self.config["checkpoint_dir"] + "autoencoder_opt.pt")
@@ -113,7 +113,7 @@ class AutoencoderTrainer(ModelTrainer):
         pass
 
     def save_loss(self):
-        if self.val_data != None:
+        if self.val_data is not None:
             df_loss = pd.DataFrame([[i+1, self.train_loss_list[i], self.val_loss_list[i]] for i in range(len(self.train_loss_list))])
             df_loss.to_csv(self.config["result_dir"] + 'autoencoder_epoch_loss.csv',
                            index=False,
@@ -127,7 +127,7 @@ class AutoencoderTrainer(ModelTrainer):
     def client_plot_loss(self):
         epochs = range(1, self.config["auto_num_epoch"] + 1)
         plt.plot(epochs, self.train_loss_list, 'g', label='Training loss')
-        if self.val_data != None:
+        if self.val_data is not None:
             plt.plot(epochs, self.val_loss_list, 'b', label='Validation loss')
             plt.title('{}. ID {}: Training and Validation Loss'.format("AUTOENCODER", self.id))
         else:

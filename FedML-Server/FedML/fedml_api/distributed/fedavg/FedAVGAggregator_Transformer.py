@@ -1,10 +1,5 @@
 import logging
-import os
-import sys
 import time
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../..")))
-sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../../FedML")))
 
 class FedAVGAggregator(object):
 
@@ -42,7 +37,7 @@ class FedAVGAggregator(object):
         return True
 
     def aggregate(self, round_idx):
-        start_time = time.time()
+        start_time = time.perf_counter()
         model_list = []
         training_num = 0
 
@@ -55,22 +50,22 @@ class FedAVGAggregator(object):
         logging.info("length of self.model_dict = " + str(len(self.model_dict)))
 
         logging.info(f"-----START FEDAVG AGGREGATION ROUND {round_idx}-----")
-        (num0, averaged_params) = model_list[0]
-        for k in averaged_params.keys():
-            for i in range(0, len(model_list)):
-                local_sample_number, local_model_params = model_list[i]
+        (_, averaged_params) = model_list[0]
 
+        for key in averaged_params:
+            for i, (local_sample_number, local_model_params) in enumerate(model_list):
                 if not self.client_weights:
                     w = local_sample_number / training_num
                 else:
                     w = self.client_weights[i]
 
                 if i == 0:
-                    averaged_params[k] = local_model_params[k] * w
+                    averaged_params[key] = local_model_params[key] * w
                 else:
-                    averaged_params[k] += local_model_params[k] * w
+                    averaged_params[key] += local_model_params[key] * w
 
-        end_time = time.time()
+
+        end_time = time.perf_counter()
         logging.info("-----DONE FEDAVG AGGREGATION-----")
         logging.info("aggregate time cost: %d" % (end_time - start_time))
 
