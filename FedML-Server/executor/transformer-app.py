@@ -91,7 +91,7 @@ def shutdown():
     shutdown_func()
     return "Shutting down..."
 
-def clean_subprocess(bmon_process, resmon_process, start_time):
+def clean_subprocess(bmon_process, resmon_process, tegrastats_process, start_time):
     logging.info("Wait 10 seconds for server to end...")
     time.sleep(10)
     if bmon_process:
@@ -100,24 +100,32 @@ def clean_subprocess(bmon_process, resmon_process, start_time):
     if resmon_process:
         resmon_process.terminate()
         logging.info("Terminated resmon.")
+    if tegrastats_process:
+        tegrastats_process.terminate()
+        logging.info("Terminated tegrastats.")
     run_time = time.perf_counter() - start_time
     logging.info("Total running time: {} sec = {} min".format(run_time, run_time/60))
 
 if __name__ == '__main__':
     start_time = time.perf_counter()
     datetime_obj = datetime.now()
-    if args.bmonOutfile != 'None':
-        bmon_command = "bmon -p wlp7s0 -r 1 -o 'format:fmt=$(attr:txrate:bytes) $(attr:rxrate:bytes)\n' > " + args.bmonOutfile
+    if args.bmon != 'None':
+        bmon_command = "bmon -p wlp7s0 -r 1 -o 'format:fmt=$(attr:txrate:bytes) $(attr:rxrate:bytes)\n' > " + args.bmon
         bmon_process = subprocess.Popen(["exec " + bmon_command], shell=True)
     else:
         bmon_process = None
 
-    if args.resmonOutfile != 'None':
-        resmon_process = subprocess.Popen(["resmon", "-o", args.resmonOutfile])
+    if args.resmon != 'None':
+        resmon_process = subprocess.Popen(["resmon", "-o", args.resmon])
     else:
         resmon_process = None
 
-    atexit.register(clean_subprocess, bmon_process, resmon_process, start_time)
+    if args.tegrastats != 'None':
+        tegrastats_process = subprocess.Popen(["tegrastats", "--logfile", args.tegrastats, "--interval", "1000"])
+    else:
+        tegrastats_process = None
+
+    atexit.register(clean_subprocess, bmon_process, resmon_process, tegrastats_process, start_time)
 
     fmt = '[%(levelname)s] %(asctime)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format = fmt)

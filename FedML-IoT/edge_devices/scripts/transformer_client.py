@@ -34,21 +34,28 @@ from FedML.fedml_api.model.transformer.transformer import create_transformer, cr
 from FedML.fedml_iot.cfg import APP_HOST
 from FedML.fedml_api.distributed.fedavg.utils_Transformer import create_dirs, save_config
 
+PASSWORD = "1"
+
 def add_args(parser):
     parser.add_argument('--client_uuid',
                         type=str,
                         default="0",
                         help='number of workers in a distributed cluster')
-    parser.add_argument('-ob',
-                        '--bmonOutfile',
+    parser.add_argument('-b',
+                        '--bmon',
                         type=str,
                         default='None',
                         help='Bmon logfile')
-    parser.add_argument('-or',
-                        '--resmonOutfile',
+    parser.add_argument('-r',
+                        '--resmon',
                         type=str,
                         default='None',
                         help='Resmon logfile')
+    parser.add_argument('-t',
+                        '--tegrastats',
+                        type=str,
+                        default='None',
+                        help='tegrastats logfile')
     args = parser.parse_args()
     return args
 
@@ -70,7 +77,7 @@ def register(args, uuid):
 
     return client_ID, config
 
-def clean_subprocess(bmon_process, resmon_process, start_time):
+def clean_subprocess(bmon_process, resmon_process, tegrastats_process, start_time):
     logging.info("Wait 10 seconds for server to end...")
     time.sleep(10)
     if bmon_process:
@@ -79,6 +86,10 @@ def clean_subprocess(bmon_process, resmon_process, start_time):
     if resmon_process:
         resmon_process.terminate()
         logging.info("Terminated resmon.")
+    if tegrastats_process:
+        echo_cmd = subprocess.Popen(['echo', PASSWORD], stdout=subprocess.PIPE)
+        kill_process = subprocess.Popen(["sudo", "-S", "killall", "tegrastats"], stdin=echo_cmd.stdout)
+        logging.info("Killed tegrastats.")
     run_time = time.perf_counter() - start_time
     logging.info("Total running time: {} sec = {} min".format(run_time, run_time/60))
 
@@ -93,24 +104,31 @@ if __name__ == '__main__':
     main_args = add_args(parser)
     uuid = main_args.client_uuid
 
-    if main_args.bmonOutfile != 'None':
-        bmon_command = "bmon -p wlan0 -r 1 -o 'format:fmt=$(attr:txrate:bytes) $(attr:rxrate:bytes)\n' > " + main_args.bmonOutfile
+    if main_args.bmon != 'None':
+        bmon_command = "bmon -p wlan0 -r 1 -o 'format:fmt=$(attr:txrate:bytes) $(attr:rxrate:bytes)\n' > " + main_args.bmon
         bmon_process = subprocess.Popen(["exec " + bmon_command], shell=True)
     else:
         bmon_process = None
 
-    if main_args.resmonOutfile != 'None':
-        resmon_process = subprocess.Popen(["resmon", "-o", main_args.resmonOutfile])
+    if main_args.resmon!= 'None':
+        resmon_process = subprocess.Popen(["resmon", "-o", main_args.resmon])
     else:
         resmon_process = None
 
-    atexit.register(clean_subprocess, bmon_process, resmon_process, start_time)
+    if main_args.tegrastats != 'None':
+        echo_cmd = subprocess.Popen(['echo', PASSWORD], stdout=subprocess.PIPE)
+        tegrastats_process = subprocess.Popen(["sudo", "-S", "tegrastats", "--logfile", main_args.tegrastats, "--interval", "1000"], stdin=echo_cmd.stdout)
+    else:
+        tegrastats_process = None
+
+    atexit.register(clean_subprocess, bmon_process, resmon_process, tegrastats_process, start_time)
 
     fmt = '[%(levelname)s] %(asctime)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format = fmt)
 
     client_ID, config = register(main_args, uuid)
     logging.info(main_args)
+    config['auto_dataset'] = config['auto_dataset'] + '_' + str(client_ID)
     logging.info("client_ID = " + str(client_ID))
     logging.info("experiment = " + str(config['experiment']))
     logging.info("dataset = " + str(config['auto_dataset']))
