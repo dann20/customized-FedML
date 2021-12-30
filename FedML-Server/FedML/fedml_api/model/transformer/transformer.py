@@ -1,6 +1,7 @@
 import copy
 import math
 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -58,7 +59,7 @@ class SublayerConnection(nn.Module):
         """
         Apply residual connection to any sublayer with the same size.
         """
-        return x + self.dropout(sublayer(self.norm(x)))
+        return x + self.dropout(sublayer(self.norm(x.float())))
 
 
 class TransformerEncoderLayer(nn.Module):
@@ -191,7 +192,7 @@ class FNetEncoder(nn.Module):
         "Pass the input through each layer in turn"
         for layer in self.layers:
             x = layer(x)
-        return self.norm(x)
+        return self.norm(x.float())
 
 
 
@@ -221,7 +222,10 @@ class FourierFFTLayer(nn.Module):
         assert key is value
 
         x = query
-        return torch.real(torch.fft.fft(torch.fft.fft(x, dim=-1), dim=-2))
+        # return torch.real(torch.fft.fft(torch.fft.fft(x, dim=-1), dim=-2))
+        # for Raspberry Pi because fft package is not compatible (not compiled with MKL support, built from source)
+        x = x.detach().numpy()
+        return torch.real(torch.from_numpy(np.fft.fft(np.fft.fft(x, axis=-1), axis=-2)))
 
 
 def create_transformer(N, d_model, l_win, device, d_ff=0, h=8, dropout=0.1):
