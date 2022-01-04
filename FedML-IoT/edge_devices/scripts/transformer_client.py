@@ -60,7 +60,7 @@ def add_args(parser):
     return args
 
 
-def register(args, uuid):
+def register(uuid):
     str_device_UUID = uuid
     URL = "http://" + APP_HOST + ":5000/api/register"
 
@@ -88,15 +88,11 @@ def clean_subprocess(bmon_process, resmon_process, tegrastats_process, start_tim
         logging.info("Terminated resmon.")
     if tegrastats_process:
         echo_cmd = subprocess.Popen(['echo', PASSWORD], stdout=subprocess.PIPE)
-        kill_process = subprocess.Popen(["sudo", "-S", "killall", "tegrastats"], stdin=echo_cmd.stdout)
+        _ = subprocess.Popen(["sudo", "-S", "killall", "tegrastats"], stdin=echo_cmd.stdout)
         logging.info("Killed tegrastats.")
     run_time = time.perf_counter() - start_time
     logging.info("Total running time: {} sec = {} min".format(run_time, run_time/60))
 
-"""
-python mobile_client_simulator.py --client_uuid '0'
-python mobile_client_simulator.py --client_uuid '1'
-"""
 if __name__ == '__main__':
     start_time = time.perf_counter()
     datetime_obj = datetime.now()
@@ -126,7 +122,7 @@ if __name__ == '__main__':
     fmt = '[%(levelname)s] %(asctime)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format = fmt)
 
-    client_ID, config = register(main_args, uuid)
+    client_ID, config = register(uuid)
     logging.info(main_args)
     config['auto_dataset'] = config['auto_dataset'] + '_' + str(client_ID)
     logging.info("client_ID = " + str(client_ID))

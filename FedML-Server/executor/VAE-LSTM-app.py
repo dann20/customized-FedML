@@ -4,12 +4,13 @@ import sys
 import subprocess
 import atexit
 import time
+import json
+from datetime import datetime
 
 import tensorflow as tf
 
 tf.compat.v1.disable_eager_execution()
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../")))
-sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../")))
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152 VAE-LSTM
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
@@ -23,6 +24,8 @@ from FedML.fedml_iot import cfg
 from FedML.fedml_core.distributed.communication.observer import Observer
 from flask import Flask, request, jsonify, send_from_directory, abort
 
+PASSWORD = "1"
+
 # HTTP server
 app = Flask(__name__)
 app.config['MOBILE_PREPROCESSED_DATASETS'] = './preprocessed_dataset/'
@@ -31,9 +34,10 @@ app.config['MOBILE_PREPROCESSED_DATASETS'] = './preprocessed_dataset/'
 try:
     args = get_args()
     config = process_config(args.config)
-except:
-    print("missing or invalid arguments")
-    exit(0)
+except Exception as ex:
+    logging.error(ex)
+    logging.error("Missing or invalid arguments")
+    sys.exit(1)
 
 device_id_to_client_id_dict = dict()
 
@@ -99,7 +103,7 @@ def model_log(vae_trainer, lstm_model):
     for i in range(len(lstm_params)):
         print('Shape of layer ' + str(i) + str(lstm_params[i].shape))
 
-def clean_subprocess(bmon_process, resmon_process, start_time):
+def clean_subprocess(bmon_process, resmon_process, tegrastats_process, start_time):
     logging.info("Wait 10 seconds for server to end...")
     time.sleep(10)
     if bmon_process:
@@ -108,25 +112,37 @@ def clean_subprocess(bmon_process, resmon_process, start_time):
     if resmon_process:
         resmon_process.terminate()
         logging.info("Terminated resmon.")
-    run_time = time.time() - start_time
+    if tegrastats_process:
+        echo_cmd = subprocess.Popen(['echo', PASSWORD], stdout=subprocess.PIPE)
+        _ = subprocess.Popen(["sudo", "-S", "killall", "tegrastats"], stdin=echo_cmd.stdout)
+        logging.info("Killed tegrastats.")
+    run_time = time.perf_counter() - start_time
     logging.info("Total running time: {} sec = {} min".format(run_time, run_time/60))
 
 if __name__ == '__main__':
-    start_time = time.time()
-    if args.bmonOutfile != 'None':
-        bmon_command = "bmon -p wlp7s0 -r 1 -o 'format:fmt=$(attr:txrate:bytes) $(attr:rxrate:bytes)\n' > " + args.bmonOutfile
+    start_time = time.perf_counter()
+    datetime_obj = datetime.now()
+    if args.bmon!= 'None':
+        bmon_command = "bmon -p wlp7s0 -r 1 -o 'format:fmt=$(attr:txrate:bytes) $(attr:rxrate:bytes)\n' > " + args.bmon
         bmon_process = subprocess.Popen(["exec " + bmon_command], shell=True)
     else:
         bmon_process = None
 
-    if args.resmonOutfile != 'None':
-        resmon_process = subprocess.Popen(["resmon", "-o", args.resmonOutfile])
+    if args.resmon!= 'None':
+        resmon_process = subprocess.Popen(["resmon", "-o", args.resmon])
     else:
         resmon_process = None
 
-    atexit.register(clean_subprocess, bmon_process, resmon_process, start_time)
+    if args.tegrastats != 'None':
+        tegrastats_process = subprocess.Popen(["tegrastats", "--logfile", args.tegrastats, "--interval", "1000"])
+    else:
+        tegrastats_process = None
 
-    logging.basicConfig(level=logging.DEBUG)
+    atexit.register(clean_subprocess, bmon_process, resmon_process, tegrastats_process, start_time)
+
+    fmt = '[%(levelname)s] %(asctime)s - %(message)s'
+    logging.basicConfig(level=logging.INFO, format = fmt)
+
     # MQTT client connection
     class Obs(Observer):
         def receive_message(self, msg_type, msg_params) -> None:
@@ -136,7 +152,11 @@ if __name__ == '__main__':
     if sys.platform == 'darwin':
         os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
-    logging.info(config)
+    timestamp = datetime_obj.strftime("%d-%b-%Y-%H:%M:%S")
+    config['time'] = timestamp
+
+    logging.info(args)
+    logging.info(json.dumps(config, indent=4, separators=(',', ': ')))
 
     # create the experiments dirs
     create_dirs([config['result_dir'], config['checkpoint_dir'], config['checkpoint_dir_lstm']])
@@ -155,8 +175,8 @@ if __name__ == '__main__':
     model_vae_global.load(sess_global)
     global_vae_trainer = vaeTrainer(sess_global, model_vae_global, None, config)
     global_lstm_model = lstmKerasModel("Global", config)
-    client_weights = [0.1] * 8
-    client_weights.append(0.2)
+    client_weights = [0.25] * 4
+
     aggregator = FedAVGAggregator(global_vae_trainer, global_lstm_model, args.num_client, config, client_weights)
 
     size = args.num_client + 1
@@ -170,4 +190,4 @@ if __name__ == '__main__':
     server_manager.send_init_config()
 
     # if run in debug mode, process will be single threaded by default
-    app.run(host= cfg.APP_HOST, port=5000)
+    app.run(host=cfg.APP_HOST, port=5000)

@@ -13,6 +13,17 @@ import requests
 import tensorflow as tf
 
 tf.compat.v1.disable_eager_execution()
+
+gpus = tf.config.list_physical_devices('GPU')
+if gpus:
+    try:
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+        logical_gpus = tf.config.list_logical_devices('GPU')
+        print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+    except RuntimeError as ex:
+        print(ex)
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../")))
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152 VAE-LSTM
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -146,7 +157,9 @@ if __name__ == '__main__':
     # save the config in a txt file
     save_config(config)
 
-    sess = tf.compat.v1.Session(config=tf.compat.v1.ConfigProto())
+    tf_config = tf.compat.v1.ConfigProto()
+    tf_config.gpu_options.allow_growth = True
+    sess = tf.compat.v1.Session(config=tf_config)
     dataset = DataGenerator(config, client_ID+1)
     vae_model = VAEmodel(config, "Client{}".format(client_ID))
     vae_model.load(sess)

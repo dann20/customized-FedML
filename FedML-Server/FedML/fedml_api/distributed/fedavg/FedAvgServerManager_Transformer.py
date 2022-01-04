@@ -23,7 +23,6 @@ class FedAVGServerManager(ServerManager):
 
     def finish(self):
         super().finish()
-        time.sleep(10)
         response = requests.get('http://localhost:5000/shutdown')
         os.kill(os.getpid(), signal.SIGINT)
 

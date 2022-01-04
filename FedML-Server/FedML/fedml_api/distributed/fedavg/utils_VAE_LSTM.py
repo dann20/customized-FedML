@@ -93,14 +93,19 @@ def get_args():
         default=4,
         help='The number of clients participating in Federated Learning')
     argparser.add_argument(
-        '-ob', '--bmonOutfile',
+        '-b', '--bmon',
         type=str,
         default='None',
         help='Bmon logfile')
     argparser.add_argument(
-        '-or', '--resmonOutfile',
+        '-r', '--resmon',
         type=str,
         default='None',
         help='Resmon logfile')
+    argparser.add_argument(
+        '-t', '--tegrastats',
+        type=str,
+        default='None',
+        help='tegrastats logfile')
     args = argparser.parse_args()
     return args

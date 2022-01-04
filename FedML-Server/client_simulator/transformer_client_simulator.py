@@ -66,10 +66,6 @@ def init_training_device(process_ID, fl_worker_num, gpu_num_per_machine):
     logging.info(device)
     return device
 
-"""
-python mobile_client_simulator.py --client_uuid '0'
-python mobile_client_simulator.py --client_uuid '1'
-"""
 if __name__ == '__main__':
     if sys.platform == 'darwin':
         # quick fix for issue : https://github.com/openai/spinningup/issues/16

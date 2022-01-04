@@ -27,6 +27,8 @@ from FedML.fedml_iot import cfg
 from FedML.fedml_core.distributed.communication.observer import Observer
 from flask import Flask, request, jsonify, send_from_directory, abort
 
+PASSWORD = "1"
+
 # HTTP server
 app = Flask(__name__)
 app.config['MOBILE_PREPROCESSED_DATASETS'] = './preprocessed_dataset/'
@@ -101,8 +103,9 @@ def clean_subprocess(bmon_process, resmon_process, tegrastats_process, start_tim
         resmon_process.terminate()
         logging.info("Terminated resmon.")
     if tegrastats_process:
-        tegrastats_process.terminate()
-        logging.info("Terminated tegrastats.")
+        echo_cmd = subprocess.Popen(['echo', PASSWORD], stdout=subprocess.PIPE)
+        _ = subprocess.Popen(["sudo", "-S", "killall", "tegrastats"], stdin=echo_cmd.stdout)
+        logging.info("Killed tegrastats.")
     run_time = time.perf_counter() - start_time
     logging.info("Total running time: {} sec = {} min".format(run_time, run_time/60))
 
@@ -221,4 +224,4 @@ if __name__ == '__main__':
     server_manager.send_init_config()
 
     # if run in debug mode, process will be single threaded by default
-    app.run(host= cfg.APP_HOST, port=5000)
+    app.run(host=cfg.APP_HOST, port=5000)
