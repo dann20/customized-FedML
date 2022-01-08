@@ -1,41 +1,52 @@
 #!/bin/bash
 
-for CFG in ../Transformer-related/configs/relationship/to_be_train/*.json; do
-	echo "STARTING TRAINING CONFIG $CFG"
+SERVER="transformer-app.py"
+NUM_CLIENT=2
+CLIENT="../client_simulator/transformer_client_simulator.py"
+CFG_DIR="../Transformer-related/configs/relationship/to_be_train"
+CFG_DIR_AFTER="../Transformer-related/configs/relationship/to_be_test"
+PID_LIST=()
+
+run_client() {
+	echo "Starting CLIENT $1..."
+	local uuid="$1"
+	local logfile="./logs/mobile_client_log_$1.txt"
+	python $CLIENT --client_uuid $uuid > $logfile 2>&1 &
+	local client_pid=$!
+	echo "CLIENT$1_PID = $client_pid"
+	PID_LIST+=($client_pid)
+}
+
+run_cfg() {
+	echo "STARTING TRAINING CONFIG $1"
 
 	echo "Restarting EMQX broker..."
 	docker stop emqx && docker start emqx && sleep 5
 
 	echo "Starting SERVER..."
-	python transformer-app.py --num-client 4 --config $CFG > ./logs/server_log.txt 2>&1 &
+	python $SERVER --num-client $NUM_CLIENT --config $1 > ./logs/server_log.txt 2>&1 &
 	export SERVER_PID=$! && echo "SERVER_PID = $SERVER_PID"
 	sleep 10
 
-	echo "Starting CLIENT 0..."
-	python ../client_simulator/transformer_client_simulator.py --client_uuid '0' > ./logs/mobile_client_log_0.txt 2>&1 &
-	export CLIENT0_PID=$! && echo "CLIENT0_PID = $CLIENT0_PID"
-	echo "Starting CLIENT 1..."
-	python ../client_simulator/transformer_client_simulator.py --client_uuid '1' > ./logs/mobile_client_log_1.txt 2>&1 &
-	export CLIENT1_PID=$! && echo "CLIENT1_PID = $CLIENT1_PID"
-	echo "Starting CLIENT 2..."
-	python ../client_simulator/transformer_client_simulator.py --client_uuid '2' > ./logs/mobile_client_log_2.txt 2>&1 &
-	export CLIENT2_PID=$! && echo "CLIENT2_PID = $CLIENT2_PID"
-	echo "Starting CLIENT 3..."
-	python ../client_simulator/transformer_client_simulator.py --client_uuid '3' > ./logs/mobile_client_log_3.txt 2>&1 &
-	export CLIENT3_PID=$! && echo "CLIENT3_PID = $CLIENT3_PID"
+	for client_id in $(seq 0 $(($NUM_CLIENT-1))); do
+		run_client $client_id
+	done
 
 	while true; do
 		ps cax | grep $SERVER_PID > /dev/null
 		if [[ $? -ne 0 ]]; then
-			echo "FINISHED training config $CFG"
-			kill $CLIENT0_PID
-			kill $CLIENT1_PID
-			kill $CLIENT2_PID
-			kill $CLIENT3_PID
-			mv -v $CFG ../Transformer-related/configs/relationship/to_be_test/
-			echo "--------------------------------------------------------------------"
+			echo "FINISHED training config $1"
+			for pid in "${PID_LIST[@]}"; do
+				kill $pid
+			done
+			mv -v $1 $CFG_DIR_AFTER
+			printf '=%.0s' {1..100}
 			break
 		fi
 		sleep 1
 	done
+}
+
+for CFG in $CFG_DIR/*.json; do
+	run_cfg $CFG
 done
