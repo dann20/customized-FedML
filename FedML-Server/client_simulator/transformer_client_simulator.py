@@ -30,6 +30,8 @@ from FedML.fedml_api.distributed.fedavg.utils_Transformer import create_dirs, sa
 def add_args(parser):
     parser.add_argument('--client_uuid', type=str, default="0",
                         help='number of workers in a distributed cluster')
+    parser.add_argument('--device', type=str, default='cpu',
+                        help='device used for torch training: "cpu" (default, fallback) or "gpu"')
     args = parser.parse_args()
     return args
 
@@ -103,7 +105,7 @@ if __name__ == '__main__':
     # Set the random seed. torch_manual_seed determines the initial weight.
     torch.manual_seed(10)
 
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda:0" if torch.cuda.is_available() and main_args.device == "gpu" else "cpu")
     if device.type == "cuda" and not torch.cuda.is_initialized():
         torch.cuda.init()
 

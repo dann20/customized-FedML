@@ -1,17 +1,18 @@
 #!/bin/bash
 
 SERVER="transformer-app.py"
-NUM_CLIENT=2
+NUM_CLIENT=4
+DEVICE_LIST=('gpu' 'gpu' 'cpu' 'cpu')
 CLIENT="../client_simulator/transformer_client_simulator.py"
-CFG_DIR="../Transformer-related/configs/relationship/to_be_train"
-CFG_DIR_AFTER="../Transformer-related/configs/relationship/to_be_test"
+CFG_DIR="../Transformer-related/configs/to_be_train"
+CFG_DIR_AFTER="../Transformer-related/configs/to_be_test"
 PID_LIST=()
 
 run_client() {
 	echo "Starting CLIENT $1..."
 	local uuid="$1"
 	local logfile="./logs/mobile_client_log_$1.txt"
-	python $CLIENT --client_uuid $uuid > $logfile 2>&1 &
+	python $CLIENT --client_uuid $uuid --device ${DEVICE_LIST[$1]} > $logfile 2>&1 &
 	local client_pid=$!
 	echo "CLIENT$1_PID = $client_pid"
 	PID_LIST+=($client_pid)
