@@ -3,6 +3,7 @@ import logging
 import os
 import sys
 import math
+from copy import deepcopy
 
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -116,8 +117,8 @@ class SCAFFOLDTransformerTrainer(ModelTrainer):
         if self.val_data is None:
             if train_loss < self.min_loss:
                 self.min_loss = train_loss
-                self.best_model = self.model.state_dict()
-                self.best_optimizer = opt.state_dict()
+                self.best_model = deepcopy(self.model.state_dict())
+                self.best_optimizer = deepcopy(opt.state_dict())
                 self.best_comm_round = round_idx + 1
                 self.best_epoch_in_round = epoch
         else:
@@ -145,8 +146,8 @@ class SCAFFOLDTransformerTrainer(ModelTrainer):
 
         if val_loss < self.min_loss:
             self.min_loss = val_loss
-            self.best_model = self.model.state_dict()
-            self.best_optimizer = opt.state_dict()
+            self.best_model = deepcopy(self.model.state_dict())
+            self.best_optimizer = deepcopy(opt.state_dict())
             self.best_comm_round = round_idx + 1
             self.best_epoch_in_round = epoch
 

@@ -1,6 +1,7 @@
 import os
 import time
 import logging
+from copy import deepcopy
 
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -57,8 +58,8 @@ class AutoencoderTrainer(ModelTrainer):
         if self.val_data is None:
             if train_loss < self.min_loss:
                 self.min_loss = train_loss
-                self.best_model = self.model.state_dict()
-                self.best_optimizer = opt.state_dict()
+                self.best_model = deepcopy(self.model.state_dict())
+                self.best_optimizer = deepcopy(opt.state_dict())
                 self.best_epoch = epoch
         else:
             self.validate_epoch(criterion, opt, epoch)
@@ -83,8 +84,8 @@ class AutoencoderTrainer(ModelTrainer):
 
         if val_loss < self.min_loss:
             self.min_loss = val_loss
-            self.best_model = self.model.state_dict()
-            self.best_optimizer = opt.state_dict()
+            self.best_model = deepcopy(self.model.state_dict())
+            self.best_optimizer = deepcopy(opt.state_dict())
             self.best_epoch = epoch
 
     def train(self):
@@ -111,6 +112,12 @@ class AutoencoderTrainer(ModelTrainer):
 
     def test(self, test_data, device, args):
         pass
+
+    def load_model(self, path = None):
+        if path is None:
+            path = self.config['checkpoint_dir'] + "autoencoder_model.pt"
+        self.model.load_state_dict(torch.load(path))
+        self.model.eval()
 
     def save_loss(self):
         if self.val_data is not None:
