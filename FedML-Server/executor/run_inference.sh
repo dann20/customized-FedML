@@ -2,8 +2,8 @@
 
 INFERENCE="../client_simulator/transformer_inference.py"
 NUM_CLIENT=4
-CFG_DIR="../Transformer-related/configs/relationship/to_be_train"
-CFG_DIR_AFTER="../Transformer-related/configs/relationship/al_run"
+CFG_DIR="../Transformer-related/configs/test_queue"
+CFG_DIR_AFTER="../Transformer-related/configs/done"
 
 run_cfg() {
 	echo "START TESTING CONFIG $1 ...."

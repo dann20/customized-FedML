@@ -112,18 +112,19 @@ def clean_subprocess(bmon_process, resmon_process, tegrastats_process, start_tim
 if __name__ == '__main__':
     start_time = time.perf_counter()
     datetime_obj = datetime.now()
-    if args.bmon != 'None':
-        bmon_command = "bmon -p wlp7s0 -r 1 -o 'format:fmt=$(attr:txrate:bytes) $(attr:rxrate:bytes)\n' > " + args.bmon
-        bmon_process = subprocess.Popen(["exec " + bmon_command], shell=True)
+
+    if args.bmon:
+        with open(args.bmon, 'w') as f:
+            bmon_process = subprocess.Popen(['bmon', '-p', 'wlp7s0', '-r', '1', '-o', 'format:fmt=$(attr:txrate:bytes) $(attr:rxrate:bytes)\n'], stdout=f)
     else:
         bmon_process = None
 
-    if args.resmon != 'None':
+    if args.resmon:
         resmon_process = subprocess.Popen(["resmon", "-o", args.resmon])
     else:
         resmon_process = None
 
-    if args.tegrastats != 'None':
+    if args.tegrastats:
         tegrastats_process = subprocess.Popen(["tegrastats", "--logfile", args.tegrastats, "--interval", "1000"])
     else:
         tegrastats_process = None

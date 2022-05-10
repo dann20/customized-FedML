@@ -44,17 +44,14 @@ def add_args(parser):
     parser.add_argument('-b',
                         '--bmon',
                         type=str,
-                        default='None',
                         help='Bmon logfile')
     parser.add_argument('-r',
                         '--resmon',
                         type=str,
-                        default='None',
                         help='Resmon logfile')
     parser.add_argument('-t',
                         '--tegrastats',
                         type=str,
-                        default='None',
                         help='tegrastats logfile')
     args = parser.parse_args()
     return args
@@ -100,18 +97,18 @@ if __name__ == '__main__':
     main_args = add_args(parser)
     uuid = main_args.client_uuid
 
-    if main_args.bmon != 'None':
-        bmon_command = "bmon -p wlan0 -r 1 -o 'format:fmt=$(attr:txrate:bytes) $(attr:rxrate:bytes)\n' > " + main_args.bmon
-        bmon_process = subprocess.Popen(["exec " + bmon_command], shell=True)
+    if main_args.bmon:
+        with open(main_args.bmon, 'w') as f:
+            bmon_process = subprocess.Popen(['bmon', '-p', 'wlan0', '-r', '1', '-o', 'format:fmt=$(attr:txrate:bytes) $(attr:rxrate:bytes)\n'], stdout=f)
     else:
         bmon_process = None
 
-    if main_args.resmon!= 'None':
+    if main_args.resmon:
         resmon_process = subprocess.Popen(["resmon", "-o", main_args.resmon])
     else:
         resmon_process = None
 
-    if main_args.tegrastats != 'None':
+    if main_args.tegrastats:
         echo_cmd = subprocess.Popen(['echo', PASSWORD], stdout=subprocess.PIPE)
         tegrastats_process = subprocess.Popen(["sudo", "-S", "tegrastats", "--logfile", main_args.tegrastats, "--interval", "1000"], stdin=echo_cmd.stdout)
     else:

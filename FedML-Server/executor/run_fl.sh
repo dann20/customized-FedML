@@ -4,8 +4,8 @@ SERVER="transformer-app.py"
 NUM_CLIENT=4
 DEVICE_LIST=('gpu' 'gpu' 'cpu' 'cpu')
 CLIENT="../client_simulator/transformer_client_simulator.py"
-CFG_DIR="../Transformer-related/configs/to_be_train"
-CFG_DIR_AFTER="../Transformer-related/configs/to_be_test"
+CFG_DIR="../Transformer-related/configs/train_queue"
+CFG_DIR_AFTER="../Transformer-related/configs/test_queue"
 PID_LIST=()
 
 run_client() {

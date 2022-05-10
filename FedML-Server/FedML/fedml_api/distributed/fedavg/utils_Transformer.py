@@ -66,17 +66,14 @@ def get_args():
     argparser.add_argument(
         '-b', '--bmon',
         type=str,
-        default='None',
         help='Bmon logfile')
     argparser.add_argument(
         '-r', '--resmon',
         type=str,
-        default='None',
         help='Resmon logfile')
     argparser.add_argument(
         '-t', '--tegrastats',
         type=str,
-        default='None',
         help='tegrastats logfile')
     args = argparser.parse_args()
     return args
