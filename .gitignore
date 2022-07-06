@@ -20,3 +20,4 @@ FedML-Server/Transformer-related/utils/*.csv
 FedML-IoT/raspberry_pi/Transformer-related/
 *.pyc
 .nvimrc
+.flake8

@@ -103,10 +103,7 @@ if __name__ == '__main__':
     else:
         bmon_process = None
 
-    if main_args.resmon:
-        resmon_process = subprocess.Popen(["resmon", "-o", main_args.resmon])
-    else:
-        resmon_process = None
+    resmon_process = subprocess.Popen(["resmon", "-o", main_args.resmon]) if main_args.resmon else None
 
     if main_args.tegrastats:
         echo_cmd = subprocess.Popen(['echo', PASSWORD], stdout=subprocess.PIPE)

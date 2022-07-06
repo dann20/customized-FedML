@@ -4,24 +4,21 @@ import sys
 import time
 import subprocess
 import atexit
-import json
+import yaml
 from datetime import datetime
 
 import torch
+from torch import nn
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../")))
 
-from FedML.fedml_api.distributed.fedavg.FedAvgTrainer_Transformer import FedAVGTransformerTrainer
-from FedML.fedml_api.distributed.fedavg.FedAVGAggregator_Transformer import FedAVGAggregator
-from FedML.fedml_api.distributed.fedavg.FedAvgServerManager_Transformer import FedAVGServerManager
+from FedML.fedml_api.distributed.fedavg.FedAvgTrainer_RULTransformer import FedAVGTransformerTrainer
+from FedML.fedml_api.distributed.fedavg.FedAVGAggregator_RULTransformer import FedAVGAggregator
+from FedML.fedml_api.distributed.fedavg.FedAvgServerManager_RULTransformer import FedAVGServerManager
 
-from FedML.fedml_api.distributed.scaffold.SCAFFOLDTrainer_Transformer import SCAFFOLDTransformerTrainer
-from FedML.fedml_api.distributed.scaffold.SCAFFOLDAggregator_Transformer import SCAFFOLDAggregator
-from FedML.fedml_api.distributed.scaffold.SCAFFOLDServerManager_Transformer import SCAFFOLDServerManager
+from FedML.fedml_api.model.rul_transformer.rul_transformer import create_transformer
 
-from FedML.fedml_api.model.transformer.transformer import create_transformer, create_fnet_hybrid
-
-from FedML.fedml_api.distributed.fedavg.utils_Transformer import process_config, create_dirs, get_args, save_config
+from FedML.fedml_api.distributed.fedavg.utils_RULTransformer import process_config, create_dirs, get_args, save_config
 from FedML.fedml_iot import cfg
 
 from FedML.fedml_core.distributed.communication.observer import Observer
@@ -50,7 +47,7 @@ def index():
     return 'backend service for Fed_mobile'
 
 
-@app.route('/get-preprocessed-data/<dataset_name>', methods = ['GET'])
+@app.route('/get-preprocessed-data/<dataset_name>', methods=['GET'])
 def get_preprocessed_data(dataset_name):
     directory = app.config['MOBILE_PREPROCESSED_DATASETS'] + config['dataset'].upper() + '_mobile_zip/'
     try:
@@ -85,6 +82,7 @@ def register_device():
                     "client_id": client_id,
                     "training_task_args": training_task_args})
 
+
 @app.route("/shutdown", methods=['GET'])
 def shutdown():
     shutdown_func = request.environ.get('werkzeug.server.shutdown')
@@ -92,6 +90,7 @@ def shutdown():
         raise RuntimeError('Not running werkzeug')
     shutdown_func()
     return "Shutting down..."
+
 
 def clean_subprocess(bmon_process, resmon_process, tegrastats_process, start_time):
     logging.info("Wait 10 seconds for server to end...")
@@ -107,7 +106,8 @@ def clean_subprocess(bmon_process, resmon_process, tegrastats_process, start_tim
         _ = subprocess.Popen(["sudo", "-S", "killall", "tegrastats"], stdin=echo_cmd.stdout)
         logging.info("Killed tegrastats.")
     run_time = time.perf_counter() - start_time
-    logging.info("Total running time: {} sec = {} min".format(run_time, run_time/60))
+    logging.info("Total running time: {} sec = {} min".format(run_time, run_time / 60))
+
 
 if __name__ == '__main__':
     start_time = time.perf_counter()
@@ -125,7 +125,7 @@ if __name__ == '__main__':
     atexit.register(clean_subprocess, bmon_process, resmon_process, tegrastats_process, start_time)
 
     fmt = '[%(levelname)s] %(asctime)s - %(message)s'
-    logging.basicConfig(level=logging.INFO, format = fmt)
+    logging.basicConfig(level=logging.INFO, format=fmt)
 
     # MQTT client connection
     class Obs(Observer):
@@ -140,12 +140,13 @@ if __name__ == '__main__':
     config['time'] = timestamp
 
     logging.info(args)
-    logging.info(json.dumps(config, indent=4, separators=(',', ': ')))
+    logging.info(yaml.dump(config, default_flow_style=None))
 
     # create the experiments dirs
     create_dirs(config["result_dir"], config["checkpoint_dir"], config["server_model_dir"])
     # save the config in a json file in result directory
-    save_config(config)
+    save_config(config['result_dir'] + "result_lr_{}_l_win_{}_dff_{}.yml".format(
+        config['lr'], config['l_win'], config['dff']), config)
 
     # wandb.init(
     #     project="fedml",
@@ -159,60 +160,33 @@ if __name__ == '__main__':
     # Set the random seed. torch.manual_seed determines the initial weight
     torch.manual_seed(10)
 
-    if config['model'] == 'transformer':
-        transformer = create_transformer(N=config['num_stacks'],
-                                         d_model=config['d_model'],
-                                         l_win=config['l_win'],
-                                         device=None,
-                                         d_ff=config['d_ff'],
-                                         h=config['num_heads'],
-                                         dropout=config['dropout'])
-    elif config['model'] == 'fnet_hybrid':
-        transformer = create_fnet_hybrid(N=config['num_stacks'],
-                                         d_model=config['d_model'],
-                                         l_win=config['l_win'],
-                                         device=None,
-                                         d_ff=config['d_ff'],
-                                         h=config['num_heads'],
-                                         dropout=config['dropout'])
-    else:
-        logging.error("No valid model type specified in config file.")
-        sys.exit(1)
+    model = create_transformer(d_model=config['d_model'],
+                               nhead=config['n_head'],
+                               dff=config['dff'],
+                               num_layers=config['num_layers'],
+                               dropout=config['dropout'],
+                               l_win=config['l_win'])
 
-    if config['algorithm'] == 'FedAvg':
-        trainer = FedAVGTransformerTrainer(id = 0,
-                                           autoencoder_model=None,
-                                           transformer_model=transformer,
-                                           train_data=None,
-                                           val_data=None,
-                                           device=None,
-                                           config=config)
-        aggregator = FedAVGAggregator(transformer_trainer=trainer,
-                                      worker_num=args.num_client,
-                                      client_weights=None)
-        server_manager = FedAVGServerManager(config,
-                                             aggregator,
-                                             rank=0,
-                                             size=size,
-                                             backend="MQTT")
-    elif config['algorithm'] == 'SCAFFOLD':
-        trainer = SCAFFOLDTransformerTrainer(id = 0,
-                                             autoencoder_model=None,
-                                             transformer_model=transformer,
-                                             train_data=None,
-                                             val_data=None,
-                                             device=None,
-                                             config=config)
-        aggregator = SCAFFOLDAggregator(transformer_trainer=trainer,
-                                        num_clients=args.num_client)
-        server_manager = SCAFFOLDServerManager(config,
-                                               aggregator,
-                                               rank=0,
-                                               size=size,
-                                               backend="MQTT")
-    else:
-        logging.error("No valid algorithm specified in config file.")
-        sys.exit(1)
+    optimizer = torch.optim.Adam(model.parameters(), lr=config["lr"], weight_decay=config['weight_decay'])
+    criterion = nn.MSELoss()
+
+    trainer = FedAVGTransformerTrainer(id=0,
+                                       transformer_model=model,
+                                       train_data=None,
+                                       criterion=criterion,
+                                       optimizer=optimizer,
+                                       device=None,
+                                       config=config)
+
+    aggregator = FedAVGAggregator(transformer_trainer=trainer,
+                                  worker_num=args.num_client,
+                                  client_weights=None)
+
+    server_manager = FedAVGServerManager(config,
+                                         aggregator,
+                                         rank=0,
+                                         size=size,
+                                         backend="MQTT")
 
     server_manager.run()
     server_manager.send_init_config()
