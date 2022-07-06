@@ -1,15 +1,8 @@
-import os
 import sys
-import time
 import logging
 from copy import deepcopy
 
-import pandas as pd
-from matplotlib import pyplot as plt
-
 import torch
-from torch import nn
-from torch import optim
 
 from FedML.fedml_core.trainer.model_trainer import ModelTrainer
 
@@ -63,7 +56,7 @@ class FedAVGTransformerTrainer(ModelTrainer):
 
         self.config['train_loss_list'] = self.train_loss_list
 
-        torch.save(self.best_model, self.config["model_dir"] + "model__lr_{}_l_win_{}_dff_{}.pt".format(
+        torch.save(self.best_model, self.config["checkpoint_dir"] + "model__lr_{}_l_win_{}_dff_{}.pt".format(
                    self.config['lr'], self.config['l_win'], self.config['dff']))
 
     def test(self, test_data, device, args):

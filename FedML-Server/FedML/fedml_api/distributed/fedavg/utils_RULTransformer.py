@@ -35,7 +35,7 @@ def process_config(yaml_file):
     save_dir = f"../RUL-related/experiments/{config['experiment']}/"
     config["result_dir"] = os.path.abspath(os.path.join(save_dir, "results/")) + "/"
     config["server_model_dir"] = os.path.abspath(os.path.join(save_dir, "server_models/")) + "/"
-    config["data_path"] = os.path.abspath("../RUL-related/dataset/") + "/"
+    config["data_path"] = os.path.abspath("../RUL-related/datasets/") + "/"
     config["checkpoint_dir"] = os.path.abspath(os.path.join(save_dir, "checkpoints/")) + "/"
     return config
 

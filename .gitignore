@@ -21,3 +21,5 @@ FedML-IoT/raspberry_pi/Transformer-related/
 *.pyc
 .nvimrc
 .flake8
+FedML-Server/RUL-related/experiments/
+FedML-Server/RUL-related/datasets/

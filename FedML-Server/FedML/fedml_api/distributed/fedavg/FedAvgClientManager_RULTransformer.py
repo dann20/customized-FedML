@@ -67,7 +67,7 @@ class FedAVGClientManager(ClientManager):
 
     def __train(self):
         logging.info("#######TRANSFORMER TRAINING########### round_id = %d" % self.round_idx)
-        self.trainer.train(self.round_idx)
+        self.trainer.train()
         local_sample_num = self.trainer.get_len_data()
         logging.info(f'local_sample_num = {local_sample_num}')
         weights = self.trainer.get_model_params()
